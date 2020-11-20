@@ -19,8 +19,7 @@ jobs:
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
           git clone git@github.com:PaceNow/pace-for-magento-2.git
-      - run: pwd
-      - run: ls
+          ls
 
 workflows:
   version: 2
