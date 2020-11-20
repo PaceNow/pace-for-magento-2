@@ -12,13 +12,21 @@ jobs:
     steps:
       - checkout
       - run: |
+          tag=$(git descibe --tag)
           cd ~/repo
           pwd
           git config --global user.name "Pace Robot"
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
           git clone git@github.com:PaceNow/pace-for-magento-2.git
-          ls pace-for-magento-2
+          cd pace-for-magento-2
+          git remote add internal git@github.com:PaceNow/pace-for-magento-2-internal.git
+          git remote update
+          git merge --allow-unrelated-histories --squash -X theirs $(tag)
+          git commit -m "$(tag)"
+          ls
+          git log
+          git status
 
 workflows:
   version: 2
