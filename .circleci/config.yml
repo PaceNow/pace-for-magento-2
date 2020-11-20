@@ -12,7 +12,7 @@ jobs:
     steps:
       - checkout
       - run: |
-          tag=$(git descibe --tag)
+          tag=$(git describe --tag)
           cd ~/repo
           pwd
           git config --global user.name "Pace Robot"
