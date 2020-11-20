@@ -3,24 +3,17 @@
 namespace Pace\Pay\Block;
 
 use Magento\Framework\View\Element\Template;
-use Magento\Catalog\Model\Product;
-use Magento\Directory\Model\Currency;
 use Magento\Framework\App\ObjectManager;
 use Pace\Pay\Helper\ConfigData;
 
 class SingleProductWidget extends Template
 {
-    protected $product;
-    protected $currency;
-
     public function __construct(
         Template\Context $context,
-        Product $product,
-        ConfigData $config
+        ConfigData $configData
     ) {
         parent::__construct($context);
-        $this->product = $product;
-        $this->config = $config;
+        $this->_config = $configData;
     }
 
     public function getProductPrice()
@@ -32,11 +25,16 @@ class SingleProductWidget extends Template
         return $currentProduct->getFinalPrice();
     }
 
+    // No styles rendered if price does not fall within range and no fallback is set too.
     public function getSingleProductContainerStyle()
     {
-        $style = $this->config->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE);
-        if (!isset($style)) {
-            $style = "";
+        $fallbackWidget = $this->_config->getConfigValue(ConfigData::CONFIG_FALLBACK_WIDGET);
+        $minAmount = $this->_config->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MIN);
+        $maxAmount = $this->_config->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MAX);
+        $productPrice = $this->getProductPrice();
+        $style = $this->_config->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE);
+        if (!isset($style) || (($productPrice < $minAmount || $productPrice > $maxAmount) && !$fallbackWidget)) {
+            $style = "display: none;";
         }
 
         return $style;

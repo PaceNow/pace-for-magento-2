@@ -22,6 +22,7 @@ class RemoveBlock implements ObserverInterface
         $layout = $observer->getLayout();
         $isPacePayActive = $this->_configData->getConfigValue(ConfigData::CONFIG_ACTIVE);
         $isPacePayWidgetsActive = $this->_configData->getConfigValue(ConfigData::CONFIG_WIDGETS_ACTIVE);
+        $isPacePaySingleProductWidgetActive = $this->_configData->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_ACTIVE);
 
         if ($layout->getBlock('pace.pacejs')) {
             if (!$isPacePayActive || !$isPacePayWidgetsActive) {
@@ -30,7 +31,7 @@ class RemoveBlock implements ObserverInterface
         }
 
         if ($layout->getBlock('pace.singleproduct')) {
-            if (!$isPacePayActive || !$isPacePayWidgetsActive) {
+            if (!$isPacePayActive || !$isPacePayWidgetsActive || !$isPacePaySingleProductWidgetActive) {
                 $layout->unsetElement('pace.singleproduct');
             }
         }

@@ -9,34 +9,34 @@ class PaceJS extends Template
 {
     public function __construct(
         Template\Context $context,
-        ConfigData $config
+        ConfigData $configData
     ) {
         parent::__construct($context);
-        $this->config = $config;
+        $this->_config = $configData;
     }
 
     public function getApiEnvironment()
     {
-        return $this->config->getApiEnvironment();
+        return $this->_config->getApiEnvironment();
     }
 
     public function getSingleProductWidgetConfig()
     {
-        return $this->config->getSingleProductWidgetConfig();
+        return $this->_config->getSingleProductWidgetConfig();
     }
 
     public function getMultiProductsWidgetConfig()
     {
-        return $this->config->getMultiProductsWidgetConfig();
+        return $this->_config->getMultiProductsWidgetConfig();
     }
 
     public function getBaseWidgetConfig()
     {
-        return $this->config->getBaseWidgetConfig();
+        return $this->_config->getBaseWidgetConfig();
     }
 
     public function getPaymentPlan()
     {
-        return $this->config->getPaymentPlan();
+        return $this->_config->getPaymentPlan();
     }
 }

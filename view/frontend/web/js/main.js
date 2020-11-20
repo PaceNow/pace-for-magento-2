@@ -4,6 +4,7 @@ require([], function () {
   require([pacePayRequireKey], function (requiredPacePay) {
     if (window.pacePaymentPlan) {
       requiredPacePay = requiredPacePay.init({
+        fallbackWidget: window.pacePayBaseWidgetConfig.fallbackWidget,
         minAmount: parseFloat(window.pacePaymentPlan.minAmount),
         maxAmount: parseFloat(window.pacePaymentPlan.maxAmount),
         styles: window.pacePayBaseWidgetConfig.styles

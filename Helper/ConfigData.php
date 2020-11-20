@@ -10,8 +10,6 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
 
-use Zend_Http_Client;
-
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
 function parseWidgetFontSize($fontSizeString)
@@ -38,6 +36,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_PAYMENT_PLAN_CURRENCY = "payment_plan_currency";
     const CONFIG_PAYMENT_PLAN_MIN = "payment_plan_min";
     const CONFIG_PAYMENT_PLAN_MAX = "payment_plan_max";
+    const CONFIG_FALLBACK_WIDGET = "fallback_widget";
     const CONFIG_PAY_WITH_PACE_MODE = "pay_with_pace_mode";
     const CONFIG_GENERATE_INVOICE = "generate_invoice";
     const CONFIG_PLAYGROUND_CLIENT_ID = "playground_client_id";
@@ -77,12 +76,10 @@ class ConfigData extends AbstractHelper
      */
     public function __construct(
         Context $context,
-        EncryptorInterface $encryptor,
-        ZendClient $client
+        EncryptorInterface $encryptor
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
-        $this->_client = $client;
     }
 
 
@@ -155,7 +152,7 @@ class ConfigData extends AbstractHelper
         $styles = [
             "textPrimaryColor" => $this->getConfigValue(self::CONFIG_BASE_TEXT_PRIMARY_COLOR),
             "textSecondaryColor" => $this->getConfigValue(self::CONFIG_BASE_TEXT_SECONDARY_COLOR),
-            "fontFamily" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_BASE_FONT_FAMILY))
+            "fontFamily" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_BASE_FONT_FAMILY)),
         ];
 
         $styles = array_filter($styles, function ($value) {
@@ -164,6 +161,7 @@ class ConfigData extends AbstractHelper
 
         return [
             "isActive" => $this->getConfigValue(self::CONFIG_ACTIVE) == '1',
+            "fallbackWidget" => $this->getConfigValue(self::CONFIG_FALLBACK_WIDGET) == "1",
             "styles" => $styles,
         ];
     }
@@ -225,25 +223,6 @@ class ConfigData extends AbstractHelper
         return [
             "styles" => $styles,
         ];
-    }
-
-    /**
-     * @return array
-     */
-    private function _getBasePayload()
-    {
-        $authToken = base64_encode(
-            $this->getClientId() . ':' .
-                $this->getClientSecret()
-        );
-
-        $pacePayload = [];
-        $pacePayload['headers'] = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Basic ' . $authToken,
-        ];
-
-        return $pacePayload;
     }
 
     public function getPaymentPlan()
