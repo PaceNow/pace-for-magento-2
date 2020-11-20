@@ -8,12 +8,12 @@ Below are the instructions to install the module on Magento 2. Please ensure you
 ## Composer
 - Add Pace repository
  ```
-  composer config repositories.pacenow git https://github.com/PaceNow/pace-magento-2.git
+  composer config repositories.pacenow git https://github.com/PaceNow/pace-for-magento-2.git
  ```
 
 - Require Pace_Pay module
 ```
- composer require pace/module-pay:dev-master#0.0.1
+ composer require pace/module-pay:dev-master#0.0.5
 ```
 
 - Enable Pace_Pay module
