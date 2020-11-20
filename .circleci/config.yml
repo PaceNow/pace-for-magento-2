@@ -23,6 +23,7 @@ jobs:
           git remote add internal git@github.com:PaceNow/pace-for-magento-2-internal.git
           git remote update
           git merge --allow-unrelated-histories --squash -X theirs $tag
+          echo $tag
           git commit -m $tag
           ls
           git log
