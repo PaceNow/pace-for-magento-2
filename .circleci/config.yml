@@ -6,16 +6,16 @@ filter_on_master: &filter_on_master
 version: 2.1
 jobs:
   publish_to_git:
-    working_directory: ~/repo/internal
+    working_directory: ~/repo
     docker:
       - image: cimg/base:2020.01
     steps:
-      - checkout
       - run: |
           git config --global user.name "Pace Robot"
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
       - run: pwd
+      - run: ls
 
 workflows:
   version: 2
