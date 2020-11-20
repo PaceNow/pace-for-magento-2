@@ -1,5 +1,7 @@
 filter_tags: &filter_tags
   filters:
+    branches:
+      ignore: /.*/
     tags:
       only: /^v.*/
 
