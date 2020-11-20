@@ -1,7 +1,7 @@
-filter_on_master: &filter_on_master
+filter_on_master: &filter_tags
   filters:
-    branches:
-      only: master
+    tags:
+      only: /^v.*/
 
 version: 2.1
 jobs:
@@ -29,4 +29,4 @@ workflows:
   build:
     jobs:
       - publish_to_git:
-          <<: *filter_on_master
+          <<: *filter_tags
