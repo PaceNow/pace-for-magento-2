@@ -12,9 +12,9 @@ jobs:
     steps:
       - checkout
       - run: |
-          cd ..
-          mkdir external
-          cd external
+          mkdir ~/repo/external
+          cd ~/repo/external
+          pwd
           git config --global user.name "Pace Robot"
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
