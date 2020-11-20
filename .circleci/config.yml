@@ -23,9 +23,6 @@ jobs:
           git remote update
           git merge --allow-unrelated-histories --squash -X theirs $tag
           git commit -m $tag
-          git remote remove internal
-          git remote update
-          git tag $tag
           ls
           git log
           git status
