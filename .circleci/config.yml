@@ -22,7 +22,7 @@ jobs:
           git remote update
           git merge --allow-unrelated-histories --squash -X theirs $tag
           git commit -m $tag
-          git push
+          git push --follow-tags
 
 workflows:
   version: 2
