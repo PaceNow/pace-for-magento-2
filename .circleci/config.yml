@@ -11,7 +11,7 @@ jobs:
       - image: cimg/base:2020.01
     steps:
       - checkout
-      - run: >
+      - run: |
           git config --global user.name "Pace Robot"
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
