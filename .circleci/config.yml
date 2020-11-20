@@ -1,4 +1,4 @@
-filter_on_master: &filter_tags
+filter_tags: &filter_tags
   filters:
     tags:
       only: /^v.*/
