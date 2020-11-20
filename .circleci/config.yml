@@ -12,14 +12,13 @@ jobs:
     steps:
       - checkout
       - run: |
-          mkdir ~/repo/external
-          cd ~/repo/external
+          cd ~/repo
           pwd
           git config --global user.name "Pace Robot"
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
           git clone git@github.com:PaceNow/pace-for-magento-2.git
-          ls
+          ls pace-for-magento-2
 
 workflows:
   version: 2
