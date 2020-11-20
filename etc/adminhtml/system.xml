@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="pace_pay" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Pace Pay</label>
+                <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/pace_pay/active</config_path>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title</label>
+                    <config_path>payment/pace_pay/title</config_path>
+                </field>
+                <field id="debug" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Debug</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/pace_pay/debug</config_path>
+                </field>
+                <field id="environment" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Environment</label>
+                    <source_model>Pace\Pay\Model\Adminhtml\Source\Environment</source_model>
+                    <config_path>payment/pace_pay/environment</config_path>
+                </field>
+                <field id="pay_with_pace_mode" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pay with Pace Mode</label>
+                    <source_model>Pace\Pay\Model\Adminhtml\Source\PayWithPaceMode</source_model>
+                    <config_path>payment/pace_pay/pay_with_pace_mode</config_path>
+                </field>
+                <field id="payment_plan_button" translate="label" type="button" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Payment Plan</label>
+                    <frontend_model>Pace\Pay\Block\System\Config\PaymentPlan</frontend_model>
+                </field>
+                <field id="generate_invoice" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automatically Generate Invoice</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/pace_pay/generate_invoice</config_path>
+                </field>
+
+                <!--                <field id="payment_action" translate="label" type="select" sortOrder="110"-->
+                <!-- showInDefault="1" showInWebsite="1" showInStore="1">-->
+                <!--                    <label>Payment Action</label>-->
+                <!--                    <source_model>Pace\Pay\Model\Adminhtml\Source\PaymentAction</source_model>-->
+                <!--                    <config_path>payment/pace_pay/payment_action</config_path>-->
+                <!--                </field>-->
+                <group id="api_playground" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                    <label>Playground API config</label>
+                    <attribute type="expanded">1</attribute>
+                    <field id="client_id" translate="label" type="obscure" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Client ID</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/pace_pay/playground_client_id</config_path>
+                    </field>
+                    <field id="client_secret" translate="label" type="obscure" sortOrder="2" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Client Secret</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/pace_pay/playground_client_secret</config_path>
+                    </field>
+                    <depends>
+                        <field id="environment">playground</field>
+                    </depends>
+                </group>
+                <group id="api_production" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                    <label>Production API config</label>
+                    <attribute type="expanded">1</attribute>
+                    <field id="client_id" translate="label" type="obscure" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Client ID</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/pace_pay/production_client_id</config_path>
+                    </field>
+                    <field id="client_secret" translate="label" type="obscure" sortOrder="2" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Client Secret</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/pace_pay/production_client_secret</config_path>
+                    </field>
+                    <depends>
+                        <field id="environment">production</field>
+                    </depends>
+                </group>
+                <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sort Order</label>
+                    <frontend_class>validate-number</frontend_class>
+                    <config_path>payment/pace_pay/sort_order</config_path>
+                </field>
+                <group id="marketing_widgets" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Marketing Widgets</label>
+                    <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/pace_pay/widgets_active</config_path>
+                    </field>
+                    <field id="text_secondary_font_size" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Font Family</label>
+                        <config_path>payment/pace_pay/base_font_family</config_path>
+                        <comment><![CDATA[Example: 36px]]></comment>
+                    </field>
+                    <field id="text_primry_color" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Base Text Primary Color</label>
+                        <config_path>payment/pace_pay/base_text_primary_color</config_path>
+                        <comment><![CDATA[Example: #000000]]></comment>
+                    </field>
+                    <field id="text_secondary_color" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Base Text Secondary Color</label>
+                        <config_path>payment/pace_pay/base_text_secondary_color</config_path>
+                        <comment><![CDATA[Example: #000000]]></comment>
+                    </field>
+                    <group id="single_product" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enabled</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/pace_pay/single_product_active</config_path>
+                        </field>
+                        <label>Single Product Widget</label>
+                        <field id="logo_theme" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Logo Theme</label>
+                            <source_model>Pace\Pay\Model\Adminhtml\Source\WidgetLogoTheme</source_model>
+                            <config_path>payment/pace_pay/single_product_logo_theme</config_path>
+                        </field>
+                        <field id="text_primry_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Text Primary Color</label>
+                            <config_path>payment/pace_pay/single_product_text_primary_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="text_secondary_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Text Secondary Color</label>
+                            <config_path>payment/pace_pay/single_product_text_secondary_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Font size</label>
+                            <config_path>payment/pace_pay/single_product_font_size</config_path>
+                            <comment><![CDATA[Example: 36px]]></comment>
+                        </field>
+                        <field id="container_style" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Container style</label>
+                            <config_path>payment/pace_pay/single_product_container_style</config_path>
+                            <comment>CSS text</comment>
+                        </field>
+                    </group>
+                    <group id="multi_products" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Multi Product Widget</label>
+                        <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enabled</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/pace_pay/multi_products_active</config_path>
+                        </field>
+                        <field id="logo_theme" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Logo Theme</label>
+                            <source_model>Pace\Pay\Model\Adminhtml\Source\WidgetLogoTheme</source_model>
+                            <config_path>payment/pace_pay/multi_products_logo_theme</config_path>
+                        </field>
+                        <field id="text_primry_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Text Color</label>
+                            <config_path>payment/pace_pay/multi_products_text_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Font size</label>
+                            <config_path>payment/pace_pay/multi_products_font_size</config_path>
+                            <comment><![CDATA[Example: 36px]]></comment>
+                        </field>
+                    </group>
+                    <group id="checkout" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Checkout Widget</label>
+                        <field id="text_primry_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Text Primary Color</label>
+                            <config_path>payment/pace_pay/checkout_text_primary_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="text_secondary_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Text Secondary Color</label>
+                            <config_path>payment/pace_pay/checkout_text_secondary_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="timeline_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Timeline Color</label>
+                            <config_path>payment/pace_pay/checkout_timeline_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="text_background_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Text Secondary Color</label>
+                            <config_path>payment/pace_pay/checkout_text_background_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="foreground_color" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Foreground Color</label>
+                            <config_path>payment/pace_pay/checkout_foreground_color</config_path>
+                            <comment><![CDATA[Example: #000000]]></comment>
+                        </field>
+                        <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Font size</label>
+                            <config_path>payment/pace_pay/checkout_font_size</config_path>
+                            <comment><![CDATA[Example: 36px]]></comment>
+                        </field>
+                    </group>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

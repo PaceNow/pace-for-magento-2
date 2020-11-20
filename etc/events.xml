@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="payment_method_assign_data">
+        <observer name="pace_pay_gateway_data_assign" instance="Pace\Pay\Observer\DataAssignObserver"/>
+    </event>
+    <event name="admin_system_config_changed_section_payment">
+        <observer name="custom_admin_system_config_changed_section_payment" instance="Pace\Pay\Observer\ConfigPaymentObserver"/>
+    </event>
+    <event name="payment_method_is_active">
+        <observer name="custom_payment" instance="Pace\Pay\Observer\PaymentMethodAvailable" />
+    </event>
+    <event name="layout_generate_blocks_after">
+        <observer name="remove_block" instance="Pace\Pay\Model\Observer\RemoveBlock" />
+    </event>
+</config>

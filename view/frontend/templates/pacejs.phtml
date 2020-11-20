@@ -1,0 +1,7 @@
+    <script>
+        window.pacePayEnvironment = "<?php echo $block->getApiEnvironment(); ?>";
+        window.pacePaymentPlan = <?php echo json_encode($block->getPaymentPlan()); ?>;
+        window.pacePayBaseWidgetConfig = <?php echo json_encode($block->getBaseWidgetConfig()); ?>;
+        window.pacePaySingleProductWidgetConfig = <?php echo json_encode($block->getSingleProductWidgetConfig()); ?>;
+        window.pacePayMultiProductsWidgetConfig = <?php echo json_encode($block->getMultiProductsWidgetConfig()); ?>;
+    </script>

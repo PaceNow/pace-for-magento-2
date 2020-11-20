@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <pace_pay>
+                <active>0</active>
+                <title>Pace Pay</title>
+                <environment>playground</environment>
+                <pay_with_pace_mode>redirect</pay_with_pace_mode>
+                <generate_invoice>1</generate_invoice>
+                <widgets_active>0</widgets_active>
+                <single_product_active>0</single_product_active>
+                <multi_products_active>0</multi_products_active>
+                <checkout_font_size>0</checkout_font_size>
+                <sort_order>1</sort_order>
+                <debug>1</debug>
+                <model>PayFacade</model>
+                <payment_action>initialize</payment_action>
+                <currency>SGD</currency>
+                <can_initialize>1</can_initialize>
+                <can_authorize>1</can_authorize>
+                <can_capture>1</can_capture>
+                <can_void>1</can_void>
+                <can_use_checkout>1</can_use_checkout>
+                <is_gateway>1</is_gateway>
+                <debugReplaceKeys>MERCHANT_KEY</debugReplaceKeys>
+                <paymentInfoKeys>FRAUD_MSG_LIST</paymentInfoKeys>
+                <privateInfoKeys>FRAUD_MSG_LIST</privateInfoKeys>
+            </pace_pay>
+        </payment>
+    </default>
+</config>
