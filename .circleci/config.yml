@@ -6,12 +6,15 @@ filter_on_master: &filter_on_master
 version: 2.1
 jobs:
   publish_to_git:
-    working_directory: ~/repo
+    working_directory: ~/repo/internal
     docker:
       - image: cimg/base:2020.01
     steps:
-      - add_ssh_keys
+      - checkout
       - run: |
+          cd ..
+          mkdir external
+          cd external
           git config --global user.name "Pace Robot"
           git config --global user.email "merchant-integration@pacenow.co"
           git config --list
