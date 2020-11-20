@@ -7,7 +7,7 @@ version: 2.1
 jobs:
   publish_to_git:
     docker:
-      - image: circleci/php:7.1-node-browsers
+      - image: cimg/base:2020.01
     steps:
       - checkout
       - run: git config --list
