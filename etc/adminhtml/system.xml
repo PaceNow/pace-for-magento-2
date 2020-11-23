@@ -4,7 +4,9 @@
     <system>
         <section id="payment">
             <group id="pace_pay" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pace Pay</label>
+                <comment><![CDATA[<div class="pace-logo-text"></div><div class="pace-pay-text">Offer more ways to pay with Pace than Klarna. <br/>It's the smooothest way to boost sales and increase your average order value. <br/>You get more customers who buy more and do it more often. And you always get paid in full upfront while your customers pay at a later date. SICK YO!</div>]]></comment>
+                <fieldset_css>complex pace-pay_system-config</fieldset_css>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
