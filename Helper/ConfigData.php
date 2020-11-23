@@ -58,7 +58,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_CHECKOUT_TEXT_PRIMARY_COLOR = "checkout_text_primary_color";
     const CONFIG_CHECKOUT_TEXT_SECONDARY_COLOR = "checkout_text_secondary_color";
     const CONFIG_CHECKOUT_TIMELINE_COLOR = "checkout_timeline_color";
-    const CONFIG_CHECKOUT_TEXT_BACKGROUND_COLOR = "checkout_text_background_color";
+    const CONFIG_CHECKOUT_BACKGROUND_COLOR = "checkout_background_color";
     const CONFIG_CHECKOUT_FOREGROUND_COLOR = "checkout_foreground_color";
     const CONFIG_CHECKOUT_FONT_SIZE = "checkout_font_size";
     const CONFIG_BASE_FONT_FAMILY = "base_font_family";
@@ -213,6 +213,9 @@ class ConfigData extends AbstractHelper
         $styles = [
             "textPrimaryColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_TEXT_PRIMARY_COLOR),
             "textSecondaryColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_TEXT_SECONDARY_COLOR),
+            "timelineColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_TIMELINE_COLOR),
+            "backgroundColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_BACKGROUND_COLOR),
+            "foregroundColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_FOREGROUND_COLOR),
             "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_CHECKOUT_FONT_SIZE))
         ];
 
