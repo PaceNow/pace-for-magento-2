@@ -23,6 +23,10 @@ jobs:
           git remote add internal git@github.com:PaceNow/pace-for-magento-2-internal.git
           git remote update
           git merge --allow-unrelated-histories --squash -X theirs $tag
+          ./internal/generateReadme.sh
+          git reset -- internal
+          git reset -- .circleci
+          git add README.md
           git commit -m $tag
           git push
           git push origin $tag
