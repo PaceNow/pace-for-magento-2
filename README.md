@@ -13,7 +13,7 @@ Below are the instructions to install the module on Magento 2. Please ensure you
 
 - Require Pace_Pay module
 ```
- composer require pace/module-pay:dev-master#v0.0.9
+ composer require pace/module-pay:dev-master#v0.0.10
 ```
 
 - Enable Pace_Pay module
@@ -43,6 +43,7 @@ From the Magento 2 Admin interface
     - Select `Playground` or `Production` for the `Environment`
     - Set `Client ID` and `Client Secret` under `API config`
 - set the other options as necessary
+- NOTE: Make sure the store uses the supported currencies and located in supported countries.
 
 # Support
 For additional support, contact <merchant-integration@pacenow.co>

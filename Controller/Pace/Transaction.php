@@ -178,7 +178,8 @@ abstract class Transaction implements ActionInterface
         InvoiceRepository $invoiceRepository,
         PaymentRepository $_paymentRepository,
         DBTransaction $dbTransaction
-    ) {
+    )
+    {
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_checkoutSession = $checkoutSession;
         $this->_metaDataInterface = $productMetadata;
@@ -227,7 +228,7 @@ abstract class Transaction implements ActionInterface
 
         $authToken = base64_encode(
             $this->_configData->getClientId() . ':' .
-                $this->_configData->getClientSecret()
+            $this->_configData->getClientSecret()
         );
 
         $pacePayload = [];
@@ -256,6 +257,7 @@ abstract class Transaction implements ActionInterface
     {
         $order = $this->_checkoutSession->getLastRealOrder();
         $order->setStatus(Order::STATE_CANCELED);
+        $this->_orderRepository->save($order);
         $this->_checkoutSession->restoreQuote();
         $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
     }

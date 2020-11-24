@@ -58,7 +58,13 @@ class CreateTransaction extends Transaction
 
             $payment->setTransactionId($paceTransactionId);
             $payment->setAdditionalData($paceTransactionId);
-            $payment->save();
+            $order->addCommentToStatusHistory(
+                __('Pace transaction is created (Reference ID: %1)', $paceTransactionId)
+            );
+
+            $this->_orderRepository->save($order);
+            $this->_paymentRepository->save($payment);
+
             return $this->_jsonResponse($responseJson, $response->getStatus());
         } catch (\Exception $exception) {
             $this->_handleError();

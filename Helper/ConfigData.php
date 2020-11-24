@@ -9,6 +9,7 @@ use Magento\Framework\HTTP\ZendClient;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
+use Magento\Store\Model\StoreManagerInterface;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
@@ -73,13 +74,17 @@ class ConfigData extends AbstractHelper
     /**
      * @param Context $context
      * @param EncryptorInterface $encryptor
+     * @param StoreManagerInterface $storeManager
+     * 
      */
     public function __construct(
         Context $context,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
+        $this->_storeManager = $storeManager;
     }
 
 
@@ -228,9 +233,18 @@ class ConfigData extends AbstractHelper
         ];
     }
 
+    public function getIsCurrencySupported()
+    {
+        $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+        $paymentPlanCurrency = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY);
+
+        return $paymentPlanCurrency == $storeCurrency;
+    }
+
     public function getPaymentPlan()
     {
         return [
+            "isCurrencySupported" => $this->getIsCurrencySupported(),
             "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY),
             "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN),
             "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX),
