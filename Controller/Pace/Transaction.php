@@ -25,6 +25,9 @@ use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Payment\Repository as PaymentRepository;
 use Magento\Framework\DB\Transaction as DBTransaction;
+use Magento\Framework\Module\ModuleListInterface;
+use Pace\Pay\Model\Ui\ConfigProvider;
+use Psr\Log\LoggerInterface;
 
 abstract class Transaction implements ActionInterface
 {
@@ -134,6 +137,16 @@ abstract class Transaction implements ActionInterface
     protected $_dbTransaction;
 
     /**
+     * @var ModuleListInterface
+     */
+    protected $_moduleList;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $_logger;
+
+    /**
      * @param JsonFactory $resultJsonFactory
      * @param Session $checkoutSession
      * @param ProductMetadataInterface $productMetadata
@@ -155,6 +168,8 @@ abstract class Transaction implements ActionInterface
      * @param InvoiceRepository $invoiceRepository
      * @param PaymentRepository $_paymentRepository
      * @param DBTransaction $dbTransaction
+     * @param ModuleListInterface $moduleList
+     * @param LoggerInterface $logger
      */
     public function __construct(
         JsonFactory $resultJsonFactory,
@@ -177,7 +192,9 @@ abstract class Transaction implements ActionInterface
         InvoiceSender $invoiceSender,
         InvoiceRepository $invoiceRepository,
         PaymentRepository $_paymentRepository,
-        DBTransaction $dbTransaction
+        DBTransaction $dbTransaction,
+        ModuleListInterface $moduleList,
+        LoggerInterface $logger
     )
     {
         $this->_resultJsonFactory = $resultJsonFactory;
@@ -201,6 +218,8 @@ abstract class Transaction implements ActionInterface
         $this->_invoiceRepository = $invoiceRepository;
         $this->_paymentRepository = $_paymentRepository;
         $this->_dbTransaction = $dbTransaction;
+        $this->_moduleList = $moduleList;
+        $this->_logger = $logger;
     }
 
     public abstract function execute();
@@ -225,6 +244,8 @@ abstract class Transaction implements ActionInterface
     protected function _getBasePayload()
     {
         $magentoVersion = $this->_metaDataInterface->getVersion();
+        $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
+        $platformVersionString = ConfigProvider::PLUGIN_NAME . ',' . $pluginVersion . ',' . $magentoVersion;
 
         $authToken = base64_encode(
             $this->_configData->getClientId() . ':' .
@@ -235,7 +256,7 @@ abstract class Transaction implements ActionInterface
         $pacePayload['headers'] = [
             'Content-Type' => 'application/json',
             'Authorization' => 'Basic ' . $authToken,
-            'X-Pace-PlatformVersion' => $magentoVersion,
+            'X-Pace-PlatformVersion' => $platformVersionString,
         ];
 
         return $pacePayload;

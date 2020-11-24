@@ -19,6 +19,8 @@ use function Safe\json_encode;
 final class ConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'pace_pay';
+    const MODULE_NAME = 'Pace_Pay';
+    const PLUGIN_NAME = 'PaceForMagento2';
 
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
