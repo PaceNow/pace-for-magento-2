@@ -43,6 +43,7 @@ From the Magento 2 Admin interface
     - Select `Playground` or `Production` for the `Environment`
     - Set `Client ID` and `Client Secret` under `API config`
 - set the other options as necessary
+- NOTE: Make sure the store uses the supported currencies and located in supported countries.
 
 # Support
 For additional support, contact <merchant-integration@pacenow.co>
