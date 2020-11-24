@@ -33,8 +33,10 @@ class SingleProductWidget extends Template
         $maxAmount = $this->_config->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MAX);
         $productPrice = $this->getProductPrice();
         $style = $this->_config->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE);
-        if (!isset($style) || (($productPrice < $minAmount || $productPrice > $maxAmount) && !$fallbackWidget)) {
+        if (($productPrice < $minAmount || $productPrice > $maxAmount) && !$fallbackWidget) {
             $style = "display: none;";
+        } else if (!isset($style)) {
+            $style = "";
         }
 
         return $style;
