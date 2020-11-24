@@ -25,7 +25,7 @@ class VerifyTransaction extends Transaction
         if ($verifyResult == self::VERIFY_SUCCESS) {
             return $resultRedirect->setUrl(self::SUCCESS_REDIRECT_URL);
         } else if ($verifyResult == self::VERIFY_FAILED) {
-            $this->_handleError();
+            $this->_handleCancel();
             return $resultRedirect->setUrl(self::ERROR_REDIRECT_URL);
         } else {
             return $resultRedirect->setUrl(self::SUCCESS_REDIRECT_URL);

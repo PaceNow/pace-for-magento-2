@@ -273,13 +273,17 @@ abstract class Transaction implements ActionInterface
             return '';
         }
     }
-
-    protected function _handleError()
+    
+    protected function _handleCancel($isError = false)
     {
         $order = $this->_checkoutSession->getLastRealOrder();
         $order->setStatus(Order::STATE_CANCELED);
         $this->_orderRepository->save($order);
         $this->_checkoutSession->restoreQuote();
-        $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
+        if ($isError) {
+            $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
+        } else {
+            $this->_messageManager->addNoticeMessage('Order with Pace canceled.');
+        }
     }
 }
