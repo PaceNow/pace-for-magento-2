@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="script-src">
+            <values>
+                <value id="pace-pay-playground" type="host">https://pay-playground.pacenow.co</value>
+                <value id="pace-pay-production" type="host">https://pay.pacenow.co</value>
+                <value id="pace-pay-staging" type="host">https://staging-pay.pacenow.co</value>
+                <value id="pace-pay-widgets-production" type="host">https://widgets.pacenow.co</value>
+                <value id="pace-pay-widgets-staging" type="host">https://staging-widgets.pacenow.co</value>
+            </values>
+        </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="pace-pay-playground" type="host">https://pay-playground.pacenow.co</value>
+                <value id="pace-pay-production" type="host">https://pay.pacenow.co</value>
+                <value id="pace-pay-staging" type="host">https://staging-pay.pacenow.co</value>
+                <value id="pace-pay-widgets-production" type="host">https://widgets.pacenow.co</value>
+                <value id="pace-pay-widgets-staging" type="host">https://staging-widgets.pacenow.co</value>
+                <value id="myinfo-test" type="host">https://test.api.myinfo.gov.sg</value>
+                <value id="myinfo" type="host">https://api.myinfo.gov.sg</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>

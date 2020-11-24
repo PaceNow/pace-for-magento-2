@@ -1,0 +1,18 @@
+.pace-pay_system-config .pace-logo-text {
+    background: url("https://assets.pacenow.co/images/pace-logo-text.svg") no-repeat 0 center / 18rem auto;
+    height: 100px;
+    width: auto;
+    padding-left: 20rem;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.pace-pay_system-config .button-container {
+    float: right;
+}
+
+.pace-pay_system-config .pace-pay-text {
+    display: inline-block;
+    vertical-align: middle;
+    width: 50%
+}
