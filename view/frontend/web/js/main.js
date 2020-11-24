@@ -1,8 +1,8 @@
 require([], function () {
   var isPlayground = window.pacePayEnvironment === "playground";
   var pacePayRequireKey = isPlayground ? "pacePayPlayground" : "pacePay";
-  require([pacePayRequireKey], function (requiredPacePay) {
-    if (window.pacePaymentPlan && window.pacePaymentPlan.isCurrencySupported) {
+  if (window.pacePaymentPlan && window.pacePaymentPlan.isCurrencySupported) {
+    require([pacePayRequireKey], function (requiredPacePay) {
       requiredPacePay = requiredPacePay.init({
         fallbackWidget: window.pacePayBaseWidgetConfig.fallbackWidget,
         minAmount: parseFloat(window.pacePaymentPlan.minAmount),
@@ -29,6 +29,6 @@ require([], function () {
             ? window.pacePayMultiProductsWidgetConfig.styles
             : undefined,
         });
-    }
-  });
+    });
+  }
 });
