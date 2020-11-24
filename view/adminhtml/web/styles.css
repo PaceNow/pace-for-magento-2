@@ -14,5 +14,5 @@
 .pace-pay_system-config .pace-pay-text {
     display: inline-block;
     vertical-align: middle;
-    width: 50%
+    width: calc(100% - 300px);
 }
