@@ -69,10 +69,12 @@ class VerifyTransaction extends Transaction
         if ($paceTransactionStatus == 'approved') {
             $order->setStatus(Order::STATE_PROCESSING);
 
-            $formattedPrice = $order->getBaseCurrency()->formatTxt(
-                $order->getGrandTotal()
-            );
-            $message = __('The authorized amount is %1.', $formattedPrice);
+//            $formattedPrice = $order->getBaseCurrency()->formatTxt(
+//                $order->getGrandTotal()
+//            );
+            $message = __('Pace payment is completed (Reference ID: %1)', $transactionId);
+            $order->addStatusHistoryComment($message);
+
             $payment->setLastTransId($transactionId);
             $payment->setTransactionId($transactionId);
             $additionalPaymentInformation = [PaymentTransaction::RAW_DETAILS => json_encode($paceTransaction)];
@@ -84,10 +86,6 @@ class VerifyTransaction extends Transaction
                 ->setAdditionalInformation($additionalPaymentInformation)
                 ->setFailSafe(true)
                 ->build(PaymentTransaction::TYPE_CAPTURE);
-            $payment->addTransactionCommentsToOrder(
-                $transaction,
-                $message
-            );
             $payment->setParentTransactionId(null);
 
             $this->_paymentRepository->save($payment);
