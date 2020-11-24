@@ -109,6 +109,32 @@ class VerifyTransaction extends Transaction
 
     /**
      * @param Order $order
+     */
+    public function cancelTransaction($order)
+    {
+        $payment = $order->getPayment();
+        $transactionId = $payment->getAdditionalData();
+
+        if ($transactionId == null || $transactionId == '') {
+            return;
+        }
+
+        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . $transactionId . '/cancel';
+        $pacePayload = $this->_getBasePayload();
+
+        $this->_client->resetParameters();
+        try {
+            $this->_client->setUri($endpoint);
+            $this->_client->setMethod(Zend_Http_Client::POST);
+            $this->_client->setHeaders($pacePayload['headers']);
+            $this->_client->request();
+        } catch (\Exception $exception) {
+            return;
+        }
+    }
+
+    /**
+     * @param Order $order
      * @param string $transactionId
      */
     private function _invoiceOrder($order, $transactionId)
