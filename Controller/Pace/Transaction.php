@@ -273,7 +273,7 @@ abstract class Transaction implements ActionInterface
             return '';
         }
     }
-    
+
     protected function _handleCancel($isError = false)
     {
         $order = $this->_checkoutSession->getLastRealOrder();
@@ -283,7 +283,7 @@ abstract class Transaction implements ActionInterface
         if ($isError) {
             $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
         } else {
-            $this->_messageManager->addNoticeMessage('Order with Pace canceled.');
+            $this->_messageManager->addNoticeMessage('Your order was cancelled.');
         }
     }
 }
