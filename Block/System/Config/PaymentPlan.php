@@ -6,13 +6,15 @@ use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Helper\AdminStoreResolver;
 
 class PaymentPlan extends Field
 {
     protected $_template = 'Pace_Pay::system/config/paymentplan.phtml';
-    public function __construct(Context $context, array $data = [], ConfigData $configData)
+    public function __construct(Context $context, array $data = [], ConfigData $configData, AdminStoreResolver $adminStoreResolver)
     {
         $this->_configData = $configData;
+        $this->_adminStoreResolver = $adminStoreResolver;
         parent::__construct($context, $data);
     }
 
@@ -56,5 +58,13 @@ class PaymentPlan extends Field
     {
         $button = $this->getLayout()->createBlock('Magento\Backend\Block\Widget\Button')->setData(['id' => 'payment-plan_refresh-button', 'label' => __('Refresh'),]);
         return $button->toHtml();
+    }
+
+    public function getPaymentPlan()
+    {
+
+        $storeId = $this->_adminStoreResolver->resolveAdminStoreId();
+        $this->_storeManager->setCurrentStore(1);
+        return $this->_configData->getPaymentPlan();
     }
 }

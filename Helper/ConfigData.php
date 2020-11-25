@@ -88,10 +88,10 @@ class ConfigData extends AbstractHelper
     }
 
 
-    public function getConfigValue($key, $scope = ScopeInterface::SCOPE_STORE)
+    public function getConfigValue($key, $storeId = NULL)
     {
         try {
-            return $this->scopeConfig->getValue(CONFIG_PREFIX . $key, $scope);
+            return $this->scopeConfig->getValue(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORE, $storeId);
         } catch (\Exception $e) {
             return NULL;
         }
@@ -114,14 +114,14 @@ class ConfigData extends AbstractHelper
         );
     }
 
-    public function getApiEnvironment()
+    public function getApiEnvironment($storeId = NULL)
     {
-        return $this->getConfigValue(self::CONFIG_ENVIRONMENT);
+        return $this->getConfigValue(self::CONFIG_ENVIRONMENT, $storeId);
     }
 
-    public function getApiEndpoint()
+    public function getApiEndpoint($storeId = NULL)
     {
-        $env = $this->getApiEnvironment();
+        $env = $this->getApiEnvironment($storeId);
         if ($env == 'playground') {
             return 'https://api-playground.pacenow.co';
         } else if ($env == 'production') {
@@ -131,22 +131,22 @@ class ConfigData extends AbstractHelper
         }
     }
 
-    public function getClientId()
+    public function getClientId($storeId = NULL)
     {
-        $apiEnvironment = $this->getApiEnvironment();
+        $apiEnvironment = $this->getApiEnvironment($storeId);
         $configPrefix = $this->_getEnvPrefix($apiEnvironment);
-        $clientId = $this->getConfigValue($configPrefix . 'client_id');
+        $clientId = $this->getConfigValue($configPrefix . 'client_id', $storeId);
         $clientId = $this->encryptor->decrypt($clientId);
 
         return $clientId;
     }
 
 
-    public function getClientSecret()
+    public function getClientSecret($storeId = NULL)
     {
-        $apiEnvironment = $this->getApiEnvironment();
+        $apiEnvironment = $this->getApiEnvironment($storeId);
         $configPrefix = $this->_getEnvPrefix($apiEnvironment);
-        $clientSecret = $this->getConfigValue($configPrefix . 'client_secret', ScopeInterface::SCOPE_STORE);
+        $clientSecret = $this->getConfigValue($configPrefix . 'client_secret', $storeId);
         $clientSecret = $this->encryptor->decrypt($clientSecret);
 
         return $clientSecret;
@@ -233,21 +233,31 @@ class ConfigData extends AbstractHelper
         ];
     }
 
-    public function getIsCurrencySupported()
+    public function getEnvironmentPrefix($storeId = NULL)
     {
+        $env = $this->getApiEnvironment($storeId);
+        $prefix = $env . '_';
+
+        return $prefix;
+    }
+
+    public function getIsCurrencySupported($storeId = NULL)
+    {
+        $prefix = $this->getEnvironmentPrefix($storeId);
         $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
-        $paymentPlanCurrency = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY);
+        $paymentPlanCurrency = $this->getConfigValue($prefix . SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId);
 
         return $paymentPlanCurrency == $storeCurrency;
     }
 
-    public function getPaymentPlan()
+    public function getPaymentPlan($storeId = NULL)
     {
+        $prefix = $this->getEnvironmentPrefix($storeId);
         return [
-            "isCurrencySupported" => $this->getIsCurrencySupported(),
-            "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY),
-            "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN),
-            "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX),
+            "isCurrencySupported" => $this->getIsCurrencySupported($storeId),
+            "currency" => $this->getConfigValue($prefix . SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId),
+            "minAmount" => $this->getConfigValue($prefix . SELF::CONFIG_PAYMENT_PLAN_MIN, $storeId),
+            "maxAmount" => $this->getConfigValue($prefix . SELF::CONFIG_PAYMENT_PLAN_MAX, $storeId),
         ];
     }
 }

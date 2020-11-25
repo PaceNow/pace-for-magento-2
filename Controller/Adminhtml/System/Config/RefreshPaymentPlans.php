@@ -27,8 +27,7 @@ class RefreshPaymentPlans extends Action
         JsonFactory $resultJsonFactory,
         WriterInterface $configWriter,
         ConfigData $configData
-    )
-    {
+    ) {
         $this->_client = $client;
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_configWriter = $configWriter;
@@ -41,7 +40,7 @@ class RefreshPaymentPlans extends Action
     {
         $authToken = base64_encode(
             $this->_configData->getClientId() . ':' .
-            $this->_configData->getClientSecret()
+                $this->_configData->getClientSecret()
         );
 
         $pacePayload = [];

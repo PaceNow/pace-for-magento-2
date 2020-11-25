@@ -30,32 +30,41 @@
     });
 </script>
 
-<table style="margin-bottom: 16px;">
-    <tr>
-        <td>ID</td>
-        <td id="payment-plan_id">
-            <? echo $block->getPaymentPlanId() ?>
-        </td>
-    </tr>
-    <tr>
-        <td>Currency</td>
-        <td id="payment-plan_currency">
-            <? echo $block->getPaymentPlanCurrency() ?>
-        </td>
-    </tr>
-    <tr>
-        <td>Min Amount</td>
-        <td id="payment-plan_min-amount">
-            <? echo $block->getPaymentPlanMin() ?>
-        </td>
-    </tr>
-    <tr>
-        <td>Max Amount</td>
-        <td id="payment-plan_max-amount">
-            <? echo $block->getPaymentPlanMax() ?>
-        </td>
-    </tr>
-</table>
+<?php $paymentPlan = $block->getPaymentPlan();
+echo json_encode($paymentPlan) ?>
+
+<?php if (isset($paymentPlan)) : ?>
+    <table style="margin-bottom: 16px;">
+        <tr>
+            <td>ID</td>
+            <td id="payment-plan_id">
+                <? echo $paymentPlan['id'] ?>
+            </td>
+        </tr>
+        <tr>
+            <td>Currency</td>
+            <td id="payment-plan_currency">
+                <? echo $paymentPlan['currency'] ?>
+            </td>
+        </tr>
+        <tr>
+            <td>Min Amount</td>
+            <td id="payment-plan_min-amount">
+                <? echo $paymentPlan['minAmount'] ?>
+            </td>
+        </tr>
+        <tr>
+            <td>Max Amount</td>
+            <td id="payment-plan_max-amount">
+                <? echo $paymentPlan['maxAmount'] ?>
+            </td>
+        </tr>
+    </table>
+<?php else : ?>
+    <div>
+        <p>No available payment plans.</p>
+    </div>
+<?php endif; ?>
 <?php
 // $controller = $block->getCustomUrl();
 echo $block->getButtonHtml();
