@@ -34,26 +34,6 @@ class PaymentPlan extends Field
         return $this->getUrl('pace_pay/system_config/refreshpaymentplans');
     }
 
-    public function getPaymentPlanCurrency()
-    {
-        return $this->_configData->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_CURRENCY);
-    }
-
-    public function getPaymentPlanId()
-    {
-        return $this->_configData->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_ID);
-    }
-
-    public function getPaymentPlanMin()
-    {
-        return $this->_configData->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MIN);
-    }
-
-    public function getPaymentPlanMax()
-    {
-        return $this->_configData->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MAX);
-    }
-
     public function getButtonHtml()
     {
         $button = $this->getLayout()->createBlock('Magento\Backend\Block\Widget\Button')->setData(['id' => 'payment-plan_refresh-button', 'label' => __('Refresh'),]);
@@ -62,9 +42,7 @@ class PaymentPlan extends Field
 
     public function getPaymentPlan()
     {
-
         $storeId = $this->_adminStoreResolver->resolveAdminStoreId();
-        $this->_storeManager->setCurrentStore(1);
-        return $this->_configData->getPaymentPlan();
+        return $this->_configData->getPaymentPlan($storeId);
     }
 }

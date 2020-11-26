@@ -37,15 +37,15 @@
                 <!--                    <config_path>payment/pace_pay/payment_action</config_path>-->
                 <!--                </field>-->
                 <group id="api" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                    <label>API</label>
+                    <field id="payment_plan_display" translate="label" type="text" sortOrder="0" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Payment Plan</label>
+                        <frontend_model>Pace\Pay\Block\System\Config\PaymentPlan</frontend_model>
+                    </field>
                     <field id="environment" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Environment</label>
                         <source_model>Pace\Pay\Model\Adminhtml\Source\Environment</source_model>
                         <config_path>payment/pace_pay/environment</config_path>
-                    </field>
-                    <label>API</label>
-                    <field id="payment_plan_button" translate="label" type="button" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
-                        <label>Payment Plan</label>
-                        <frontend_model>Pace\Pay\Block\System\Config\PaymentPlan</frontend_model>
                     </field>
                     <group id="api_playground" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
                         <label>Playground API Credentials</label>

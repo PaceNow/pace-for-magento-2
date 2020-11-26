@@ -4,13 +4,16 @@ namespace Pace\Pay\Controller\Adminhtml\System\Config;
 
 use Zend_Http_Client;
 use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Helper\AdminStoreResolver;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
 use Magento\Framework\HTTP\ZendClient;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Store\Model\ScopeInterface;
 
-// payment_plan_min
 class RefreshPaymentPlans extends Action
 {
     const REFRESH_SUCCESS = 'refresh_success';
@@ -25,22 +28,27 @@ class RefreshPaymentPlans extends Action
         Context $context,
         ZendClient $client,
         JsonFactory $resultJsonFactory,
-        WriterInterface $configWriter,
-        ConfigData $configData
+        ConfigInterface $resourceConfig,
+        ConfigData $configData,
+        MessageManagerInterface $messageManager,
+        StoreRepositoryInterface $storeRepository,
+        AdminStoreResolver $adminStoreResolver
     ) {
         $this->_client = $client;
         $this->_resultJsonFactory = $resultJsonFactory;
-        $this->_configWriter = $configWriter;
+        $this->_resourceConfig = $resourceConfig;
         $this->_configData = $configData;
+        $this->_messageManager = $messageManager;
+        $this->_storeRepository = $storeRepository;
+        $this->_adminStoreResolver = $adminStoreResolver;
         parent::__construct($context);
     }
 
-
-    private function _getBasePayload()
+    private function _getBasePayload($storeId)
     {
         $authToken = base64_encode(
-            $this->_configData->getClientId() . ':' .
-                $this->_configData->getClientSecret()
+            $this->_configData->getClientId($storeId) . ':' .
+                $this->_configData->getClientSecret($storeId)
         );
 
         $pacePayload = [];
@@ -63,48 +71,56 @@ class RefreshPaymentPlans extends Action
 
     public function execute()
     {
-        $result = $this->refreshPlans();
+        return $this->_jsonResponse([
+            "success" => TRUE,
+            "paymentPlan" => $this->_configData->getPaymentPlan(1),
+            "clientId" => $this->_configData->getClientId(1),
+            "clientSecret" => $this->_configData->getClientSecret(1),
+        ], 200);
+    }
 
-        if ($result == self::REFRESH_SUCCESS) {
-            return $this->_jsonResponse([
-                "success" => TRUE,
-                "paymentPlan" => $this->_paymentPlan
-            ], 200);
-        } else {
-            return $this->_jsonResponse([
-                "success" => FALSE
-            ], 500);
-        }
+
+    private function _updatePaymentPlan($storeId, $env, $id, $currency, $min, $max)
+    {
+        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_ID, $id, $storeId, $env);
+        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_CURRENCY, $currency, $storeId, $env);
+        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MIN, $min, $storeId, $env);
+        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MAX, $max, $storeId, $env);
     }
 
     public function refreshPlans()
     {
-        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/plans';
-        $pacePayload = $this->_getBasePayload();
+        // Refresh payment plans for all stores
+        $stores = $this->_storeRepository->getList();
+        foreach ($stores as $store) {
+            $storeId =  $store->getId();
+            $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/plans';
+            $pacePayload = $this->_getBasePayload($storeId);
+            $env = $this->_configData->getApiEnvironment($storeId);
 
-        try {
-            $this->_client->setUri($endpoint);
-            $this->_client->setMethod(Zend_Http_Client::GET);
-            $this->_client->setHeaders($pacePayload['headers']);
-            $response = $this->_client->request();
-            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
-                return [];
+            try {
+                $this->_client->setUri($endpoint);
+                $this->_client->setMethod(Zend_Http_Client::GET);
+                $this->_client->setHeaders($pacePayload['headers']);
+                $response = $this->_client->request();
+                if ($response->getStatus() < 200 || $response->getStatus() > 299) {
+                    $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                    continue;
+                }
+                $responseJson = json_decode($response->getBody());
+
+                $paymentPlans = $responseJson->{'list'};
+                $paymentPlan = $paymentPlans[0];
+
+                if (isset($paymentPlan)) {
+                    $this->_updatePaymentPlan($storeId, $env, $paymentPlan->{'id'}, $paymentPlan->{'currencyCode'}, $paymentPlan->{'minAmount'}->{'actualValue'}, $paymentPlan->{'maxAmount'}->{'actualValue'});
+                } else {
+                    $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                }
+            } catch (\Exception $exception) {
+                $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
             }
-            $responseJson = json_decode($response->getBody());
-
-            $paymentPlans = $responseJson->{'list'};
-            $paymentPlan = $paymentPlans[0];
-            $this->_paymentPlan = $paymentPlan;
-
-            // write to config
-            $this->_configWriter->save('payment/pace_pay/payment_plan_id', $paymentPlan->{'id'});
-            $this->_configWriter->save('payment/pace_pay/payment_plan_currency', $paymentPlan->{'currencyCode'});
-            $this->_configWriter->save('payment/pace_pay/payment_plan_min', $paymentPlan->{'minAmount'}->{'actualValue'});
-            $this->_configWriter->save('payment/pace_pay/payment_plan_max', $paymentPlan->{'maxAmount'}->{'actualValue'});
-
-            return self::REFRESH_SUCCESS;
-        } catch (\Exception $exception) {
-            return self::REFRESH_FAILURE;
         }
+        return self::REFRESH_SUCCESS;
     }
 }

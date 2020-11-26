@@ -30,8 +30,7 @@
     });
 </script>
 
-<?php $paymentPlan = $block->getPaymentPlan();
-echo json_encode($paymentPlan) ?>
+<?php $paymentPlan = $block->getPaymentPlan() ?>
 
 <?php if (isset($paymentPlan)) : ?>
     <table style="margin-bottom: 16px;">
@@ -62,10 +61,6 @@ echo json_encode($paymentPlan) ?>
     </table>
 <?php else : ?>
     <div>
-        <p>No available payment plans.</p>
+        <p>No available payment plan.</p>
     </div>
 <?php endif; ?>
-<?php
-// $controller = $block->getCustomUrl();
-echo $block->getButtonHtml();
-?>
