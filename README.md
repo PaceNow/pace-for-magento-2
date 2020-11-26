@@ -13,7 +13,7 @@ Below are the instructions to install the module on Magento 2. Please ensure you
 
 - Require Pace_Pay module
 ```
- composer require pace/module-pay:dev-master#v0.0.13
+ composer require pace/module-pay:dev-master#v0.0.14
 ```
 
 - Enable Pace_Pay module
