@@ -55,15 +55,10 @@
     <!-- ko template: getTemplate() -->
     <!-- /ko -->
     <!--/ko-->
-    <div class="payment-method-billing-address">
-      <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
-      <!-- ko template: getTemplate() -->
-      <!-- /ko -->
-      <!--/ko-->
-    </div>
-    <p>
+    <p style="max-width: 368px">
       Spread your purchases into 3 interest-free instalments.
-      <br /><br />
+    </p>
+    <p style="max-width: 368px">
       Reminders and notifications will be sent to you each time a payment is due
       or has been charged.
     </p>
@@ -72,6 +67,13 @@
       data-bind="text: loadPacePayJS()"
       style="margin-bottom: 16px"
     ></div>
+    <hr />
+    <div class="payment-method-billing-address">
+      <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+      <!-- ko template: getTemplate() -->
+      <!-- /ko -->
+      <!--/ko-->
+    </div>
     <div class="actions-toolbar">
       <div class="primary">
         <button

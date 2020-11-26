@@ -29,8 +29,14 @@ class SingleProductWidget extends Template
     public function getSingleProductContainerStyle()
     {
         $fallbackWidget = $this->_config->getConfigValue(ConfigData::CONFIG_FALLBACK_WIDGET);
-        $minAmount = $this->_config->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MIN);
-        $maxAmount = $this->_config->getConfigValue(ConfigData::CONFIG_PAYMENT_PLAN_MAX);
+        $paymentPlan = $this->_config->getPaymentPlan();
+
+        if (!isset($paymentPlan)) {
+            return "display: none;";
+        }
+
+        $minAmount = $paymentPlan['minAmount'];
+        $maxAmount = $paymentPlan['maxAmount'];
         $productPrice = $this->getProductPrice();
         $style = $this->_config->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE);
         if (($productPrice < $minAmount || $productPrice > $maxAmount) && !$fallbackWidget) {

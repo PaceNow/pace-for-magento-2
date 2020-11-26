@@ -71,14 +71,17 @@ class RefreshPaymentPlans extends Action
 
     public function execute()
     {
-        return $this->_jsonResponse([
-            "success" => TRUE,
-            "paymentPlan" => $this->_configData->getPaymentPlan(1),
-            "clientId" => $this->_configData->getClientId(1),
-            "clientSecret" => $this->_configData->getClientSecret(1),
-        ], 200);
+        $result = $this->refreshPlans();
+        if ($result == self::REFRESH_SUCCESS) {
+            return $this->_jsonResponse([
+                "success" => TRUE,
+            ], 200);
+        } else {
+            return $this->_jsonResponse([
+                "success" => TRUE,
+            ], 500);
+        }
     }
-
 
     private function _updatePaymentPlan($storeId, $env, $id, $currency, $min, $max)
     {
@@ -118,7 +121,8 @@ class RefreshPaymentPlans extends Action
                     $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
                 }
             } catch (\Exception $exception) {
-                $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                // $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                $this->_messageManager->addErrorMessage('Something went wrong while refreshing the payment plan.');
             }
         }
         return self::REFRESH_SUCCESS;
