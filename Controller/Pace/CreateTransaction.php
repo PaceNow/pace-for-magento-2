@@ -52,7 +52,7 @@ class CreateTransaction extends Transaction
             $paceTransactionId = $responseJson->{'transactionID'};
 
             if ($paceTransactionId == null || $paceTransactionId == '') {
-                $this->_handleError();
+                $this->_handleCancel(true);
                 return $this->_jsonResponse([], 500);
             }
 
@@ -67,7 +67,7 @@ class CreateTransaction extends Transaction
 
             return $this->_jsonResponse($responseJson, $response->getStatus());
         } catch (\Exception $exception) {
-            $this->_handleError();
+            $this->_handleCancel(true);
             return $this->_jsonResponse([], 500);
         }
     }

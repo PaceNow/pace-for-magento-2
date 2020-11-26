@@ -5,11 +5,12 @@ namespace Pace\Pay\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 // use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\HTTP\ZendClient;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\App\Cache\TypeListInterface;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
@@ -75,35 +76,61 @@ class ConfigData extends AbstractHelper
      * @param Context $context
      * @param EncryptorInterface $encryptor
      * @param StoreManagerInterface $storeManager
-     * 
+     * @param WriterInterface $configWriter
      */
     public function __construct(
         Context $context,
         EncryptorInterface $encryptor,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        WriterInterface $configWriter,
+        TypeListInterface $cacheTypeList
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->_storeManager = $storeManager;
-    }
-
-
-    public function getConfigValue($key, $scope = ScopeInterface::SCOPE_STORE)
-    {
-        try {
-            return $this->scopeConfig->getValue(CONFIG_PREFIX . $key, $scope);
-        } catch (\Exception $e) {
-            return NULL;
-        }
+        $this->_configWriter = $configWriter;
+        $this->cacheTypeList = $cacheTypeList;
     }
 
     private function _getEnvPrefix($apiEnvironment)
     {
         if ($apiEnvironment === Environment::PRODUCTION) {
             return 'production_';
-        } else {
+        } else if ($apiEnvironment === Environment::PLAYGROUND) {
             return 'playground_';
+        } else {
+            return '';
         }
+    }
+
+    public function getConfigValue($key, $storeId = null, $env = null)
+    {
+        // If its env specific, get the env prefix.
+        if (isset($env)) {
+            $key = $this->_getEnvPrefix($env) . $key;
+        }
+        try {
+            return $this->scopeConfig->getValue(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORE, $storeId);
+        } catch (\Exception $e) {
+            return NULL;
+        }
+    }
+
+    public function writeToConfig($key, $value, $storeId = null, $env = null)
+    {
+        // If its env specific, get the env prefix.
+        if (isset($env)) {
+            $key = $this->_getEnvPrefix($env) . $key;
+        }
+
+        if (isset($value)) {
+            $this->_configWriter->save(CONFIG_PREFIX . $key, $value, ScopeInterface::SCOPE_STORES, $storeId);
+        } else {
+            $this->_configWriter->delete(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORES, $storeId);
+        }
+
+        $this->cacheTypeList->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
+        $this->cacheTypeList->cleanType(\Magento\PageCache\Model\Cache\Type::TYPE_IDENTIFIER);
     }
 
     public function isEnabled()
@@ -114,14 +141,14 @@ class ConfigData extends AbstractHelper
         );
     }
 
-    public function getApiEnvironment()
+    public function getApiEnvironment($storeId = null)
     {
-        return $this->getConfigValue(self::CONFIG_ENVIRONMENT);
+        return $this->getConfigValue(self::CONFIG_ENVIRONMENT, $storeId);
     }
 
-    public function getApiEndpoint()
+    public function getApiEndpoint($storeId = null)
     {
-        $env = $this->getApiEnvironment();
+        $env = $this->getApiEnvironment($storeId);
         if ($env == 'playground') {
             return 'https://api-playground.pacenow.co';
         } else if ($env == 'production') {
@@ -131,22 +158,22 @@ class ConfigData extends AbstractHelper
         }
     }
 
-    public function getClientId()
+    public function getClientId($storeId = null)
     {
-        $apiEnvironment = $this->getApiEnvironment();
+        $apiEnvironment = $this->getApiEnvironment($storeId);
         $configPrefix = $this->_getEnvPrefix($apiEnvironment);
-        $clientId = $this->getConfigValue($configPrefix . 'client_id');
+        $clientId = $this->getConfigValue($configPrefix . 'client_id', $storeId);
         $clientId = $this->encryptor->decrypt($clientId);
 
         return $clientId;
     }
 
 
-    public function getClientSecret()
+    public function getClientSecret($storeId = null)
     {
-        $apiEnvironment = $this->getApiEnvironment();
+        $apiEnvironment = $this->getApiEnvironment($storeId);
         $configPrefix = $this->_getEnvPrefix($apiEnvironment);
-        $clientSecret = $this->getConfigValue($configPrefix . 'client_secret', ScopeInterface::SCOPE_STORE);
+        $clientSecret = $this->getConfigValue($configPrefix . 'client_secret', $storeId);
         $clientSecret = $this->encryptor->decrypt($clientSecret);
 
         return $clientSecret;
@@ -233,21 +260,30 @@ class ConfigData extends AbstractHelper
         ];
     }
 
-    public function getIsCurrencySupported()
+    public function getIsCurrencySupported($storeId = null)
     {
+        $env = $this->getApiEnvironment($storeId);
         $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
-        $paymentPlanCurrency = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY);
+        $paymentPlanCurrency = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env);
 
         return $paymentPlanCurrency == $storeCurrency;
     }
 
-    public function getPaymentPlan()
+    public function getPaymentPlan($storeId = null)
     {
+        $env = $this->getApiEnvironment($storeId);
+        $paymentPlanID = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_ID, $storeId, $env);
+
+        if (!isset($paymentPlanID)) {
+            return null;
+        }
+
         return [
-            "isCurrencySupported" => $this->getIsCurrencySupported(),
-            "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY),
-            "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN),
-            "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX),
+            "isCurrencySupported" => $this->getIsCurrencySupported($storeId),
+            "id" => $paymentPlanID,
+            "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env),
+            "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN, $storeId, $env),
+            "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX, $storeId, $env),
         ];
     }
 }
