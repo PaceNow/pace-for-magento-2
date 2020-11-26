@@ -74,8 +74,8 @@ composer update pace/module-pay
 followed by `Magento setups and cache clean` steps in the composer section above.
 
 ## Manual
-Delete the folder `<Root Magento Directory>/app/code/Pace/Pay`, and then redo the `Manual
-` installation section above with the latest files.
+Delete the folder `<Root Magento Directory>/app/code/Pace/Pay`, and then redo the `Manual` 
+installation section above with the latest files.
 
 # Support
 For additional support, contact <merchant-integration@pacenow.co>
