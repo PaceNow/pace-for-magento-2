@@ -4,7 +4,7 @@
     <system>
         <section id="payment">
             <group id="pace_pay" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                <comment><![CDATA[<div class="pace-logo-text"></div><div class="pace-pay-text">Spreading your purchases across later payments, allows you to shop for more in one bite with no interest or hidden fees. Paying with Pace gives you the freedom to OWN IT.<br/><br/>Take charge of your spending without giving up on the things you need or deserve. Turning your purchases into 3 interest-free instalments gives you the breathing space to buy now; no regrets later.</div>]]></comment>
+                <comment><![CDATA[<div class="pace-logo-text"></div><div class="pace-pay-text">Boost your sales, conversion rates and drive up average basket size while allowing your customers to spread their purchase into 3 interest-free instalments. You get paid in full upfront, with no hidden fees or charges.</div>]]></comment>
                 <fieldset_css>complex pace-pay_system-config</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -88,7 +88,8 @@
                     <config_path>payment/pace_pay/sort_order</config_path>
                 </field>
                 <group id="marketing_widgets" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Marketing Widgets</label>
+                    <label>Pace's Widgets</label>
+                    <comment><![CDATA[Configurations in this section will be applied across all widget types.]]></comment>
                     <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Enabled</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -105,22 +106,23 @@
                         <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-family" target="_blank">font-family</a>]]></comment>
                     </field>
                     <field id="text_primry_color" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Base Text Primary Color</label>
+                        <label>Default Text Primary Color</label>
                         <config_path>payment/pace_pay/base_text_primary_color</config_path>
                         <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value" target="_blank">color</a>]]></comment>
                     </field>
                     <field id="text_secondary_color" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Base Text Secondary Color</label>
+                        <label>Default Text Secondary Color</label>
                         <config_path>payment/pace_pay/base_text_secondary_color</config_path>
                         <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value" target="_blank">color</a>]]></comment>
                     </field>
                     <group id="single_product" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Single Product Widget</label>
+                        <comment><![CDATA[<img style="max-width: 100%; float: right;" src="https://assets.pacenow.co/images/developers/widgets/single-product-color-reference.jpeg"/>]]></comment>
                         <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Enabled</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/pace_pay/single_product_active</config_path>
                         </field>
-                        <label>Single Product Widget</label>
                         <field id="logo_theme" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Logo Theme</label>
                             <source_model>Pace\Pay\Model\Adminhtml\Source\WidgetLogoTheme</source_model>
@@ -139,7 +141,7 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/single_product_font_size</config_path>
-                            <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a>]]></comment>
+                            <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
                         <field id="container_style" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Container style</label>
@@ -149,6 +151,7 @@
                     </group>
                     <group id="multi_products" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Multi Product Widget</label>
+                        <comment><![CDATA[<img style="max-width: 100%; float: right;" src="https://assets.pacenow.co/images/developers/widgets/multi-products-color-reference.jpeg"/>]]></comment>
                         <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Enabled</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -167,11 +170,12 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/multi_products_font_size</config_path>
-                            <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a>]]></comment>
+                            <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
                     </group>
                     <group id="checkout" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Checkout Widget</label>
+                        <comment><![CDATA[<img style="max-width: 100%; float: right;" src="https://assets.pacenow.co/images/developers/widgets/checkout-color-reference.jpeg"/>]]></comment>
                         <field id="text_primry_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Text Primary Color</label>
                             <config_path>payment/pace_pay/checkout_text_primary_color</config_path>
@@ -200,7 +204,7 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/checkout_font_size</config_path>
-                            <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a>]]></comment>
+                            <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
                     </group>
                 </group>

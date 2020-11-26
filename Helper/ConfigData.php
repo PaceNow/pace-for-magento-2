@@ -10,6 +10,7 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\App\Cache\TypeListInterface;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
@@ -81,12 +82,14 @@ class ConfigData extends AbstractHelper
         Context $context,
         EncryptorInterface $encryptor,
         StoreManagerInterface $storeManager,
-        WriterInterface $configWriter
+        WriterInterface $configWriter,
+        TypeListInterface $cacheTypeList
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->_storeManager = $storeManager;
         $this->_configWriter = $configWriter;
+        $this->cacheTypeList = $cacheTypeList;
     }
 
     private function _getEnvPrefix($apiEnvironment)
@@ -125,6 +128,9 @@ class ConfigData extends AbstractHelper
         } else {
             $this->_configWriter->delete(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORES, $storeId);
         }
+
+        $this->cacheTypeList->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
+        $this->cacheTypeList->cleanType(\Magento\PageCache\Model\Cache\Type::TYPE_IDENTIFIER);
     }
 
     public function isEnabled()
