@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Pace\Pay\Cron;
 
 use Magento\Store\Api\StoreRepositoryInterface;
@@ -35,8 +34,7 @@ class RefreshPaymentPlans
         StoreManagerInterface $storeManager,
         ConfigRefreshPaymentPlans $configRefreshPaymentPlans,
         LoggerInterface $logger
-    )
-    {
+    ) {
         $this->_storeRepository = $storeRepository;
         $this->_storeManager = $storeManager;
         $this->_configRefreshPaymentPlans = $configRefreshPaymentPlans;
@@ -46,23 +44,7 @@ class RefreshPaymentPlans
     function execute()
     {
         $this->_logger->info('Pace cron refresh payment plan executing');
-        $stores = $this->_storeRepository->getList();
-        foreach ($stores as $store) {
-            $this->_storeManager->setCurrentStore($store);
-            try {
-                $result = $this->_configRefreshPaymentPlans->refreshPlans();
-                if ($result == ConfigRefreshPaymentPlans::REFRESH_SUCCESS) {
-                    $this->_logger
-                        ->info('Pace cron refresh payment success for storeId ' . $store->getId());
-                } else {
-                    $this->_logger
-                        ->info('Pace cron refresh payment failure for storeId ' . $store->getId());
-                }
-            } catch (\Exception $exception) {
-                $this->_logger->error('Pace cron refresh payment failed with exception - ' .
-                    $exception);
-            }
-        }
+        $this->_configRefreshPaymentPlans->refreshPlans();
         $this->_logger->info('Pace cron refresh payment plan execution complete');
     }
 }
