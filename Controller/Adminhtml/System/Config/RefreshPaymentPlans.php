@@ -12,7 +12,7 @@ use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
 use Magento\Framework\HTTP\ZendClient;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
-use Magento\Store\Model\ScopeInterface;
+use Psr\Log\LoggerInterface;
 
 class RefreshPaymentPlans extends Action
 {
@@ -32,7 +32,8 @@ class RefreshPaymentPlans extends Action
         ConfigData $configData,
         MessageManagerInterface $messageManager,
         StoreRepositoryInterface $storeRepository,
-        AdminStoreResolver $adminStoreResolver
+        AdminStoreResolver $adminStoreResolver,
+        LoggerInterface $logger
     ) {
         $this->_client = $client;
         $this->_resultJsonFactory = $resultJsonFactory;
@@ -41,6 +42,7 @@ class RefreshPaymentPlans extends Action
         $this->_messageManager = $messageManager;
         $this->_storeRepository = $storeRepository;
         $this->_adminStoreResolver = $adminStoreResolver;
+        $this->_logger = $logger;
         parent::__construct($context);
     }
 
@@ -117,14 +119,24 @@ class RefreshPaymentPlans extends Action
 
                 if (isset($paymentPlan)) {
                     $this->_updatePaymentPlan($storeId, $env, $paymentPlan->{'id'}, $paymentPlan->{'currencyCode'}, $paymentPlan->{'minAmount'}->{'actualValue'}, $paymentPlan->{'maxAmount'}->{'actualValue'});
+
+                    $this->_logger
+                        ->info('Pace refresh payment success for storeId ' . $storeId);
+                    $this->_logger
+                        ->info(json_encode($paymentPlan));
                 } else {
                     $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                    $this->_logger
+                        ->info('Pace refresh payment failure for storeId ' . $storeId);
                 }
             } catch (\Exception $exception) {
                 // $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                $this->_logger->error('Pace refresh payment failed with exception - ' .
+                    $exception);
                 $this->_messageManager->addErrorMessage('Something went wrong while refreshing the payment plan.');
             }
         }
+        $this->_logger->info('Pace refresh payment plan execution complete');
         return self::REFRESH_SUCCESS;
     }
 }
