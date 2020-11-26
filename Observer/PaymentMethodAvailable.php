@@ -23,13 +23,14 @@ class PaymentMethodAvailable implements ObserverInterface
         $grandTotal = $this->_checkoutSession->getQuote()->getGrandTotal();
         if ($observer->getEvent()->getMethodInstance()->getCode() == "pace_pay") {
             $paymentPlan = $this->_configData->getPaymentPlan();
-
+            $checkResult = $observer->getEvent()->getResult();
             if (isset($paymentPlan)) {
-                $checkResult = $observer->getEvent()->getResult();
                 $paymentPlanMin = $paymentPlan['minAmount'];
                 $paymentPlanMax = $paymentPlan['maxAmount'];
                 $isCurrencySupported =  $this->_configData->getIsCurrencySupported();
                 $checkResult->setData('is_available', $grandTotal >= $paymentPlanMin && $grandTotal <= $paymentPlanMax && $isCurrencySupported);
+            } else {
+                $checkResult->setData('is_available', false);
             }
         }
     }
