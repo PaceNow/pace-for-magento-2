@@ -46,11 +46,11 @@ class RefreshPaymentPlans extends Action
         parent::__construct($context);
     }
 
-    private function _getBasePayload($storeId)
+    private function _getBasePayload($clientId, $clientSecret)
     {
         $authToken = base64_encode(
-            $this->_configData->getClientId($storeId) . ':' .
-                $this->_configData->getClientSecret($storeId)
+            $clientId . ':' .
+                $clientSecret
         );
 
         $pacePayload = [];
@@ -100,7 +100,16 @@ class RefreshPaymentPlans extends Action
         foreach ($stores as $store) {
             $storeId =  $store->getId();
             $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/plans';
-            $pacePayload = $this->_getBasePayload($storeId);
+            $clientId = $this->_configData->getClientId($storeId);
+            $clientSecret = $this->_configData->getClientSecret($storeId);
+
+            if (!$clientId && !$clientSecret) {
+                $this->_logger
+                    ->info('No API credentials found for storeID ' . $storeId);
+                continue;
+            }
+
+            $pacePayload = $this->_getBasePayload($clientId, $clientSecret);
             $env = $this->_configData->getApiEnvironment($storeId);
 
             try {
@@ -110,6 +119,7 @@ class RefreshPaymentPlans extends Action
                 $response = $this->_client->request();
                 if ($response->getStatus() < 200 || $response->getStatus() > 299) {
                     $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                    $this->_messageManager->addErrorMessage('Pace Config Error: Invalid API Credentials for storeId: ' . $storeId);
                     continue;
                 }
                 $responseJson = json_decode($response->getBody());
