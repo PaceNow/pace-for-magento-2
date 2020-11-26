@@ -24,7 +24,7 @@ Pace Magento extension is compatible with Magento version 2.30 or greater.
 
 - Require Pace_Pay module
 ```
-composer require pace/module-pay:dev-master#v0.0.15
+composer require pace/module-pay:dev-master#v0.0.16
 ```
 
 - Enable Pace_Pay module
@@ -74,8 +74,8 @@ composer update pace/module-pay
 followed by `Magento setups and cache clean` steps in the composer section above.
 
 ## Manual
-Delete the folder `<Root Magento Directory>/app/code/Pace/Pay`, and then redo the `Manual
-` installation section above with the latest files.
+Delete the folder `<Root Magento Directory>/app/code/Pace/Pay`, and then redo the `Manual` 
+installation section above with the latest files.
 
 # Support
 For additional support, contact <merchant-integration@pacenow.co>
