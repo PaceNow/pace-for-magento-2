@@ -117,7 +117,7 @@
                     </field>
                     <group id="single_product" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Single Product Widget</label>
-                        <comment><![CDATA[<img style="max-width: 100%; float: right;" src="https://assets.pacenow.co/images/developers/widgets/single-product-color-reference.jpeg"/>]]></comment>
+                        <comment><![CDATA[<div style="width: 100%; display: flex; justify-content: center;"><img style="max-width: 100%;" src="https://assets.pacenow.co/images/developers/widgets/single-product-color-reference.jpeg"/></div>]]></comment>
                         <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Enabled</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -151,7 +151,7 @@
                     </group>
                     <group id="multi_products" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Multi Product Widget</label>
-                        <comment><![CDATA[<img style="max-width: 100%; float: right;" src="https://assets.pacenow.co/images/developers/widgets/multi-products-color-reference.jpeg"/>]]></comment>
+                        <comment><![CDATA[<div style="width: 100%; display: flex; justify-content: center;"><img style="max-width: 100%;" src="https://assets.pacenow.co/images/developers/widgets/multi-products-color-reference.jpeg"/></div>]]></comment>
                         <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Enabled</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -175,7 +175,7 @@
                     </group>
                     <group id="checkout" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Checkout Widget</label>
-                        <comment><![CDATA[<img style="max-width: 100%; float: right;" src="https://assets.pacenow.co/images/developers/widgets/checkout-color-reference.jpeg"/>]]></comment>
+                        <comment><![CDATA[<div style="width: 100%; display: flex; justify-content: center;"><img style="max-width: 100%;" src="https://assets.pacenow.co/images/developers/widgets/checkout-color-reference.jpeg"/></div>]]></comment>
                         <field id="text_primry_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Text Primary Color</label>
                             <config_path>payment/pace_pay/checkout_text_primary_color</config_path>
