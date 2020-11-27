@@ -1,6 +1,6 @@
 <?php
 
-namespace Pace\Pay\Block\System\Config;
+namespace Pace\Pay\Block\Adminhtml\System\Config;
 
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Backend\Block\Template\Context;

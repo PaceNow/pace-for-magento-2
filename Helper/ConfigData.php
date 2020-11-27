@@ -4,13 +4,13 @@ namespace Pace\Pay\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-// use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\Module\ModuleListInterface;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
@@ -83,13 +83,21 @@ class ConfigData extends AbstractHelper
         EncryptorInterface $encryptor,
         StoreManagerInterface $storeManager,
         WriterInterface $configWriter,
-        TypeListInterface $cacheTypeList
+        TypeListInterface $cacheTypeList,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->_storeManager = $storeManager;
         $this->_configWriter = $configWriter;
         $this->cacheTypeList = $cacheTypeList;
+        $this->_moduleList = $moduleList;
+    }
+
+    public function getModuleVersion()
+    {
+        $moduleInfo = $this->_moduleList->getOne('Pace_Pay');
+        return $moduleInfo['setup_version'];
     }
 
     private function _getEnvPrefix($apiEnvironment)
