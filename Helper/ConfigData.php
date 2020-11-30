@@ -11,6 +11,10 @@ use Pace\Pay\Model\Adminhtml\Source\Environment;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
+use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Component\ComponentRegistrar;
+use Magento\Framework\App\DeploymentConfig;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
@@ -73,6 +77,21 @@ class ConfigData extends AbstractHelper
     protected $encryptor;
 
     /**
+     * @var ReadFactory
+     */
+    protected $_readFactory;
+
+    /**
+     * @var DeploymentConfig
+     */
+    protected $_deploymentconfig;
+
+    /**
+     * @var ComponentRegistrarInterface
+     */
+    protected $_componentRegistrar;
+
+    /**
      * @param Context $context
      * @param EncryptorInterface $encryptor
      * @param StoreManagerInterface $storeManager
@@ -84,17 +103,42 @@ class ConfigData extends AbstractHelper
         StoreManagerInterface $storeManager,
         WriterInterface $configWriter,
         TypeListInterface $cacheTypeList,
-        ModuleListInterface $moduleList
-    ) {
+        ModuleListInterface $moduleList,
+        ReadFactory $readFactory,
+        ComponentRegistrarInterface $componentRegistrar,
+        DeploymentConfig $deploymentConfig
+    )
+    {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->_storeManager = $storeManager;
         $this->_configWriter = $configWriter;
         $this->cacheTypeList = $cacheTypeList;
         $this->_moduleList = $moduleList;
+        $this->_readFactory = $readFactory;
+        $this->_componentRegistrar = $componentRegistrar;
+        $this->_deploymentconfig = $deploymentConfig;
     }
 
     public function getModuleVersion()
+    {
+        $unknownVersion = __('Unknown version');
+        try {
+            $path = $this->_componentRegistrar->getPath(
+                ComponentRegistrar::MODULE,
+                'Pace_Pay'
+            );
+            $directoryRead = $this->_readFactory->create($path);
+            $composerJsonData = $directoryRead->readFile('composer.json');
+            $data = json_decode($composerJsonData);
+
+            return !empty($data->version) ? $data->version : $unknownVersion;
+        } catch (\Exception $exception) {
+            return $unknownVersion;
+        }
+    }
+
+    public function getSetupVersion()
     {
         $moduleInfo = $this->_moduleList->getOne('Pace_Pay');
         return $moduleInfo['setup_version'];
