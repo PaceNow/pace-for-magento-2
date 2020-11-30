@@ -28,6 +28,7 @@ use Magento\Framework\DB\Transaction as DBTransaction;
 use Magento\Framework\Module\ModuleListInterface;
 use Pace\Pay\Model\Ui\ConfigProvider;
 use Psr\Log\LoggerInterface;
+use Magento\Sales\Api\OrderManagementInterface;
 
 abstract class Transaction implements ActionInterface
 {
@@ -147,6 +148,11 @@ abstract class Transaction implements ActionInterface
     protected $_logger;
 
     /**
+     * @var OrderManagementInterface
+     */
+    protected $_orderManagement;
+
+    /**
      * @param JsonFactory $resultJsonFactory
      * @param Session $checkoutSession
      * @param ProductMetadataInterface $productMetadata
@@ -194,7 +200,8 @@ abstract class Transaction implements ActionInterface
         PaymentRepository $_paymentRepository,
         DBTransaction $dbTransaction,
         ModuleListInterface $moduleList,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderManagementInterface $orderManagement
     )
     {
         $this->_resultJsonFactory = $resultJsonFactory;
@@ -220,6 +227,7 @@ abstract class Transaction implements ActionInterface
         $this->_dbTransaction = $dbTransaction;
         $this->_moduleList = $moduleList;
         $this->_logger = $logger;
+        $this->_orderManagement = $orderManagement;
     }
 
     public abstract function execute();
@@ -278,7 +286,9 @@ abstract class Transaction implements ActionInterface
     {
         $order = $this->_checkoutSession->getLastRealOrder();
         $order->setStatus(Order::STATE_CANCELED);
+        $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
         $this->_orderRepository->save($order);
+        $this->_orderManagement->cancel($order->getId());
         $this->_checkoutSession->restoreQuote();
         if ($isError) {
             $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
