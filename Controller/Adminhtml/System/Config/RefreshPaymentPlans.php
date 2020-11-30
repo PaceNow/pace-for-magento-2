@@ -34,7 +34,8 @@ class RefreshPaymentPlans extends Action
         StoreRepositoryInterface $storeRepository,
         AdminStoreResolver $adminStoreResolver,
         LoggerInterface $logger
-    ) {
+    )
+    {
         $this->_client = $client;
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_resourceConfig = $resourceConfig;
@@ -50,7 +51,7 @@ class RefreshPaymentPlans extends Action
     {
         $authToken = base64_encode(
             $clientId . ':' .
-                $clientSecret
+            $clientSecret
         );
 
         $pacePayload = [];
@@ -98,19 +99,20 @@ class RefreshPaymentPlans extends Action
         // Refresh payment plans for all stores
         $stores = $this->_storeRepository->getList();
         foreach ($stores as $store) {
-            $storeId =  $store->getId();
+            $storeId = $store->getId();
             $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/plans';
             $clientId = $this->_configData->getClientId($storeId);
             $clientSecret = $this->_configData->getClientSecret($storeId);
+            $env = $this->_configData->getApiEnvironment($storeId);
 
             if (!$clientId && !$clientSecret) {
                 $this->_logger
                     ->info('No API credentials found for storeID ' . $storeId);
+                $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
                 continue;
             }
 
             $pacePayload = $this->_getBasePayload($clientId, $clientSecret);
-            $env = $this->_configData->getApiEnvironment($storeId);
 
             try {
                 $this->_client->setUri($endpoint);
