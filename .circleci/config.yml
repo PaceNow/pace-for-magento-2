@@ -24,6 +24,7 @@ jobs:
           git remote update
           git merge --allow-unrelated-histories --squash -X theirs $tag
           ./internal/generateReadme.sh $tag
+          ./internal/generateComposer.sh ${tag/v}
           git reset -- internal
           git reset -- .circleci
           git add README.md
