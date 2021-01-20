@@ -209,4 +209,13 @@
         </arguments>
     </type>
 
+    <type name="\Magento\Sales\Model\Order\Email\Sender\OrderSender">
+        <plugin name="PacePayOrderSenderPlugin"
+                type="Pace\Pay\Plugins\OrderSenderPlugin"/>
+    </type>
+
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="PacePayOrderStatePlugin"
+                type="Pace\Pay\Plugins\OrderSavePlugin"/>
+    </type>
 </config>
