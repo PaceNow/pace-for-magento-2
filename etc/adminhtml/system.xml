@@ -213,6 +213,11 @@
                             <config_path>payment/pace_pay/checkout_font_size</config_path>
                             <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
+                             <field id="interval_time" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Sync order status</label>
+                            <source_model>Pace\Pay\Model\Adminhtml\Source\CronIntervalTime</source_model>
+                            <config_path>crontab/default/jobs/pace_cron/schedule/cron_expr</config_path>
+                        </field>
                     </group>
                 </group>
             </group>

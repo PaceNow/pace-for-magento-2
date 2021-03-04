@@ -3,6 +3,7 @@
 
 namespace Pace\Pay\Cron;
 
+use Magento\Sales\Api\Data\OrderInterfaceFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use \Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
@@ -17,7 +18,7 @@ use Pace\Pay\Model\Ui\ConfigProvider;
 class VerifyTransaction
 {
     /**
-     * @var Order
+     * @var OrderInterfaceFactory
      */
     private $_order;
 
@@ -58,7 +59,7 @@ class VerifyTransaction
 
     /**
      * VerifyTransaction constructor.
-     * @param Order $order
+     * @param OrderInterfaceFactory $order
      * @param ConfigData $configData
      * @param LoggerInterface $logger
      * @param OrderCollectionFactory $orderCollectionFactory
@@ -68,7 +69,7 @@ class VerifyTransaction
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        Order $order,
+        OrderInterfaceFactory $order,
         ConfigData $configData,
         LoggerInterface $logger,
         OrderCollectionFactory $orderCollectionFactory,
@@ -92,30 +93,51 @@ class VerifyTransaction
     public function execute()
     {
         $this->_logger->info('Pace cron verify transaction executing');
-        $pendingPaymentOrdersCollection = $this->getPendingPaymentOrders();
+        $pace_order = $this->_paceVerifyTransaction->getAllOrder();
 
-        foreach ($pendingPaymentOrdersCollection as $key => $item) {
+        foreach ($pace_order as $key => $value) {
+            //     // $this->_logger->info('Pace cron verify transaction execution complete');
             try {
-                $order = $this->_orderRepository->get($key);
+                $order = $this->_order->create()->loadByIncrementId($value['referenceID']);
 
-                if ($order->getPayment()->getMethod() != ConfigProvider::CODE) {
-                    continue;
+                if ($order) {
+                    $payment_method = $order->getPayment() != null ? $order->getPayment()->getMethod() : "";
+                    if ($payment_method == "pace_pay") {
+                        // $this->_logger->info($order->getId());
+                        if ($this->_paceVerifyTransaction->check_order_manually_update($order, $value)) {
+                            switch ($value['status']) {
+                                case "pending_confirmation":
+                                    if ($order->getState() != Order::STATE_PENDING_PAYMENT) {
+                                        $order->setState(Order::STATE_PENDING_PAYMENT)
+                                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT));
+                                        break;
+                                    }
+                                case "cancelled":
+                                    if ($order->getState() != Order::STATE_CANCELED) {
+                                        $order->cancel();
+                                        break;
+                                    }
+                                case "approved":
+                                    if ($order->getState() != Order::STATE_PROCESSING) {
+                                        $order->setState(Order::STATE_PROCESSING)
+                                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
+                                        break;
+                                    }
+                                case "expired":
+                                    if ($order->getState() != Order::STATE_CLOSED) {
+                                        $order->setState(Order::STATE_CLOSED)
+                                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CLOSED));
+                                        break;
+                                    }
+                            }
+                            $order->save();
+                        }
+                    }
                 }
-
-                $this->_storeManager->setCurrentStore($order->getStoreId());
-                $result = $this->_paceVerifyTransaction->verifyAndInvoiceOrder($order);
-                if ($result == PaceVerifyTransaction::VERIFY_FAILED) {
-                    $order->setStatus(Order::STATE_CANCELED);
-                    $order->addCommentToStatusHistory(
-                        __('Order cancelled by Pace cron after failed verification')
-                    );
-                    $this->_orderRepository->save($order);
-                }
-            } catch (\Exception $exception) {
-                $this->_logger->warning('Pace order not found');
+            } catch (\Exception $e) {
+                continue;
             }
         }
-
         $this->_logger->info('Pace cron verify transaction execution complete');
     }
 
