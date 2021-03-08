@@ -77,8 +77,7 @@ class VerifyTransaction
         OrderRepository $orderRepository,
         Iterator $iterator,
         StoreManagerInterface $storeManager
-    )
-    {
+    ) {
         $this->_order = $order;
         $this->_configData = $configData;
         $this->_logger = $logger;
@@ -110,25 +109,25 @@ class VerifyTransaction
                                     if ($order->getState() != Order::STATE_PENDING_PAYMENT) {
                                         $order->setState(Order::STATE_PENDING_PAYMENT)
                                             ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT));
-                                        break;
                                     }
+                                    break;
                                 case "cancelled":
                                     if ($order->getState() != Order::STATE_CANCELED) {
                                         $order->cancel();
-                                        break;
                                     }
+                                    break;
                                 case "approved":
                                     if ($order->getState() != Order::STATE_PROCESSING) {
                                         $order->setState(Order::STATE_PROCESSING)
                                             ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
-                                        break;
                                     }
+                                    break;
                                 case "expired":
                                     if ($order->getState() != Order::STATE_CLOSED) {
                                         $order->setState(Order::STATE_CLOSED)
                                             ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CLOSED));
-                                        break;
                                     }
+                                    break;
                             }
                             $order->save();
                         }
