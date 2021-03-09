@@ -116,47 +116,8 @@ define([
       });
     },
 
-    placeOrder: function (data, event) {
-      pacePay.showProgressModal();
-      var self = this;
-
-      if (event) {
-        event.preventDefault();
-      }
-
-      if (
-        this.validate() &&
-        additionalValidators.validate() &&
-        this.isPlaceOrderActionAllowed() === true
-      ) {
-        this.isPlaceOrderActionAllowed(false);
-
-        this.getPlaceOrderDeferredObject()
-          .done(function () {
-            self.afterPlaceOrder();
-
-            if (self.redirectAfterPlaceOrder) {
-              redirectOnSuccessAction.execute();
-            }
-          })
-          .fail(function () {
-            pacePay.hideProgressModal();
-            errorProcessor.process(
-              "Sorry something went wrong.",
-              this.messageContainer
-            );
-          })
-          .always(function () {
-            self.isPlaceOrderActionAllowed(true);
-          });
-
-        return true;
-      }
-
-      return false;
-    },
-
     afterPlaceOrder: function (event) {
+      pacePay.showProgressModal();
       $("#pace-pay-submit-button").attr("disabled", true);
       this.isPlaceOrderActionAllowed(true);
 

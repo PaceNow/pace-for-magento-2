@@ -6,6 +6,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Api\Data\OrderInterface;
 use Zend_Http_Client;
+use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 
 class VerifyTransaction extends Transaction
@@ -131,6 +132,69 @@ class VerifyTransaction extends Transaction
         }
     }
 
+    public function getAllOrder()
+    {
+        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . 'list';
+        $pacePayload = $this->_getBasePayload();
+        $params = [
+            "from" =>  date('Y-m-d', strtotime("-1 weeks")),
+            "to"    => date('Y-m-d')
+        ];
+
+        $this->_client->resetParameters();
+        try {
+            $this->_client->setUri($endpoint);
+
+            $this->_client->setHeaders($pacePayload['headers']);
+            $this->_client->setRawData(json_encode($params));
+            $response = $this->_client->request("POST");
+            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
+                return self::VERIFY_UNKNOWN;
+            }
+
+            $pace_transaction = json_decode($response->getBody(), true);
+            $orders = [];
+            if (!!$pace_transaction['items']) {
+
+                foreach ($pace_transaction['items'] as $key => $transaction) {
+                    usort($transaction, function ($a, $b) {
+                        return filter_var($a['transactionID'], FILTER_SANITIZE_NUMBER_INT)  -  filter_var($b['transactionID'], FILTER_SANITIZE_NUMBER_INT) > 0;
+                    });
+
+                    foreach ($transaction  as $value) {
+                        $orders[$value['referenceID']] = $value;
+                    }
+                }
+            }
+
+            return $orders;
+        } catch (\Exception $exception) {
+            return;
+        }
+    }
+
+
+    public function check_order_manually_update($order, $pace)
+    {
+
+        if ($pace['status'] == "pending_confirmation" && ($order->getState() ==  "canceled"  || $order->getState() == 'closed')) {
+
+            $this->cancelTransaction($order);
+            return false;
+        }
+
+        if ($order->getState() ==  'pending_payment') {
+            return true;
+        }
+
+        if ($order->getState()  != 'canceled') {
+            return false;
+        }
+
+        $this->_objectManager = ObjectManager::getInstance();
+        $trackStatus = $this->_objectManager->create('Pace\Pay\Model\TrackingStatus');
+        return !$trackStatus->getCollection()->addFieldToFilter('order_id', ['eq' => (int) $order->getIncrementId()])->getSize();
+    }
     /**
      * @param Order $order
      * @param string $transactionId

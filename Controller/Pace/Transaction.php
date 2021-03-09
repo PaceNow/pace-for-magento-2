@@ -249,15 +249,15 @@ abstract class Transaction implements ActionInterface
     /**
      * @return array
      */
-    protected function _getBasePayload()
+    protected function _getBasePayload($store = 1)
     {
         $magentoVersion = $this->_metaDataInterface->getVersion();
         $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
         $platformVersionString = ConfigProvider::PLUGIN_NAME . ',' . $pluginVersion . ',' . $magentoVersion;
 
         $authToken = base64_encode(
-            $this->_configData->getClientId() . ':' .
-            $this->_configData->getClientSecret()
+            $this->_configData->getClientId($store) . ':' .
+            $this->_configData->getClientSecret($store)
         );
 
         $pacePayload = [];
