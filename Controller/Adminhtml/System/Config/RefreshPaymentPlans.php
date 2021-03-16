@@ -141,13 +141,13 @@ class RefreshPaymentPlans extends Action
 
                 $paymentPlans = $responseJson->{'list'};
 
-                if (isset($paymentPlan)) {
+                if (isset($paymentPlans)) {
                     $this->_updatePaymentPlan($storeId, $env, $paymentPlans);
 
                     $this->_logger
                         ->info('Pace refresh payment success for storeId ' . $storeId);
                     $this->_logger
-                        ->info(json_encode($paymentPlan));
+                        ->info(json_encode($paymentPlans));
                 } else {
                     $this->_updatePaymentPlan($storeId, $env, null);
                     $this->_logger

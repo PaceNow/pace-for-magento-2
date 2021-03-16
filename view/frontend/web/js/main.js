@@ -1,7 +1,8 @@
 require([], function () {
   var isPlayground = window.pacePayEnvironment === "playground";
   var pacePayRequireKey = isPlayground ? "pacePayPlayground" : "pacePay";
-  if (window.pacePaymentPlan && window.pacePaymentPlan.isCurrencySupported) {
+  
+  if (window.pacePaymentPlan && window.pacePaymentPlan.isAvailable) {
     require([pacePayRequireKey], function (requiredPacePay) {
       requiredPacePay = requiredPacePay.init({
         fallbackWidget: window.pacePayBaseWidgetConfig.fallbackWidget,

@@ -122,12 +122,12 @@ class ConfigData extends AbstractHelper
 
     protected function isMethodAvailable(
         $storeId = null,
-        $output = false
     ) {
         $env = $this->getApiEnvironment($storeId);
         try {
             // retrieve plans from database
-            $paymentPlans = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env);
+            $paymentPlans = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLANS, $storeId, $env);
+
             if (!$paymentPlans) {
                 throw new \Exception("Plans is not found");
             }
@@ -139,21 +139,20 @@ class ConfigData extends AbstractHelper
             }
 
             $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+
             if (!in_array($storeCurrency, array_keys($listAvailableCurrencies))) {
                 throw new \Exception("Pace doesn't support the client currency");
             }
 
-            $getPacePlanFollowCurrency = $listAvailableCurrencies[$storeCurrency];
+            $getPacePlanFollowCurrency = (array) $listAvailableCurrencies[$storeCurrency];
             $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE);
             if ($getPacePlanFollowCurrency->country !== $storeCountry) {
                 throw new \Exception("Pace doesn't support the client country");
             }
 
-            if ($output) {
-                return $getPacePlanFollowCurrency;
-            }
+            $getPacePlanFollowCurrency['isAvailable'] = true;
 
-            return true;
+            return $getPacePlanFollowCurrency;
         } catch (\Exception $e) {
             $this->_logger->info($e->getMessage());
             return;
@@ -370,8 +369,7 @@ class ConfigData extends AbstractHelper
         }
 
         return [
-            "isCurrencySupported" => $this->isMethodAvailable($storeId),
-            "paymentPlans" => $this->isMethodAvailable($storeId, true),
+            "paymentPlans" => $this->isMethodAvailable($storeId),
             // "id" => $paymentPlanID,
             // "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env),
             // "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN, $storeId, $env),
