@@ -2,17 +2,17 @@
 
 namespace Pace\Pay\Controller\Adminhtml\System\Config;
 
-use Zend_Http_Client;
-use Pace\Pay\Helper\ConfigData;
-use Pace\Pay\Helper\AdminStoreResolver;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
+use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\HTTP\ZendClient;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
+use Pace\Pay\Helper\AdminStoreResolver;
+use Pace\Pay\Helper\ConfigData;
 use Psr\Log\LoggerInterface;
+use Zend_Http_Client;
 
 class RefreshPaymentPlans extends Action
 {
@@ -34,8 +34,7 @@ class RefreshPaymentPlans extends Action
         StoreRepositoryInterface $storeRepository,
         AdminStoreResolver $adminStoreResolver,
         LoggerInterface $logger
-    )
-    {
+    ) {
         $this->_client = $client;
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_resourceConfig = $resourceConfig;
@@ -77,21 +76,35 @@ class RefreshPaymentPlans extends Action
         $result = $this->refreshPlans();
         if ($result == self::REFRESH_SUCCESS) {
             return $this->_jsonResponse([
-                "success" => TRUE,
+                "success" => true,
             ], 200);
         } else {
             return $this->_jsonResponse([
-                "success" => TRUE,
+                "success" => true,
             ], 500);
         }
     }
 
-    private function _updatePaymentPlan($storeId, $env, $id, $currency, $min, $max)
+    private function _updatePaymentPlan($storeId, $env, $plans)
     {
-        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_ID, $id, $storeId, $env);
-        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_CURRENCY, $currency, $storeId, $env);
-        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MIN, $min, $storeId, $env);
-        $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MAX, $max, $storeId, $env);
+        if (!$plans) {
+            return;
+        }
+
+        if (is_object($plans) || is_array($plans)) {
+            $plans = json_encode($plans);
+        }
+
+        $this->_configData->writeToConfig(
+            $key = ConfigData::CONFIG_PAYMENT_PLANS,
+            $value = $plans,
+            $storeId,
+            $env
+        );
+        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_ID, $id, $storeId, $env);
+        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_CURRENCY, $currency, $storeId, $env);
+        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MIN, $min, $storeId, $env);
+        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MAX, $max, $storeId, $env);
     }
 
     public function refreshPlans()
@@ -108,7 +121,7 @@ class RefreshPaymentPlans extends Action
             if (!$clientId && !$clientSecret) {
                 $this->_logger
                     ->info('No API credentials found for storeID ' . $storeId);
-                $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                $this->_updatePaymentPlan($storeId, $env, null);
                 continue;
             }
 
@@ -120,24 +133,23 @@ class RefreshPaymentPlans extends Action
                 $this->_client->setHeaders($pacePayload['headers']);
                 $response = $this->_client->request();
                 if ($response->getStatus() < 200 || $response->getStatus() > 299) {
-                    $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                    $this->_updatePaymentPlan($storeId, $env, null);
                     $this->_messageManager->addErrorMessage('Pace Config Error: Invalid API Credentials for storeId: ' . $storeId);
                     continue;
                 }
                 $responseJson = json_decode($response->getBody());
 
                 $paymentPlans = $responseJson->{'list'};
-                $paymentPlan = $paymentPlans[0];
 
                 if (isset($paymentPlan)) {
-                    $this->_updatePaymentPlan($storeId, $env, $paymentPlan->{'id'}, $paymentPlan->{'currencyCode'}, $paymentPlan->{'minAmount'}->{'actualValue'}, $paymentPlan->{'maxAmount'}->{'actualValue'});
+                    $this->_updatePaymentPlan($storeId, $env, $paymentPlans);
 
                     $this->_logger
                         ->info('Pace refresh payment success for storeId ' . $storeId);
                     $this->_logger
                         ->info(json_encode($paymentPlan));
                 } else {
-                    $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
+                    $this->_updatePaymentPlan($storeId, $env, null);
                     $this->_logger
                         ->info('Pace refresh payment failure for storeId ' . $storeId);
                 }
