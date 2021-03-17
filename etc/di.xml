@@ -218,4 +218,10 @@
         <plugin name="PacePayOrderStatePlugin"
                 type="Pace\Pay\Plugins\OrderSavePlugin"/>
     </type>
+
+    <!-- Pace Multiple Widgets -->
+    <type name="\Magento\Catalog\Block\Product\ListProduct">
+        <plugin name="PacePayMultipleWidget" 
+                type="Pace\Pay\Plugins\PaceProductPlugin"/>
+    </type>
 </config>

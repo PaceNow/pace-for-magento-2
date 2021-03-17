@@ -121,7 +121,7 @@ class ConfigData extends AbstractHelper
     }
 
     protected function isMethodAvailable(
-        $storeId = null,
+        $storeId = null
     ) {
         $env = $this->getApiEnvironment($storeId);
         try {
@@ -144,13 +144,13 @@ class ConfigData extends AbstractHelper
                 throw new \Exception("Pace doesn't support the client currency");
             }
 
-            $getPacePlanFollowCurrency = (array) $listAvailableCurrencies[$storeCurrency];
+            $getPacePlanFollowCurrency = $listAvailableCurrencies[$storeCurrency];
             $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE);
             if ($getPacePlanFollowCurrency->country !== $storeCountry) {
                 throw new \Exception("Pace doesn't support the client country");
             }
 
-            $getPacePlanFollowCurrency['isAvailable'] = true;
+            $getPacePlanFollowCurrency->isAvailable = true;
 
             return $getPacePlanFollowCurrency;
         } catch (\Exception $e) {
@@ -362,11 +362,6 @@ class ConfigData extends AbstractHelper
     public function getPaymentPlan($storeId = null)
     {
         $env = $this->getApiEnvironment($storeId);
-        $paymentPlanID = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_ID, $storeId, $env);
-
-        if (!isset($paymentPlanID)) {
-            return null;
-        }
 
         return [
             "paymentPlans" => $this->isMethodAvailable($storeId),

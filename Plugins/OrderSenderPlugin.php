@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Pace\Pay\Plugins;
 
 use Magento\Sales\Model\Order;
@@ -20,11 +19,9 @@ class OrderSenderPlugin
      */
     public function __construct(
         LoggerInterface $logger
-    )
-    {
+    ) {
         $this->_logger = $logger;
     }
-
 
     public function aroundSend(\Magento\Sales\Model\Order\Email\Sender\OrderSender $subject, callable $proceed, Order $order, $forceSyncMode = false)
     {

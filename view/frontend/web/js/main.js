@@ -1,13 +1,14 @@
 require([], function () {
   var isPlayground = window.pacePayEnvironment === "playground";
   var pacePayRequireKey = isPlayground ? "pacePayPlayground" : "pacePay";
-  
-  if (window.pacePaymentPlan && window.pacePaymentPlan.isAvailable) {
+  var pacePaymentPlan = window.pacePaymentPlan;
+  if (pacePaymentPlan && pacePaymentPlan.paymentPlans.isAvailable) {
+    var paymentPlans = pacePaymentPlan.paymentPlans;
     require([pacePayRequireKey], function (requiredPacePay) {
       requiredPacePay = requiredPacePay.init({
         fallbackWidget: window.pacePayBaseWidgetConfig.fallbackWidget,
-        minAmount: parseFloat(window.pacePaymentPlan.minAmount),
-        maxAmount: parseFloat(window.pacePaymentPlan.maxAmount),
+        minAmount: parseFloat(paymentPlans.minAmount.actualValue),
+        maxAmount: parseFloat(paymentPlans.maxAmount.actualValue),
         styles: window.pacePayBaseWidgetConfig.styles
           ? window.pacePayBaseWidgetConfig.styles
           : undefined,
