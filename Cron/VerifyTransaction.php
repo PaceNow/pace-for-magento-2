@@ -1,19 +1,17 @@
 <?php
 
-
 namespace Pace\Pay\Cron;
 
+use Magento\Framework\Model\ResourceModel\Iterator;
 use Magento\Sales\Api\Data\OrderInterfaceFactory;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
-use \Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
+use Pace\Pay\Controller\Pace\VerifyTransaction as PaceVerifyTransaction;
 use Pace\Pay\Helper\ConfigData;
 use Psr\Log\LoggerInterface;
-use Pace\Pay\Controller\Pace\VerifyTransaction as PaceVerifyTransaction;
-use Magento\Sales\Model\OrderRepository;
-use Magento\Framework\Model\ResourceModel\Iterator;
+use \Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use \Magento\Store\Model\StoreManagerInterface;
-use Pace\Pay\Model\Ui\ConfigProvider;
 
 class VerifyTransaction
 {
