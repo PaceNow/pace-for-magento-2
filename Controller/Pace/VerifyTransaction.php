@@ -2,12 +2,12 @@
 
 namespace Pace\Pay\Controller\Pace;
 
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Api\Data\OrderInterface;
-use Zend_Http_Client;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
+use Zend_Http_Client;
 
 class VerifyTransaction extends Transaction
 {
@@ -71,8 +71,8 @@ class VerifyTransaction extends Transaction
             $order->setStatus(Order::STATE_PROCESSING);
 
 //            $formattedPrice = $order->getBaseCurrency()->formatTxt(
-//                $order->getGrandTotal()
-//            );
+            //                $order->getGrandTotal()
+            //            );
             $message = __('Pace payment is completed (Reference ID: %1)', $transactionId);
             $order->addStatusHistoryComment($message);
 
@@ -137,8 +137,8 @@ class VerifyTransaction extends Transaction
         $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . 'list';
         $pacePayload = $this->_getBasePayload();
         $params = [
-            "from" =>  date('Y-m-d', strtotime("-1 weeks")),
-            "to"    => date('Y-m-d')
+            "from" => date('Y-m-d', strtotime("-1 weeks")),
+            "to" => date('Y-m-d'),
         ];
 
         $this->_client->resetParameters();
@@ -158,10 +158,10 @@ class VerifyTransaction extends Transaction
 
                 foreach ($pace_transaction['items'] as $key => $transaction) {
                     usort($transaction, function ($a, $b) {
-                        return filter_var($a['transactionID'], FILTER_SANITIZE_NUMBER_INT)  -  filter_var($b['transactionID'], FILTER_SANITIZE_NUMBER_INT) > 0;
+                        return filter_var($a['transactionID'], FILTER_SANITIZE_NUMBER_INT) - filter_var($b['transactionID'], FILTER_SANITIZE_NUMBER_INT) > 0;
                     });
 
-                    foreach ($transaction  as $value) {
+                    foreach ($transaction as $value) {
                         $orders[$value['referenceID']] = $value;
                     }
                 }
@@ -173,21 +173,20 @@ class VerifyTransaction extends Transaction
         }
     }
 
-
-    public function check_order_manually_update($order, $pace)
+    public function checkOrderManuallyUpdate($order, $pace)
     {
 
-        if ($pace['status'] == "pending_confirmation" && ($order->getState() ==  "canceled"  || $order->getState() == 'closed')) {
+        if ($pace['status'] == "pending_confirmation" && ($order->getState() == "canceled" || $order->getState() == 'closed')) {
 
             $this->cancelTransaction($order);
             return false;
         }
 
-        if ($order->getState() ==  'pending_payment') {
+        if ($order->getState() == 'pending_payment') {
             return true;
         }
 
-        if ($order->getState()  != 'canceled') {
+        if ($order->getState() != 'canceled') {
             return false;
         }
 

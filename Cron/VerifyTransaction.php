@@ -21,6 +21,16 @@ class VerifyTransaction
     private $_order;
 
     /**
+     * @var Magento\Sales\Model\Order\Config instance
+     */
+    private $_orderConfig;
+
+    /**
+     * @var Magento\Sales\Model\Order\OrderStateResolverInterface instance
+     */
+    private $_orderStateResolver;
+
+    /**
      * @var ConfigData
      */
     private $_configData;
@@ -74,9 +84,13 @@ class VerifyTransaction
         PaceVerifyTransaction $paceVerifyTransaction,
         OrderRepository $orderRepository,
         Iterator $iterator,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        \Magento\Sales\Model\Order\Config $orderConfig,
+        \Magento\Sales\Model\Order\OrderStateResolverInterface $orderStateResolver
     ) {
         $this->_order = $order;
+        $this->_orderConfig = $orderConfig;
+        $this->_orderStateResolver = $orderStateResolver;
         $this->_configData = $configData;
         $this->_logger = $logger;
         $this->_orderCollectionFactory = $orderCollectionFactory;
@@ -85,6 +99,19 @@ class VerifyTransaction
         $this->_iterator = $iterator;
         $this->_paceVerifyTransaction = $paceVerifyTransaction;
         $this->_storeManager = $storeManager;
+    }
+
+    /**
+     * Set order state
+     * @param  Magento\Sales\Model\Order &$order
+     * @param  String $state
+     */
+    protected function updateOrderState(&$order, $state)
+    {
+        $order->setState(
+            $this->_orderStateResolver->getStateForOrder($order, [$state])
+        );
+        $order->setStatus($this->_orderConfig->getStateDefaultStatus($order->getState()));
     }
 
     public function execute()
@@ -105,25 +132,18 @@ class VerifyTransaction
                             switch ($value['status']) {
                                 case "pending_confirmation":
                                     if ($order->getState() != Order::STATE_PENDING_PAYMENT) {
-                                        $order->setState(Order::STATE_PENDING_PAYMENT)
-                                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT));
+                                        $this->updateOrderState($order, Order::STATE_PENDING_PAYMENT);
                                     }
                                     break;
                                 case "cancelled":
+                                case "expired":
                                     if ($order->getState() != Order::STATE_CANCELED) {
                                         $order->cancel();
                                     }
                                     break;
                                 case "approved":
                                     if ($order->getState() != Order::STATE_PROCESSING) {
-                                        $order->setState(Order::STATE_PROCESSING)
-                                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
-                                    }
-                                    break;
-                                case "expired":
-                                    if ($order->getState() != Order::STATE_CLOSED) {
-                                        $order->setState(Order::STATE_CLOSED)
-                                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CLOSED));
+                                        $this->updateOrderState($order, Order::STATE_PROCESSING);
                                     }
                                     break;
                             }
