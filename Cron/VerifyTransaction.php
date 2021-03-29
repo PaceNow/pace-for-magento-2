@@ -120,7 +120,7 @@ class VerifyTransaction
         $pace_order = $this->_paceVerifyTransaction->getAllOrder();
 
         foreach ($pace_order as $key => $value) {
-            //     // $this->_logger->info('Pace cron verify transaction execution complete');
+            // $this->_logger->info('Pace cron verify transaction execution complete');
             try {
                 $order = $this->_order->create()->loadByIncrementId($value['referenceID']);
 
@@ -128,7 +128,7 @@ class VerifyTransaction
                     $payment_method = $order->getPayment() != null ? $order->getPayment()->getMethod() : "";
                     if ($payment_method == "pace_pay") {
                         // $this->_logger->info($order->getId());
-                        if ($this->_paceVerifyTransaction->check_order_manually_update($order, $value)) {
+                        if ($this->_paceVerifyTransaction->checkOrderManuallyUpdate($order, $value)) {
                             switch ($value['status']) {
                                 case "pending_confirmation":
                                     if ($order->getState() != Order::STATE_PENDING_PAYMENT) {
