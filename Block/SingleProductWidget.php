@@ -2,8 +2,8 @@
 
 namespace Pace\Pay\Block;
 
-use Magento\Framework\View\Element\Template;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\View\Element\Template;
 use Pace\Pay\Helper\ConfigData;
 
 class SingleProductWidget extends Template
@@ -31,12 +31,13 @@ class SingleProductWidget extends Template
         $fallbackWidget = $this->_config->getConfigValue(ConfigData::CONFIG_FALLBACK_WIDGET);
         $paymentPlan = $this->_config->getPaymentPlan();
 
-        if (!isset($paymentPlan)) {
+        if (!$paymentPlan || !isset($paymentPlan['paymentPlans'])) {
             return "display: none;";
         }
 
-        $minAmount = $paymentPlan['minAmount'];
-        $maxAmount = $paymentPlan['maxAmount'];
+        $paymentPlan = $paymentPlan['paymentPlans'];
+        $minAmount = $paymentPlan->minAmount->actualValue;
+        $maxAmount = $paymentPlan->maxAmount->actualValue;
         $productPrice = $this->getProductPrice();
         $style = $this->_config->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE);
         if (($productPrice < $minAmount || $productPrice > $maxAmount) && !$fallbackWidget) {

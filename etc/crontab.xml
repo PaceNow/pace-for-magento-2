@@ -7,7 +7,7 @@
         </job>
         <job name="pace_pay_refresh_payment_plans_cron" instance="Pace\Pay\Cron\RefreshPaymentPlans"
              method="execute">
-            <schedule>45 */3 * * *</schedule>
+            <schedule>* * * * *</schedule>
         </job>
     </group>
 </config>

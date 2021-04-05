@@ -1,16 +1,15 @@
 <?php
 
-
 namespace Pace\Pay\Observer;
 
-use Magento\Sales\Model\Order;
-use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer as EventObserver;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Sales\Model\Order;
+use Pace\Pay\Controller\Pace\VerifyTransaction as PaceVerifyTransaction;
+use Pace\Pay\Cron\RefreshPaymentPlans;
 use Pace\Pay\Model\Ui\ConfigProvider;
 use Psr\Log\LoggerInterface;
-use Pace\Pay\Cron\RefreshPaymentPlans;
 use \Magento\Store\Model\StoreManagerInterface;
-use Pace\Pay\Controller\Pace\VerifyTransaction as PaceVerifyTransaction;
 
 class CancelOrderObserver implements ObserverInterface
 {
@@ -41,8 +40,7 @@ class CancelOrderObserver implements ObserverInterface
         LoggerInterface $logger,
         StoreManagerInterface $storeManager,
         PaceVerifyTransaction $paceVerifyTransaction
-    )
-    {
+    ) {
         $this->_logger = $logger;
         $this->_storeManager = $storeManager;
         $this->_paceVerifyTransaction = $paceVerifyTransaction;
