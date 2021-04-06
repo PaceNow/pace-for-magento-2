@@ -361,14 +361,9 @@ class ConfigData extends AbstractHelper
 
     public function getPaymentPlan($storeId = null)
     {
-        $env = $this->getApiEnvironment($storeId);
-
+        // $env = $this->getApiEnvironment($storeId);
         return [
             "paymentPlans" => $this->isMethodAvailable($storeId),
-            // "id" => $paymentPlanID,
-            // "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env),
-            // "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN, $storeId, $env),
-            // "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX, $storeId, $env),
         ];
     }
 }
