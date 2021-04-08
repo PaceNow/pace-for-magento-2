@@ -1,17 +1,19 @@
 <?php
 
+
 namespace Pace\Pay\Observer;
 
-use Magento\Framework\Event\Observer as EventObserver;
-use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
-use Pace\Pay\Controller\Pace\VerifyTransaction as PaceVerifyTransaction;
-use Pace\Pay\Cron\RefreshPaymentPlans;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Event\Observer as EventObserver;
 use Pace\Pay\Model\Ui\ConfigProvider;
 use Psr\Log\LoggerInterface;
+use Pace\Pay\Cron\RefreshPaymentPlans;
 use \Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\App\ObjectManager;
+use Pace\Pay\Controller\Pace\VerifyTransaction as PaceVerifyTransaction;
 
-class CancelOrderObserver implements ObserverInterface
+class TrackingOrderStatus implements ObserverInterface
 {
     /**
      * @var LoggerInterface
@@ -48,16 +50,14 @@ class CancelOrderObserver implements ObserverInterface
 
     public function execute(EventObserver $observer)
     {
-        /** @var Order $order */
-        $order = $observer->getEvent()->getOrder();
-        $transactionId = $order->getPayment()->getAdditionalData();
-
-        if ($order->getPayment()->getMethod() != ConfigProvider::CODE) {
-            return;
+        $order = $observer->getOrder();
+        if (isset($order->getOrigData()['status']) && $order->getStatus() !=  $order->getOrigData()['status']) {
+            $objectmanager = ObjectManager::getInstance();
+            $trackingStatus = $objectmanager->create('Pace\Pay\Model\TrackingStatus');
+            $trackingStatus->setOrderId($order->getIncrementId());
+            $trackingStatus->setPrevStatus($order->getOrigData()['status']);
+            $trackingStatus->setCurrentStatus($order->getStatus());
+            $trackingStatus->save();
         }
-
-        $this->_storeManager->setCurrentStore($order->getStoreId());
-        $this->_paceVerifyTransaction->cancelTransaction($order);
-        $this->_logger->info('Pace transaction ' . $transactionId . ' cancelled');
     }
 }

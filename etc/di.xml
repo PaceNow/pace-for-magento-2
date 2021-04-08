@@ -218,4 +218,15 @@
         <plugin name="PacePayOrderStatePlugin"
                 type="Pace\Pay\Plugins\OrderSavePlugin"/>
     </type>
+
+    <!-- Pace Multiple Widgets -->
+    <type name="Magento\Catalog\Block\Product\ListProduct">
+        <plugin name="PacePayMultipleWidget" 
+                type="Pace\Pay\Plugins\PaceProductPlugin"/>
+    </type>
+
+    <type name="Magento\Framework\View\Asset\Minification">
+        <plugin name="PaceExcludeMinifyScript" 
+                type="Pace\Pay\Plugins\ExcludeFilesFromMinification" />
+    </type>
 </config>

@@ -2,19 +2,19 @@
 
 namespace Pace\Pay\Helper;
 
+use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\App\Config\Storage\WriterInterface;
-use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Store\Model\ScopeInterface;
-use Pace\Pay\Model\Adminhtml\Source\Environment;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\App\Cache\TypeListInterface;
-use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Filesystem\Directory\ReadFactory;
-use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Component\ComponentRegistrar;
-use Magento\Framework\App\DeploymentConfig;
+use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Pace\Pay\Model\Adminhtml\Source\Environment;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
 
@@ -38,6 +38,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_TITLE = "title";
     const CONFIG_DEBUG = "debug";
     const CONFIG_ENVIRONMENT = "environment";
+    const CONFIG_PAYMENT_PLANS = "payment_plans";
     const CONFIG_PAYMENT_PLAN_ID = "payment_plan_id";
     const CONFIG_PAYMENT_PLAN_CURRENCY = "payment_plan_currency";
     const CONFIG_PAYMENT_PLAN_MIN = "payment_plan_min";
@@ -107,8 +108,7 @@ class ConfigData extends AbstractHelper
         ReadFactory $readFactory,
         ComponentRegistrarInterface $componentRegistrar,
         DeploymentConfig $deploymentConfig
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->_storeManager = $storeManager;
@@ -118,6 +118,45 @@ class ConfigData extends AbstractHelper
         $this->_readFactory = $readFactory;
         $this->_componentRegistrar = $componentRegistrar;
         $this->_deploymentconfig = $deploymentConfig;
+    }
+
+    protected function isMethodAvailable(
+        $storeId = null
+    ) {
+        $env = $this->getApiEnvironment($storeId);
+        try {
+            // retrieve plans from database
+            $paymentPlans = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLANS, $storeId, $env);
+
+            if (!$paymentPlans) {
+                throw new \Exception("Plans is not found");
+            }
+
+            // get list available currencies from payment plans
+            $listAvailableCurrencies = [];
+            foreach (json_decode($paymentPlans) as $plan) {
+                $listAvailableCurrencies[$plan->currencyCode] = $plan;
+            }
+
+            $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+
+            if (!in_array($storeCurrency, array_keys($listAvailableCurrencies))) {
+                throw new \Exception("Pace doesn't support the client currency");
+            }
+
+            $getPacePlanFollowCurrency = $listAvailableCurrencies[$storeCurrency];
+            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE);
+            if ($getPacePlanFollowCurrency->country !== $storeCountry) {
+                throw new \Exception("Pace doesn't support the client country");
+            }
+
+            $getPacePlanFollowCurrency->isAvailable = true;
+
+            return $getPacePlanFollowCurrency;
+        } catch (\Exception $e) {
+            $this->_logger->info($e->getMessage());
+            return;
+        }
     }
 
     public function getModuleVersion()
@@ -164,7 +203,7 @@ class ConfigData extends AbstractHelper
         try {
             return $this->scopeConfig->getValue(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORE, $storeId);
         } catch (\Exception $e) {
-            return NULL;
+            return null;
         }
     }
 
@@ -220,7 +259,6 @@ class ConfigData extends AbstractHelper
         return $clientId;
     }
 
-
     public function getClientSecret($storeId = null)
     {
         $apiEnvironment = $this->getApiEnvironment($storeId);
@@ -261,7 +299,7 @@ class ConfigData extends AbstractHelper
             "logoTheme" => $this->getConfigValue(self::CONFIG_SINGLE_PRODUCT_LOGO_THEME),
             "textPrimaryColor" => $this->getConfigValue(self::CONFIG_SINGLE_PRODUCT_TEXT_PRIMARY_COLOR),
             "textSecondaryColor" => $this->getConfigValue(self::CONFIG_SINGLE_PRODUCT_TEXT_SECONDARY_COLOR),
-            "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_SINGLE_PRODUCT_FONT_SIZE))
+            "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_SINGLE_PRODUCT_FONT_SIZE)),
         ];
 
         $styles = array_filter($styles, function ($value) {
@@ -279,7 +317,7 @@ class ConfigData extends AbstractHelper
         $styles = [
             "logoTheme" => $this->getConfigValue(self::CONFIG_MULTI_PRODUCTS_LOGO_THEME),
             "textColor" => $this->getConfigValue(self::CONFIG_MULTI_PRODUCTS_TEXT_COLOR),
-            "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_MULTI_PRODUCTS_FONT_SIZE))
+            "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_MULTI_PRODUCTS_FONT_SIZE)),
         ];
 
         $styles = array_filter($styles, function ($value) {
@@ -300,7 +338,7 @@ class ConfigData extends AbstractHelper
             "timelineColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_TIMELINE_COLOR),
             "backgroundColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_BACKGROUND_COLOR),
             "foregroundColor" => $this->getConfigValue(self::CONFIG_CHECKOUT_FOREGROUND_COLOR),
-            "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_CHECKOUT_FONT_SIZE))
+            "fontSize" => parseWidgetFontSize($this->getConfigValue(self::CONFIG_CHECKOUT_FONT_SIZE)),
         ];
 
         $styles = array_filter($styles, function ($value) {
@@ -323,19 +361,9 @@ class ConfigData extends AbstractHelper
 
     public function getPaymentPlan($storeId = null)
     {
-        $env = $this->getApiEnvironment($storeId);
-        $paymentPlanID = $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_ID, $storeId, $env);
-
-        if (!isset($paymentPlanID)) {
-            return null;
-        }
-
+        // $env = $this->getApiEnvironment($storeId);
         return [
-            "isCurrencySupported" => $this->getIsCurrencySupported($storeId),
-            "id" => $paymentPlanID,
-            "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env),
-            "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN, $storeId, $env),
-            "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX, $storeId, $env),
+            "paymentPlans" => $this->isMethodAvailable($storeId),
         ];
     }
 }

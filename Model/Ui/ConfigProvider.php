@@ -8,10 +8,7 @@
 namespace Pace\Pay\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Pace\Pay\Gateway\Http\Client\ClientMock;
 use Pace\Pay\Helper\ConfigData;
-
-use function Safe\json_encode;
 
 /**
  * Class ConfigProvider
@@ -24,10 +21,12 @@ final class ConfigProvider implements ConfigProviderInterface
 
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
+        \Magento\Framework\Json\Helper\Data $jsonHelper,
         ConfigData $configData
     ) {
         $this->method = $paymentHelper->getMethodInstance(self::CODE);
         $this->config = $configData;
+        $this->jsonHelper = $jsonHelper;
     }
 
     /**
@@ -42,10 +41,10 @@ final class ConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'apiEnvironment' => $this->config->getApiEnvironment(),
                     'payWithPaceMode' => $this->config->getConfigValue(ConfigData::CONFIG_PAY_WITH_PACE_MODE),
-                    'baseWidgetConfig' => json_encode($this->config->getBaseWidgetConfig()),
-                    'checkoutWidgetConfig' => json_encode($this->config->getCheckoutWidgetConfig())
-                ]
-            ]
+                    'baseWidgetConfig' => $this->jsonHelper->jsonEncode($this->config->getBaseWidgetConfig()),
+                    'checkoutWidgetConfig' => $this->jsonHelper->jsonEncode($this->config->getCheckoutWidgetConfig()),
+                ],
+            ],
         ];
     }
 }
