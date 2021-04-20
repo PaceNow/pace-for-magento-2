@@ -5,12 +5,11 @@
         <job name="pace_pay_cron" instance="Pace\Pay\Cron\VerifyTransaction" method="execute">
             <config_path>crontab/default/jobs/pace_cron/schedule/cron_expr</config_path>
         </job>
-        <job name="pace_pay_refresh_payment_plans_cron" instance="Pace\Pay\Cron\RefreshPaymentPlans"
-             method="execute">
-            <schedule>* * * * *</schedule>
+        <job name="pace_pay_refresh_payment_plans_cron" instance="Pace\Pay\Cron\RefreshPaymentPlans" method="execute">
+            <schedule>0 */2 * * *</schedule>
         </job>
         <job name="pace_pay_sync_version" instance="Pace\Pay\Cron\SyncPaceVersion" method="execute">
-            <schedule>* * * * *</schedule>
+            <schedule>0 */2 * * *</schedule>
         </job>
     </group>
 </config>

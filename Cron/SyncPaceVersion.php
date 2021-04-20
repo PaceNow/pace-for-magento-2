@@ -76,17 +76,17 @@ class SyncPaceVersion
             $this->_client->setMethod(Zend_Http_Client::GET);
             $this->_client->setHeaders($headers);
             $response = $this->_client->request();
-            $response = json_encode(json_decode($response->getBody()));
 
             if (empty($response)) {
                 throw new \Exception("Not found Pace plugins version");
             }
 
+            $response = json_encode(json_decode($response->getBody()));
             // save pace version to magento core config
             $this->_configData->writeToConfig(
                 ConfigData::CONFIG_PACE_SYNC_VERSION,
                 $response,
-                $storID = 0// save into default store id
+                $storeID = 0// save into default store id
             );
 
             $this->endCron();
