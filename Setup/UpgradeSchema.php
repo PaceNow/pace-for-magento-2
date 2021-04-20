@@ -14,7 +14,7 @@ class UpgradeSchema implements  UpgradeSchemaInterface
     {
         
         $setup->startSetup();
-        if(version_compare($context->getVersion(),'0.0.1') > 0 )
+        if(version_compare($context->getVersion(),'0.0.1') >= 0 )
         {
         //if version of your project is lower than 0.0.2 then implement this
             $isTableExist = $setup->tableExists('track_order_status');

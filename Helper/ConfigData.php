@@ -39,6 +39,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_DEBUG = "debug";
     const CONFIG_ENVIRONMENT = "environment";
     const CONFIG_PAYMENT_PLANS = "payment_plans";
+    const CONFIG_PACE_SYNC_VERSION = 'pace_sync_version';
     const CONFIG_PAYMENT_PLAN_ID = "payment_plan_id";
     const CONFIG_PAYMENT_PLAN_CURRENCY = "payment_plan_currency";
     const CONFIG_PAYMENT_PLAN_MIN = "payment_plan_min";

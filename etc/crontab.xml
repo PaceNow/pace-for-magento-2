@@ -9,5 +9,8 @@
              method="execute">
             <schedule>* * * * *</schedule>
         </job>
+        <job name="pace_pay_sync_version" instance="Pace\Pay\Cron\SyncPaceVersion" method="execute">
+            <schedule>* * * * *</schedule>
+        </job>
     </group>
 </config>
