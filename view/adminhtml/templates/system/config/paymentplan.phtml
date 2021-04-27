@@ -15,7 +15,7 @@
                 data: params,
                 dataType: 'json'
             }).done(function(data) {
-                var paymentPlan = data.paymentPlan;
+                var paymentPlan = data.paymentPlans;
                 var id = paymentPlan.id;
                 var currencyCode = paymentPlan.currencyCode;
                 var maxAmount = paymentPlan.maxAmount.actualValue;
@@ -32,7 +32,7 @@
 
 <?php $paymentPlan = $block->getPaymentPlan() ?>
 
-<?php if (isset($paymentPlan)) : ?>
+<?php if (isset($paymentPlan['paymentPlans'])) : ?>
     <table style="margin-bottom: 16px;">
         <tr>
             <td>ID</td>

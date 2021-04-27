@@ -39,6 +39,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_DEBUG = "debug";
     const CONFIG_ENVIRONMENT = "environment";
     const CONFIG_PAYMENT_PLANS = "payment_plans";
+    const CONFIG_PACE_SYNC_VERSION = 'pace_sync_version';
     const CONFIG_PAYMENT_PLAN_ID = "payment_plan_id";
     const CONFIG_PAYMENT_PLAN_CURRENCY = "payment_plan_currency";
     const CONFIG_PAYMENT_PLAN_MIN = "payment_plan_min";
@@ -361,14 +362,9 @@ class ConfigData extends AbstractHelper
 
     public function getPaymentPlan($storeId = null)
     {
-        $env = $this->getApiEnvironment($storeId);
-
+        // $env = $this->getApiEnvironment($storeId);
         return [
             "paymentPlans" => $this->isMethodAvailable($storeId),
-            // "id" => $paymentPlanID,
-            // "currency" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_CURRENCY, $storeId, $env),
-            // "minAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MIN, $storeId, $env),
-            // "maxAmount" => $this->getConfigValue(SELF::CONFIG_PAYMENT_PLAN_MAX, $storeId, $env),
         ];
     }
 }
