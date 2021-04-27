@@ -53,7 +53,7 @@ class Version implements \Magento\Framework\Notification\MessageInterface
     public function getText()
     {
         // message text
-        $html = sprintf("There is a new version of <strong>Pace For Magento 2</strong> available. Click %s to view.", '<a href="https://developers.pacenow.co/#plugins-magento2" target="_blank">here</a>');
+        $html = sprintf("There is a new version of <strong>Pace For Magento 2.0</strong> available. %s.", '<a href="https://developers.pacenow.co/#plugins-magento2" target="_blank">Please update now</a>');
         return $html;
     }
 
