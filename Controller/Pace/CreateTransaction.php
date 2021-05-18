@@ -38,7 +38,9 @@ class CreateTransaction extends Transaction
             'currency' => $order->getOrderCurrencyCode(),
             'country' => $order->getBillingAddress()->getCountryId(),
             'items' => $items,
-            'redirectUrls' => $redirectUrls
+            'redirectUrls' => $redirectUrls,
+            'billingAddress' => $this->getPaceBilling($order),
+            'shippingAddress' => $this->getPaceShipping($order),
         ];
 
         $this->_client->resetParameters();
@@ -70,6 +72,64 @@ class CreateTransaction extends Transaction
             $this->_handleCancel(true);
             return $this->_jsonResponse([], 500);
         }
+    }
+
+    /**
+     * Prepare Pace transaction billing
+     * 
+     * @param  Magento\Sales\Model\Order $order
+     * @since 0.0.26
+     * @return array
+     */
+    private function getPaceBilling($order)
+    {
+        $billingDetails = $order->getBillingAddress()->getData();
+        if (empty($billingDetails)) {
+            return [];
+        }
+
+        return [
+            'firstName' => $billingDetails['firstname'],
+            'lastName' => $billingDetails['lastname'],
+            'addr1' => $billingDetails['street'],
+            'addr2' => '',
+            'city' => $billingDetails['city'],
+            'state' => $billingDetails['region'],
+            'region' => $billingDetails['region'],
+            'postalCode' => $billingDetails['postcode'],
+            'countryIsoCode' => $billingDetails['country_id'],
+            'phone' => $billingDetails['telephone'],
+            'email' => $billingDetails['email'],
+        ];
+    }
+
+    /**
+     * Prepare Pace transaction shipping
+     *
+     * @param Magento\Sales\Model\Order $order
+     * @since 0.0.26
+     * @return array
+     */
+    private function getPaceShipping($order)
+    {
+        $shippingDetails = $order->getShippingAddress()->getData();
+        if (empty($shippingDetails)) {
+            return [];
+        }
+
+        return [
+            'firstName' => $shippingDetails['firstname'],
+            'lastName' => $shippingDetails['lastname'],
+            'addr1' => $shippingDetails['street'],
+            'addr2' => '',
+            'city' => $shippingDetails['city'],
+            'state' => $shippingDetails['region'],
+            'region' => $shippingDetails['region'],
+            'postalCode' => $shippingDetails['postcode'],
+            'countryIsoCode' => $shippingDetails['country_id'],
+            'phone' => $shippingDetails['telephone'],
+            'email' => $shippingDetails['email'],
+        ];
     }
 
     /**
