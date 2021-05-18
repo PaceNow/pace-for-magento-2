@@ -216,7 +216,7 @@
                              <field id="interval_time" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Sync order status</label>
                             <source_model>Pace\Pay\Model\Adminhtml\Source\CronIntervalTime</source_model>
-                            <config_path>crontab/default/jobs/pace_cron/schedule/cron_expr</config_path>
+                            <config_path>crontab/default/jobs_pace_cron_schedule_cron_expr</config_path>
                         </field>
                     </group>
                 </group>
