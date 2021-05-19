@@ -55,7 +55,6 @@ class CreateTransaction extends Transaction
             $this->_client->setRawData(json_encode($pacePayload['body']));
             $response = $this->_client->request();
             $responseJson = json_decode($response->getBody());
-            return $this->_jsonResponse($responseJson);
             $paceTransactionId = $responseJson->{'transactionID'};
 
             if ($paceTransactionId == null || $paceTransactionId == '') {
