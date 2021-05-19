@@ -40,9 +40,10 @@ class CreateTransaction extends Transaction
             'country' => $order->getBillingAddress()->getCountryId(),
             'items' => $items,
             'redirectUrls' => $redirectUrls,
-            'billingAddress' => $this->getPaceBilling($order),
         ];
 
+        // update transaction billing address
+        $this->getPaceBilling($order, $pacePayload);
         // update transaction shipping address
         $this->getPaceShipping($order, $pacePayload);
 
@@ -81,18 +82,25 @@ class CreateTransaction extends Transaction
     /**
      * Prepare Pace transaction billing
      * 
-     * @param  Magento\Sales\Model\Order $order
+     * @param Magento\Sales\Model\Order $order
+     * @param arrat $pacePayload 
      * @since 0.0.26
-     * @return array
      */
-    private function getPaceBilling($order)
+    private function getPaceBilling($order, &$pacePayload)
     {
-        $billingDetails = $order->getBillingAddress()->getData();
-        if (empty($billingDetails)) {
-            return [];
+        $getBillingAddress = $order->getBillingAddress();
+
+        if (!$getBillingAddress) {
+            return;
         }
 
-        return [
+        $billingDetails = $getBillingAddress->getData();
+
+        if (empty($billingDetails)) {
+            return;
+        }
+
+        $pacePayload['body']['billingAddress'] = [
             'firstName' => $billingDetails['firstname'],
             'lastName' => $billingDetails['lastname'],
             'addr1' => $billingDetails['street'],
