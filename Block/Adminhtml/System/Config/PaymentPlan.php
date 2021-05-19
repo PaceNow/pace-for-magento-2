@@ -11,7 +11,7 @@ use Pace\Pay\Helper\ConfigData;
 class PaymentPlan extends Field
 {
     protected $_template = 'Pace_Pay::system/config/paymentplan.phtml';
-    public function __construct(Context $context, array $data = [], ConfigData $configData, AdminStoreResolver $adminStoreResolver)
+    public function __construct(Context $context, ConfigData $configData, AdminStoreResolver $adminStoreResolver, array $data = [])
     {
         $this->_configData = $configData;
         $this->_adminStoreResolver = $adminStoreResolver;

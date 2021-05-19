@@ -11,6 +11,7 @@ class CreateTransaction extends Transaction
     {
         $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
         $order = $this->_checkoutSession->getLastRealOrder();
+
         $payment = $order->getPayment();
         $pacePayload = $this->_getBasePayload();
         $orderItems = $order->getAllVisibleItems();
@@ -40,8 +41,10 @@ class CreateTransaction extends Transaction
             'items' => $items,
             'redirectUrls' => $redirectUrls,
             'billingAddress' => $this->getPaceBilling($order),
-            'shippingAddress' => $this->getPaceShipping($order),
         ];
+
+        // update transaction shipping address
+        $this->getPaceShipping($order, $pacePayload);
 
         $this->_client->resetParameters();
         try {
@@ -51,6 +54,7 @@ class CreateTransaction extends Transaction
             $this->_client->setRawData(json_encode($pacePayload['body']));
             $response = $this->_client->request();
             $responseJson = json_decode($response->getBody());
+            return $this->_jsonResponse($responseJson);
             $paceTransactionId = $responseJson->{'transactionID'};
 
             if ($paceTransactionId == null || $paceTransactionId == '') {
@@ -107,17 +111,24 @@ class CreateTransaction extends Transaction
      * Prepare Pace transaction shipping
      *
      * @param Magento\Sales\Model\Order $order
+     * @param array $pacePayload 
      * @since 0.0.26
-     * @return array
      */
-    private function getPaceShipping($order)
-    {
-        $shippingDetails = $order->getShippingAddress()->getData();
-        if (empty($shippingDetails)) {
-            return [];
+    private function getPaceShipping($order, &$pacePayload)
+    {   
+        $getShippingAddress = $order->getShippingAddress();
+
+        if (!$getShippingAddress) {
+            return;
         }
 
-        return [
+        $shippingDetails = $getShippingAddress->getData();
+
+        if (empty($shippingDetails)) {
+            return;
+        }
+
+        $pacePayload['body']['shippingAddress'] = [
             'firstName' => $shippingDetails['firstname'],
             'lastName' => $shippingDetails['lastname'],
             'addr1' => $shippingDetails['street'],
