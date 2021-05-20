@@ -81,38 +81,38 @@ define([
 
         $("#pace-pay-submit-button").attr("disabled", false);
 
-        storage
-          .get(resourceUrlManager.getUrlForCartTotals(quote), false)
-          .done(function (response) {
-            var checkoutWidgetConfig = {};
+        // storage
+        //   .get(resourceUrlManager.getUrlForCartTotals(quote), false)
+        //   .done(function (response) {
+        //     var checkoutWidgetConfig = {};
 
-            try {
-              checkoutWidgetConfig = JSON.parse(
-                window.checkoutConfig.payment.pace_pay.checkoutWidgetConfig
-              );
-            } catch (error) {
-              checkoutWidgetConfig = {};
-            }
+        //     try {
+        //       checkoutWidgetConfig = JSON.parse(
+        //         window.checkoutConfig.payment.pace_pay.checkoutWidgetConfig
+        //       );
+        //     } catch (error) {
+        //       checkoutWidgetConfig = {};
+        //     }
 
-            var checkoutWidgetStyles = {};
-            if (checkoutWidgetConfig) {
-              checkoutWidgetStyles = checkoutWidgetConfig.styles
-                ? checkoutWidgetConfig.styles
-                : {};
-            }
-            $("#pace-pay-container").attr(
-              "data-price",
-              response.base_grand_total
-            );
-            pacePay.loadWidgets({
-              containerSelector: "#pace-pay-container",
-              type: "checkout",
-              styles: checkoutWidgetStyles,
-            });
-          })
-          .fail(function (response) {
-            return false;
-          });
+        //     var checkoutWidgetStyles = {};
+        //     if (checkoutWidgetConfig) {
+        //       checkoutWidgetStyles = checkoutWidgetConfig.styles
+        //         ? checkoutWidgetConfig.styles
+        //         : {};
+        //     }
+        //     $("#pace-pay-container").attr(
+        //       "data-price",
+        //       response.base_grand_total
+        //     );
+        //     pacePay.loadWidgets({
+        //       containerSelector: "#pace-pay-container",
+        //       type: "checkout",
+        //       styles: checkoutWidgetStyles,
+        //     });
+        //   })
+        //   .fail(function (response) {
+        //     return false;
+        //   });
       });
     },
 

@@ -1,1 +1,25 @@
-<script type="text/javascript">require([],function(){var e="playground"===window.pacePayEnvironment?"pacePayPlayground":"pacePay",i=window.pacePaymentPlan;if(i&&i.paymentPlans.isAvailable){var a=i.paymentPlans;require([e],function(e){e=e.init({fallbackWidget:window.pacePayBaseWidgetConfig.fallbackWidget,currency:a.currencyCode,minAmount:parseFloat(a.minAmount.actualValue),maxAmount:parseFloat(a.maxAmount.actualValue),styles:window.pacePayBaseWidgetConfig.styles?window.pacePayBaseWidgetConfig.styles:void 0}),window.pacePaySingleProductWidgetConfig.isActive&&e.loadWidgets({containerSelector:".pace-pay_single-product-widget-container",type:"single-product",styles:window.pacePaySingleProductWidgetConfig.styles?window.pacePaySingleProductWidgetConfig.styles:void 0}),window.pacePayMultiProductsWidgetConfig.isActive&&e.loadWidgets({containerSelector:".pace-pay_multi-products-widget-container",type:"multi-products",styles:window.pacePayMultiProductsWidgetConfig.styles?window.pacePayMultiProductsWidgetConfig.styles:void 0})})}});</script>
+<script type="text/javascript">
+require([], function () {
+var e = "playground" === window.pacePayEnvironment ? "pacePayPlayground" : "pacePay",
+    i = window.pacePaymentPlan;
+if (i && i.paymentPlans.isAvailable) {
+    var a = i.paymentPlans;
+    require([e], function (e) {
+        (e = e.init({
+        	debug: true,
+            fallbackWidget: window.pacePayBaseWidgetConfig.fallbackWidget,
+            currency: a.currencyCode,
+            minAmount: parseFloat(a.minAmount.actualValue),
+            maxAmount: parseFloat(a.maxAmount.actualValue),
+            styles: window.pacePayBaseWidgetConfig.styles ? window.pacePayBaseWidgetConfig.styles : void 0,
+        })),
+        window.pacePaySingleProductWidgetConfig.isActive &&
+            e.loadWidgets({ containerSelector: ".pace-pay_single-product-widget-container", type: "single-product", styles: window.pacePaySingleProductWidgetConfig.styles ? window.pacePaySingleProductWidgetConfig.styles : void 0 }),
+        window.pacePayMultiProductsWidgetConfig.isActive &&
+            e.loadWidgets({ containerSelector: ".pace-pay_multi-products-widget-container", type: "multi-products", styles: window.pacePayMultiProductsWidgetConfig.styles ? window.pacePayMultiProductsWidgetConfig.styles : void 0 });
+        e.loadWidgets({containerSelector: "#pace-pay-container", type: "checkout", styles: window.pacePayCheckoutWidgetConfig.styles ? window.pacePayCheckoutWidgetConfig.styles : void 0 });
+    });
+}
+});
+
+</script>
