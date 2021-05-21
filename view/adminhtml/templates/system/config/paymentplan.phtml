@@ -30,33 +30,26 @@
     });
 </script>
 
-<?php $paymentPlan = $block->getPaymentPlan() ?>
+<?php $paymentPlan = $block->getPaymentPlan(); ?>
 
 <?php if (isset($paymentPlan['paymentPlans'])) : ?>
+    <?php $paymentPlan = $paymentPlan['paymentPlans']; ?>
     <table style="margin-bottom: 16px;">
         <tr>
             <td>ID</td>
-            <td id="payment-plan_id">
-                <? echo $paymentPlan['id'] ?>
-            </td>
+            <td id="payment-plan_id"><?php echo $paymentPlan->id; ?></td>
         </tr>
         <tr>
             <td>Currency</td>
-            <td id="payment-plan_currency">
-                <? echo $paymentPlan['currency'] ?>
-            </td>
+            <td id="payment-plan_currency"><?php echo $paymentPlan->currencyCode; ?></td>
         </tr>
         <tr>
             <td>Min Amount</td>
-            <td id="payment-plan_min-amount">
-                <? echo $paymentPlan['minAmount'] ?>
-            </td>
+            <td id="payment-plan_min-amount"><?php echo $paymentPlan->displayMinAmount; ?></td>
         </tr>
         <tr>
             <td>Max Amount</td>
-            <td id="payment-plan_max-amount">
-                <? echo $paymentPlan['maxAmount'] ?>
-            </td>
+            <td id="payment-plan_max-amount"><?php echo $paymentPlan->displayMaxAmount; ?></td>
         </tr>
     </table>
 <?php else : ?>

@@ -139,7 +139,7 @@ class ConfigData extends AbstractHelper
                 $listAvailableCurrencies[$plan->currencyCode] = $plan;
             }
 
-            $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+            $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrencyCode();
 
             if (!in_array($storeCurrency, array_keys($listAvailableCurrencies))) {
                 throw new \Exception("Pace doesn't support the client currency");
