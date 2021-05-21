@@ -11,6 +11,7 @@ class CreateTransaction extends Transaction
     {
         $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
         $order = $this->_checkoutSession->getLastRealOrder();
+
         $payment = $order->getPayment();
         $pacePayload = $this->_getBasePayload();
         $orderItems = $order->getAllVisibleItems();
@@ -39,9 +40,12 @@ class CreateTransaction extends Transaction
             'country' => $order->getBillingAddress()->getCountryId(),
             'items' => $items,
             'redirectUrls' => $redirectUrls,
-            'billingAddress' => $this->getPaceBilling($order),
-            'shippingAddress' => $this->getPaceShipping($order),
         ];
+
+        // update transaction billing address
+        $this->getPaceBilling($order, $pacePayload);
+        // update transaction shipping address
+        $this->getPaceShipping($order, $pacePayload);
 
         $this->_client->resetParameters();
         try {
@@ -77,18 +81,25 @@ class CreateTransaction extends Transaction
     /**
      * Prepare Pace transaction billing
      * 
-     * @param  Magento\Sales\Model\Order $order
+     * @param Magento\Sales\Model\Order $order
+     * @param arrat $pacePayload 
      * @since 0.0.26
-     * @return array
      */
-    private function getPaceBilling($order)
+    private function getPaceBilling($order, &$pacePayload)
     {
-        $billingDetails = $order->getBillingAddress()->getData();
-        if (empty($billingDetails)) {
-            return [];
+        $getBillingAddress = $order->getBillingAddress();
+
+        if (!$getBillingAddress) {
+            return;
         }
 
-        return [
+        $billingDetails = $getBillingAddress->getData();
+
+        if (empty($billingDetails)) {
+            return;
+        }
+
+        $pacePayload['body']['billingAddress'] = [
             'firstName' => $billingDetails['firstname'],
             'lastName' => $billingDetails['lastname'],
             'addr1' => $billingDetails['street'],
@@ -107,17 +118,24 @@ class CreateTransaction extends Transaction
      * Prepare Pace transaction shipping
      *
      * @param Magento\Sales\Model\Order $order
+     * @param array $pacePayload 
      * @since 0.0.26
-     * @return array
      */
-    private function getPaceShipping($order)
-    {
-        $shippingDetails = $order->getShippingAddress()->getData();
-        if (empty($shippingDetails)) {
-            return [];
+    private function getPaceShipping($order, &$pacePayload)
+    {   
+        $getShippingAddress = $order->getShippingAddress();
+
+        if (!$getShippingAddress) {
+            return;
         }
 
-        return [
+        $shippingDetails = $getShippingAddress->getData();
+
+        if (empty($shippingDetails)) {
+            return;
+        }
+
+        $pacePayload['body']['shippingAddress'] = [
             'firstName' => $shippingDetails['firstname'],
             'lastName' => $shippingDetails['lastname'],
             'addr1' => $shippingDetails['street'],

@@ -30,6 +30,11 @@ class PaceJS extends Template
         return $this->_configData->getMultiProductsWidgetConfig();
     }
 
+    public function getCheckoutWidgetConfig()
+    {
+        return $this->_configData->getCheckoutWidgetConfig();
+    }
+
     public function getBaseWidgetConfig()
     {
         return $this->_configData->getBaseWidgetConfig();
