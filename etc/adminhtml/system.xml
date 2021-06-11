@@ -183,6 +183,11 @@
                     <group id="checkout" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Checkout Widget</label>
                         <comment><![CDATA[<div style="width: 100%; display: flex; justify-content: center;"><img style="max-width: 100%;" src="https://assets.pacenow.co/images/developers/widgets/checkout-color-reference.jpeg"/></div>]]></comment>
+                        <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enabled</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/pace_pay/checkout_active</config_path>
+                        </field>
                         <field id="text_primry_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Text Primary Color</label>
                             <config_path>payment/pace_pay/checkout_text_primary_color</config_path>
