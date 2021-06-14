@@ -140,14 +140,15 @@ class ConfigData extends AbstractHelper
                 $listAvailableCurrencies[$plan->currencyCode] = $plan;
             }
 
-            $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrencyCode();
+            $storeCurrency = $this->_storeManager->getStore($storeId)->getCurrentCurrencyCode();
 
             if (!in_array($storeCurrency, array_keys($listAvailableCurrencies))) {
                 throw new \Exception("Pace doesn't support the client currency");
             }
 
             $getPacePlanFollowCurrency = $listAvailableCurrencies[$storeCurrency];
-            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE);
+            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+
             if ($getPacePlanFollowCurrency->country !== $storeCountry) {
                 throw new \Exception("Pace doesn't support the client country");
             }
