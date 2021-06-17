@@ -249,7 +249,7 @@ abstract class Transaction implements ActionInterface
     /**
      * @return array
      */
-    protected function _getBasePayload($store = 1)
+    protected function _getBasePayload($store = null)
     {
         $magentoVersion = $this->_metaDataInterface->getVersion();
         $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];

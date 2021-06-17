@@ -60,6 +60,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_SINGLE_PRODUCT_TEXT_SECONDARY_COLOR = "single_product_text_secondary_color";
     const CONFIG_SINGLE_PRODUCT_FONT_SIZE = "single_product_font_size";
     const CONFIG_MULTI_PRODUCTS_ACTIVE = "multi_products_active";
+    const CONFIG_CHECKOUT_ACTIVE = "checkout_active";
     const CONFIG_MULTI_PRODUCTS_LOGO_THEME = "multi_product_logo_theme";
     const CONFIG_MULTI_PRODUCTS_TEXT_COLOR = "multi_products_text_color";
     const CONFIG_MULTI_PRODUCTS_FONT_SIZE = "multi_products_font_size";
@@ -139,14 +140,15 @@ class ConfigData extends AbstractHelper
                 $listAvailableCurrencies[$plan->currencyCode] = $plan;
             }
 
-            $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrencyCode();
+            $storeCurrency = $this->_storeManager->getStore($storeId)->getCurrentCurrencyCode();
 
             if (!in_array($storeCurrency, array_keys($listAvailableCurrencies))) {
                 throw new \Exception("Pace doesn't support the client currency");
             }
 
             $getPacePlanFollowCurrency = $listAvailableCurrencies[$storeCurrency];
-            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE);
+            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+
             if ($getPacePlanFollowCurrency->country !== $storeCountry) {
                 throw new \Exception("Pace doesn't support the client country");
             }
@@ -284,6 +286,7 @@ class ConfigData extends AbstractHelper
 
         return [
             "isActive" => $this->getConfigValue(self::CONFIG_ACTIVE) == '1',
+            "baseActive" => $this->getConfigValue(self::CONFIG_WIDGETS_ACTIVE) == '1',
             "fallbackWidget" => $this->getConfigValue(self::CONFIG_FALLBACK_WIDGET) == "1",
             "styles" => $styles,
         ];
@@ -347,6 +350,7 @@ class ConfigData extends AbstractHelper
         });
 
         return [
+            "isActive" => $this->getConfigValue(self::CONFIG_CHECKOUT_ACTIVE),
             "styles" => $styles,
         ];
     }
