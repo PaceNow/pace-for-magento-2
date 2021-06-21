@@ -59,51 +59,19 @@ class VerifyTransaction extends Transaction
             if ($response->getStatus() < 200 || $response->getStatus() > 299) {
                 return self::VERIFY_UNKNOWN;
             }
+
             $paceTransaction = json_decode($response->getBody());
-        } catch (\Exception $exception) {
-            return self::VERIFY_UNKNOWN;
-        }
+            $paceTransactionStatus = $paceTransaction->{'status'};
 
-        $payment->setIsTransactionClosed(true);
-        $paceTransactionStatus = $paceTransaction->{'status'};
-
-        if ($paceTransactionStatus == 'approved') {
-            $order->setStatus(Order::STATE_PROCESSING);
-
-//            $formattedPrice = $order->getBaseCurrency()->formatTxt(
-            //                $order->getGrandTotal()
-            //            );
-            $message = __('Pace payment is completed (Reference ID: %1)', $transactionId);
-            $order->addStatusHistoryComment($message);
-
-            $payment->setLastTransId($transactionId);
-            $payment->setTransactionId($transactionId);
-            $additionalPaymentInformation = [PaymentTransaction::RAW_DETAILS => json_encode($paceTransaction)];
-            $payment->setAdditionalInformation($additionalPaymentInformation);
-            $trans = $this->_transactionBuilder;
-            $transaction = $trans->setPayment($payment)
-                ->setOrder($order)
-                ->setTransactionId($transactionId)
-                ->setAdditionalInformation($additionalPaymentInformation)
-                ->setFailSafe(true)
-                ->build(PaymentTransaction::TYPE_CAPTURE);
-            $payment->setParentTransactionId(null);
-
-            $this->_paymentRepository->save($payment);
-            $this->_orderRepository->save($order);
-            $this->_transactionRepository->save($transaction);
-
-            if ($this->_configData->getIsAutomaticallyGenerateInvoice()) {
-                $this->_invoiceOrder($order, $transactionId);
+            if ('approved' !== $paceTransactionStatus) {
+                throw new \Exception('VerifyTransaction unsuccessful');
             }
 
-            $result = self::VERIFY_SUCCESS;
-        } else {
-            $result = self::VERIFY_FAILED;
+            return self::VERIFY_SUCCESS;
+        } catch (\Exception $e) {
+            $this->_logger->info($e->getMessage());
+            return self::VERIFY_UNKNOWN;
         }
-        $this->_orderRepository->save($order);
-
-        return $result;
     }
 
     /**
@@ -193,34 +161,5 @@ class VerifyTransaction extends Transaction
         $this->_objectManager = ObjectManager::getInstance();
         $trackStatus = $this->_objectManager->create('Pace\Pay\Model\TrackingStatus');
         return !$trackStatus->getCollection()->addFieldToFilter('order_id', ['eq' => (int) $order->getIncrementId()])->getSize();
-    }
-    /**
-     * @param Order $order
-     * @param string $transactionId
-     */
-    private function _invoiceOrder($order, $transactionId)
-    {
-        if ($order->canInvoice()) {
-            try {
-                $invoice = $this->_invoiceService->prepareInvoice($order);
-                $invoice->setTransactionId($transactionId);
-                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
-                $invoice->register();
-                $this->_invoiceRepository->save($invoice);
-                $dbTransactionSave = $this->_dbTransaction
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder());
-                $dbTransactionSave->save();
-                $order->addCommentToStatusHistory(
-                    __('Notified customer about invoice creation #%1', $invoice->getId())
-                )->setIsCustomerNotified(true);
-                $this->_orderRepository->save($order);
-            } catch (\Exception $exception) {
-                $order->addCommentToStatusHistory(
-                    __('Failed to generate invoice automatically')
-                );
-                $this->_orderRepository->save($order);
-            }
-        }
     }
 }

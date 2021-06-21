@@ -253,7 +253,7 @@ abstract class Transaction implements ActionInterface
     {
         $magentoVersion = $this->_metaDataInterface->getVersion();
         $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
-        $platformVersionString = ConfigProvider::PLUGIN_NAME . ',' . $pluginVersion . ',' . $magentoVersion;
+        $platformVersionString = ConfigProvider::PLUGIN_NAME . ', ' . $pluginVersion . ', ' . $magentoVersion;
 
         $authToken = base64_encode(
             $this->_configData->getClientId($store) . ':' .
@@ -294,6 +294,90 @@ abstract class Transaction implements ActionInterface
             $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
         } else {
             $this->_messageManager->addNoticeMessage('Your order was cancelled.');
+        }
+    }
+
+    protected function _handleApprove($order)
+    {
+        return 1;
+        $payment = $order->getPayment();
+        $payment->setIsTransactionClosed(true);
+
+        $transactionId = $payment->getAdditionalData();
+        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . $transactionId;
+        $pacePayload = $this->_getBasePayload($order->getStoreId());
+
+        $this->_client->resetParameters();
+        $paceTransaction = null;
+        try {
+            $this->_client->setUri($endpoint);
+            $this->_client->setMethod(Zend_Http_Client::GET);
+            $this->_client->setHeaders($pacePayload['headers']);
+            $response = $this->_client->request();
+
+            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
+                throw new \Exception('Unknown Pace transaction statuses');
+            }
+
+            $paceTransaction = json_decode($response->getBody());
+        } catch (\Exception $exception) {
+            $this->_logger->info($e->getMessage());
+        }
+
+        $order->setStatus(Order::STATE_PROCESSING);
+        $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));
+        $payment->setLastTransId($transactionId);
+        $payment->setTransactionId($transactionId);
+        $additionalPaymentInformation = [PaymentTransaction::RAW_DETAILS => json_encode($paceTransaction)];
+        $payment->setAdditionalInformation($additionalPaymentInformation);
+        $trans = $this->_transactionBuilder;
+        $transaction = $trans->setPayment($payment)
+            ->setOrder($order)
+            ->setTransactionId($transactionId)
+            ->setAdditionalInformation($additionalPaymentInformation)
+            ->setFailSafe(true)
+            ->build(PaymentTransaction::TYPE_CAPTURE);
+        $payment->setParentTransactionId(null);
+
+        $this->_paymentRepository->save($payment);
+        $this->_orderRepository->save($order);
+        $this->_transactionRepository->save($transaction);
+
+        if ($this->_configData->getIsAutomaticallyGenerateInvoice()) {
+            $this->_invoiceOrder($order, $transactionId);
+        }
+
+        $result = self::VERIFY_SUCCESS;
+        $this->_orderRepository->save($order);
+    }
+
+    /**
+     * @param Order $order
+     * @param string $transactionId
+     */
+    protected function _invoiceOrder($order, $transactionId)
+    {
+        if ($order->canInvoice()) {
+            try {
+                $invoice = $this->_invoiceService->prepareInvoice($order);
+                $invoice->setTransactionId($transactionId);
+                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
+                $invoice->register();
+                $this->_invoiceRepository->save($invoice);
+                $dbTransactionSave = $this->_dbTransaction
+                    ->addObject($invoice)
+                    ->addObject($invoice->getOrder());
+                $dbTransactionSave->save();
+                $order->addCommentToStatusHistory(
+                    __('Notified customer about invoice creation #%1', $invoice->getId())
+                )->setIsCustomerNotified(true);
+                $this->_orderRepository->save($order);
+            } catch (\Exception $exception) {
+                $order->addCommentToStatusHistory(
+                    __('Failed to generate invoice automatically')
+                );
+                $this->_orderRepository->save($order);
+            }
         }
     }
 }

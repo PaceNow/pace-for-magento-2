@@ -93,6 +93,26 @@
                             <field id="environment">production</field>
                         </depends>
                     </group>
+                    <group id="select_order_state" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Manage Orders</label>
+                        <comment><![CDATA[Manage your orders by choosing the status you want them to have when their corresponding Pace transactions have changed status.]]></comment>
+                        <attribute type="expanded">1</attribute>
+                        <field id="order_processing" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Approved</label>
+                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <config_path>payment/pace_pay/pace_approved</config_path>
+                        </field>
+                        <field id="order_cancel" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Canceled</label>
+                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <config_path>payment/pace_pay/pace_canceled</config_path>
+                        </field>
+                        <field id="order_expired" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Expired</label>
+                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <config_path>payment/pace_pay/pace_expired</config_path>
+                        </field>
+                    </group>
                 </group>
                 <group id="marketing_widgets" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pace's Widgets</label>

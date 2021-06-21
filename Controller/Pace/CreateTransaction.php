@@ -9,46 +9,28 @@ class CreateTransaction extends Transaction
 {
     public function execute()
     {
-        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
         $order = $this->_checkoutSession->getLastRealOrder();
-
-        $payment = $order->getPayment();
         $pacePayload = $this->_getBasePayload();
-        $orderItems = $order->getAllVisibleItems();
-        $items = array_map(function ($item) {
-            return [
-                'itemId' => $item->getItemId(),
-                'itemType' => $item->getProductType(),
-                'reference' => $item->getSku(),
-                'name' => $item->getName(),
-                'quantity' => $item->getQuantityOrdered(),
-                'unitPriceCents' => $item->getPrice(),
-                'productUrl' => $item->getProduct()->getProductUrl(),
-                'brand' => '',
-                'tags' => array_map(array($this, '_getCategoryName'), $item->getProduct()
-                    ->getCategoryIds()),
-            ];
-        }, $orderItems);
         $redirectUrls = [
             'success' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction',
             'failed' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction'
         ];
         $pacePayload['body'] = [
+            'items' => $this->getSourceitems($order),
+            'country' => $order->getBillingAddress()->getCountryId(),
+            'currency' => $order->getOrderCurrencyCode(),
+            'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
             'referenceId' => $order->getRealOrderId(),
             'amountFloat' => $order->getTotalDue(),
-            'currency' => $order->getOrderCurrencyCode(),
-            'country' => $order->getBillingAddress()->getCountryId(),
-            'items' => $items,
-            'redirectUrls' => $redirectUrls,
+            'redirectUrls' => $redirectUrls
         ];
-
-        // update transaction billing address
         $this->getPaceBilling($order, $pacePayload);
-        // update transaction shipping address
         $this->getPaceShipping($order, $pacePayload);
-
+        
         $this->_client->resetParameters();
         try {
+            $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
+
             $this->_client->setUri($endpoint);
             $this->_client->setMethod(Zend_Http_Client::POST);
             $this->_client->setHeaders($pacePayload['headers']);
@@ -62,6 +44,7 @@ class CreateTransaction extends Transaction
                 return $this->_jsonResponse([], 500);
             }
 
+            $payment = $order->getPayment();
             $payment->setTransactionId($paceTransactionId);
             $payment->setAdditionalData($paceTransactionId);
             $order->addCommentToStatusHistory(
@@ -76,6 +59,39 @@ class CreateTransaction extends Transaction
             $this->_handleCancel(true);
             return $this->_jsonResponse([], 500);
         }
+    }
+
+    /**
+     * Prepare source items for transaction
+     *
+     * @param Magento\Sales\Model\Order $order
+     * @since 1.0.3 
+     * @return array 
+     */
+    private function getSourceitems($order)
+    {
+        $orderItems = $order->getAllVisibleItems();
+
+        if (!$orderItems) {
+            return array();
+        }
+
+        $items = array_map(function ($item) {
+            return [
+                'itemId' => $item->getItemId(),
+                'itemType' => $item->getProductType(),
+                'reference' => $item->getSku(),
+                'name' => $item->getName(),
+                'quantity' => $item->getQuantityOrdered(),
+                'unitPriceCents' => $item->getPrice(),
+                'productUrl' => $item->getProduct()->getProductUrl(),
+                'brand' => '',
+                'tags' => array_map(array($this, '_getCategoryName'), $item->getProduct()
+                    ->getCategoryIds()),
+            ];
+        }, $orderItems);
+
+        return $items;
     }
 
     /**
