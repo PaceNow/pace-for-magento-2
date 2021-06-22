@@ -19,7 +19,7 @@ use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
-use \Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -41,11 +41,6 @@ abstract class Transaction implements ActionInterface
      * @var Session
      */
     protected $_checkoutSession;
-
-    /**
-     * @var ProductMetadataInterface
-     */
-    protected $_metaDataInterface;
 
     /**
      * @var ZendClient
@@ -180,7 +175,6 @@ abstract class Transaction implements ActionInterface
     public function __construct(
         JsonFactory $resultJsonFactory,
         Session $checkoutSession,
-        ProductMetadataInterface $productMetadata,
         ZendClient $client,
         PayJsonConverter $jsonConverter,
         ConfigData $configData,
@@ -206,7 +200,6 @@ abstract class Transaction implements ActionInterface
     {
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_checkoutSession = $checkoutSession;
-        $this->_metaDataInterface = $productMetadata;
         $this->_client = $client;
         $this->_jsonConverter = $jsonConverter;
         $this->_configData = $configData;
@@ -251,21 +244,7 @@ abstract class Transaction implements ActionInterface
      */
     protected function _getBasePayload($store = null)
     {
-        $magentoVersion = $this->_metaDataInterface->getVersion();
-        $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
-        $platformVersionString = ConfigProvider::PLUGIN_NAME . ', ' . $pluginVersion . ', ' . $magentoVersion;
-
-        $authToken = base64_encode(
-            $this->_configData->getClientId($store) . ':' .
-            $this->_configData->getClientSecret($store)
-        );
-
-        $pacePayload = [];
-        $pacePayload['headers'] = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Basic ' . $authToken,
-            'X-Pace-PlatformVersion' => $platformVersionString,
-        ];
+        $pacePayload = $this->_configData->getBasePayload($store);
 
         return $pacePayload;
     }
@@ -299,7 +278,6 @@ abstract class Transaction implements ActionInterface
 
     protected function _handleApprove($order)
     {
-        return 1;
         $payment = $order->getPayment();
         $payment->setIsTransactionClosed(true);
 

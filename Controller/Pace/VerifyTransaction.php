@@ -9,7 +9,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Zend_Http_Client;
 
-class VerifyTransaction extends Transaction
+class VerifyTransaction extends     
 {
     const ERROR_REDIRECT_URL = '/checkout/cart';
     const SUCCESS_REDIRECT_URL = '/checkout/onepage/success';
