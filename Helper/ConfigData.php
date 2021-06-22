@@ -321,7 +321,20 @@ class ConfigData extends AbstractHelper
     {
         $statuses = $this->getConfigValue('pace_approved') ?? Order::STATE_PROCESSING;
 
-        return Order::STATE_PROCESSING;
+        return $statuses;
+    }
+
+    /**
+     * Get Pace cancel statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getCancelStatus()
+    {
+        $statuses = $this->getConfigValue('pace_canceled') ?? Order::STATE_CANCELED;
+
+        return $statuses;
     }
 
     public function getBaseWidgetConfig()

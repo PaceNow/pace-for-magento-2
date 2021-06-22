@@ -13,7 +13,7 @@ class CreateTransaction extends Transaction
         $pacePayload = $this->_getBasePayload();
         $redirectUrls = [
             'success' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction',
-            'failed' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction'
+            'failed' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction'    
         ];
         $pacePayload['body'] = [
             'items' => $this->getSourceitems($order),
@@ -26,7 +26,7 @@ class CreateTransaction extends Transaction
         ];
         $this->getPaceBilling($order, $pacePayload);
         $this->getPaceShipping($order, $pacePayload);
-        
+      
         $this->_client->resetParameters();
         try {
             $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
@@ -40,8 +40,7 @@ class CreateTransaction extends Transaction
             $paceTransactionId = $responseJson->{'transactionID'};
 
             if ($paceTransactionId == null || $paceTransactionId == '') {
-                $this->_handleCancel(true);
-                return $this->_jsonResponse([], 500);
+                throw new \Exception('Fail to create Pace transaction');
             }
 
             $payment = $order->getPayment();
@@ -56,7 +55,7 @@ class CreateTransaction extends Transaction
 
             return $this->_jsonResponse($responseJson, $response->getStatus());
         } catch (\Exception $exception) {
-            $this->_handleCancel(true);
+            $this->_handleCancel(null, true);
             return $this->_jsonResponse([], 500);
         }
     }

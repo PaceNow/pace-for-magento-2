@@ -2,247 +2,147 @@
 
 namespace Pace\Pay\Model;
 
-use Magento\Sales\Model\Order;
+use Magento\Checkout\Model\Session;
+use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\HTTP\ZendClient;
-use Magento\Framework\Webapi\Rest\Request;
+use Magento\Framework\App\Request\Http;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\DB\Transaction as DBTransaction;
+use Magento\Framework\Webapi\Rest\Request as WebapiRequest;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Sales\Model\Order;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\InvoiceRepository;
-use Magento\Sales\Model\Order\Payment\Repository;
-use Magento\Sales\Model\Order\Payment\Transaction;
-use Magento\Framework\DB\Transaction as DBTransaction;
-use Magento\Sales\Model\Order\Payment\Transaction\Builder;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Order\Payment\Repository as PaymentRepository;
+use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
+use Magento\Catalog\Model\CategoryRepository;
 
 use Psr\Log\LoggerInterface;
 
 use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Controller\Pace\Transaction;
+use Pace\Pay\Gateway\Http\PayJsonConverter;
 use Pace\Pay\Api\WebhookManagementInterface;
-
-use Zend_Http_Client;
 
 /**
  * Class process Pace webhooks callback
  */
-class Webhooks implements WebhookManagementInterface
-{	
-	/**
-     * @var ZendClient
+class Webhooks extends Transaction implements WebhookManagementInterface
+{   
+    /**
+     * @var JsonFactory
      */
-    protected $_client;
-
-	/**
-     * @var LoggerInterface
-     */
-    protected $_logger;
+    protected $_resultJsonFactory;
 
     /**
-     * @var Builder
-     */
-    protected $_builder;
-
-	/**
      * @var \Magento\Framework\Webapi\Rest\Request
      */
-    protected $_request;
+    protected $_webApiRequest;
 
-    /**
-     * @var ConfigData;
-     */
-    protected $_configData;
+    public function __construct(
+        WebapiRequest $webApiRequest,
+        JsonFactory $resultJsonFactory,
+        Session $checkoutSession,
+        ZendClient $client,
+        PayJsonConverter $jsonConverter,
+        ConfigData $configData,
+        QuoteRepository $quoteRepository,
+        Http $request,
+        OrderRepositoryInterface $orderRepository,
+        ResultFactory $resultFactory,
+        CategoryRepository $categoryRepository,
+        Order $order,
+        StoreManagerInterface $storeManager,
+        TransactionBuilder $transactionBuilder,
+        TransactionRepository $transactionRepository,
+        MessageManagerInterface $messageManager,
+        InvoiceService $invoiceService,
+        InvoiceSender $invoiceSender,
+        InvoiceRepository $invoiceRepository,
+        PaymentRepository $paymentRepository,
+        DBTransaction $dbTransaction,
+        ModuleListInterface $moduleList,
+        LoggerInterface $logger,
+        OrderManagementInterface $orderManagement
+    )
+    {
+        parent::__construct(
+            $resultJsonFactory,
+            $checkoutSession,
+            $client,
+            $jsonConverter,
+            $configData,
+            $quoteRepository,
+            $request,
+            $orderRepository,
+            $resultFactory,
+            $categoryRepository,
+            $order,
+            $storeManager,
+            $transactionBuilder,
+            $transactionRepository,
+            $messageManager,
+            $invoiceService,
+            $invoiceSender,
+            $invoiceRepository,
+            $paymentRepository,
+            $dbTransaction,
+            $moduleList,
+            $logger,
+            $orderManagement
+        );
 
-    /**
-     * @var DBTransaction
-     */
-    protected $_dbTransaction;
+        $this->_webApiRequest = $webApiRequest;
+    }
 
-    /**
-     * @var InvoiceService
-     */
-    protected $_invoiceService;
+    public function execute()
+    {
+        return 1;
+    }
 
-    /**
-     * @var InvoiceRepository
-     */
-    protected $_invoiceRepository;
+    public function _handle()
+    {   
+        $params = $this->_webApiRequest->getBodyParams();
+        try {
+            if (!isset($params['status'])) {
+                throw new \Exception('Unknow Pace webhooks response status');
+            }
 
-    /**
-     * @var OrderRepositoryInterface
-     */
-    protected $_orderRepository;
-
-    /**
-     * @var PaymentRepository
-     */
-    protected $_repository;
-
-    /**
-     * @var TransactionBuilder
-     */
-    protected $_transactionBuilder;
-
-    /**
-     * @var TransactionRepository
-     */
-    protected $_transactionRepository;
-
-	public function __construct(
-		Builder $builder,
-		Request $request, 
-		ZendClient $client,
-		ConfigData $configData,
-		Repository $repository,
-		DBTransaction $dbTransaction,
-		InvoiceService $invoiceService,
-		LoggerInterface $logger,
-		InvoiceRepository $invoiceRepository,
-		OrderRepositoryInterface $orderRepository,
-		TransactionRepository $transactionRepository
-	)
-	{
-		$this->_client = $client;
-		$this->_logger = $logger;
-		$this->_builder = $builder;
-		$this->_request = $request;
-		$this->_repository = $repository;
-		$this->_configData = $configData;
-		$this->_dbTransaction = $dbTransaction;
-		$this->_invoiceService = $invoiceService;
-		$this->_orderRepository = $orderRepository;
-		$this->_invoiceRepository = $invoiceRepository;
-		$this->_transactionRepository = $transactionRepository;
-	}
-
-	public function _handle()
-	{	
-		$params = $this->_request->getBodyParams();
-
-    	try {
-    		if (!isset($params['status'])) {
-    			throw new \Exception('Unknow Pace webhooks response status');
-    		}
-
-    		if ('success' !== $params['status']) {
-    			throw new \Exception('Unsuccessfully handle webhooks callback');
-    		}
+            if ('success' !== $params['status']) {
+                throw new \Exception('Unsuccessfully handle webhooks callback');
+            }
 
             $order = $this->_orderRepository->get($params['referenceID']);
           
-    		if (!$order) {
-    			throw new \Exception('Unknow orders');
-    		}
-
-    		switch ($params['event']) {
-    			case 'approved':
-    				$this->_handleApprove($order);
-    				break;
-    			case 'cancelled':
-    				// $this->_handleCancel($order);
-    				break;
-    			case 'expired':
-    				
-    				break;
-    			default:
-    				// code...
-    				break;
-    		}
-
-    		return 1;
-    	} catch (\Exception $e) {
-    		$this->_logger->info($e->getMessage());
-    	}
-	}
-
-	/**
-	 * Processing approved transaction
-	 * 
-	 * @param OrderInterface $order
-     * @param array $params
-	 * @since 1.0.3
-	 */
-	public function _handleApprove($order)
-	{
-		$payment = $order->getPayment();
-        $payment->setIsTransactionClosed(true);
-
-        $storeId = $order->getStoreId();
-        $transactionId = $payment->getAdditionalData();
-
-        $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/' . $transactionId;
-        $pacePayload = $this->_configData->getBasePayload($storeId);
-        $paceTransaction = null;
-        try {
-            $this->_client->resetParameters();
-            $this->_client->setUri($endpoint);
-            $this->_client->setMethod(Zend_Http_Client::GET);
-            $this->_client->setHeaders($pacePayload['headers']);
-            $response = $this->_client->request();
-
-            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
-                throw new \Exception('Unknown Pace transaction statuses');
+            if (!$order) {
+                throw new \Exception('Unknow orders');
             }
 
-            $paceTransaction = json_decode($response->getBody());
-        } catch (\Exception $exception) {
+            switch ($params['event']) {
+                case 'approved':
+                    $this->_handleApprove($order);
+                    break;
+                case 'cancelled':
+                    $this->_handleCancel($order);
+                    break;
+                case 'expired':
+                    
+                    break;
+                default:
+                    // code...
+                    break;
+            }
+
+            return 1;
+        } catch (\Exception $e) {
             $this->_logger->info($e->getMessage());
-        }
-
-        $order->setStatus(Order::STATE_PROCESSING);
-        $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));
-        $payment->setLastTransId($transactionId);
-        $payment->setTransactionId($transactionId);
-
-        if (!is_null($paceTransaction)) {
-            $additionalPaymentInformation = [Transaction::RAW_DETAILS => json_encode($paceTransaction)];
-            $payment->setAdditionalInformation($additionalPaymentInformation);
-            $transaction = $this->_builder->setPayment($payment)
-                ->setOrder($order)
-                ->setTransactionId($transactionId)
-                ->setAdditionalInformation($additionalPaymentInformation)
-                ->setFailSafe(true)
-                ->build(Transaction::TYPE_CAPTURE);
-        }
-        
-        $payment->setParentTransactionId(null);
-
-        $this->_repository->save($payment);
-        $this->_orderRepository->save($order);
-        $this->_transactionRepository->save($transaction);
-
-        if ($this->_configData->getIsAutomaticallyGenerateInvoice()) {
-            $this->_invoiceOrder($order, $transactionId);
-        }
-
-        $this->_orderRepository->save($order);
-	}
-
-	/**
-     * @param Order $order
-     * @param string $transactionId
-     */
-    protected function _invoiceOrder($order, $transactionId)
-    {
-        if ($order->canInvoice()) {
-            try {
-                $invoice = $this->_invoiceService->prepareInvoice($order);
-                $invoice->setTransactionId($transactionId);
-                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
-                $invoice->register();
-                $this->_invoiceRepository->save($invoice);
-                $dbTransactionSave = $this->_dbTransaction
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder());
-                $dbTransactionSave->save();
-                $order->addCommentToStatusHistory(
-                    __('Notified customer about invoice creation #%1', $invoice->getId())
-                )->setIsCustomerNotified(true);
-            } catch (\Exception $exception) {
-                $order->addCommentToStatusHistory(
-                    __('Failed to generate invoice automatically')
-                );
-            }
-
-            $this->_orderRepository->save($order);
         }
     }
 }
