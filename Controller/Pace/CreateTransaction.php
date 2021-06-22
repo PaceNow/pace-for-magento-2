@@ -20,7 +20,7 @@ class CreateTransaction extends Transaction
             'country' => $order->getBillingAddress()->getCountryId(),
             'currency' => $order->getOrderCurrencyCode(),
             'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
-            'referenceId' => $order->getRealOrderId(),
+            'referenceId' => $order->getId(),
             'amountFloat' => $order->getTotalDue(),
             'redirectUrls' => $redirectUrls
         ];

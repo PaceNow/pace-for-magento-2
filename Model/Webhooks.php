@@ -2,6 +2,7 @@
 
 namespace Pace\Pay\Model;
 
+use Magento\Sales\Model\Order;
 use Magento\Framework\HTTP\ZendClient;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -115,7 +116,6 @@ class Webhooks implements WebhookManagementInterface
 	public function _handle()
 	{	
 		$params = $this->_request->getBodyParams();
-		$this->_logger->info(json_encode( $params ));
 
     	try {
     		if (!isset($params['status'])) {
@@ -126,8 +126,8 @@ class Webhooks implements WebhookManagementInterface
     			throw new \Exception('Unsuccessfully handle webhooks callback');
     		}
 
-    		$order = $this->_orderRepository->get($params['referenceID']);
-    		
+            $order = $this->_orderRepository->get($params['referenceID']);
+          
     		if (!$order) {
     			throw new \Exception('Unknow orders');
     		}
@@ -157,20 +157,22 @@ class Webhooks implements WebhookManagementInterface
 	 * Processing approved transaction
 	 * 
 	 * @param OrderInterface $order
+     * @param array $params
 	 * @since 1.0.3
 	 */
-	protected function _handleApprove($order)
+	public function _handleApprove($order)
 	{
 		$payment = $order->getPayment();
         $payment->setIsTransactionClosed(true);
 
+        $storeId = $order->getStoreId();
         $transactionId = $payment->getAdditionalData();
-        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . $transactionId;
-        $pacePayload = $this->_configData->getBasePayload($order->getStoreId());
 
-        $this->_client->resetParameters();
+        $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/' . $transactionId;
+        $pacePayload = $this->_configData->getBasePayload($storeId);
         $paceTransaction = null;
         try {
+            $this->_client->resetParameters();
             $this->_client->setUri($endpoint);
             $this->_client->setMethod(Zend_Http_Client::GET);
             $this->_client->setHeaders($pacePayload['headers']);
@@ -181,30 +183,31 @@ class Webhooks implements WebhookManagementInterface
             }
 
             $paceTransaction = json_decode($response->getBody());
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->_logger->info($e->getMessage());
         }
 
-        $order->setStatus($this->_configData->getApprovedStatus());
+        $order->setStatus(Order::STATE_PROCESSING);
         $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));
-
-        $additionalPaymentInformation = [Transaction::RAW_DETAILS => json_encode($paceTransaction)];
         $payment->setLastTransId($transactionId);
         $payment->setTransactionId($transactionId);
-        $payment->setAdditionalInformation($additionalPaymentInformation);
-        $payment->setParentTransactionId(null);
-        $this->_repository->save($payment);
 
-        $transaction = $this->_builder->setPayment($payment)
-            ->setOrder($order)
-            ->setTransactionId($transactionId)
-            ->setAdditionalInformation($additionalPaymentInformation)
-            ->setFailSafe(true)
-            ->build(Transaction::TYPE_CAPTURE);
-
-        if (!is_null($transaction)) {
-        	$this->_transactionRepository->save($transaction);	
+        if (!is_null($paceTransaction)) {
+            $additionalPaymentInformation = [Transaction::RAW_DETAILS => json_encode($paceTransaction)];
+            $payment->setAdditionalInformation($additionalPaymentInformation);
+            $transaction = $this->_builder->setPayment($payment)
+                ->setOrder($order)
+                ->setTransactionId($transactionId)
+                ->setAdditionalInformation($additionalPaymentInformation)
+                ->setFailSafe(true)
+                ->build(Transaction::TYPE_CAPTURE);
         }
+        
+        $payment->setParentTransactionId(null);
+
+        $this->_repository->save($payment);
+        $this->_orderRepository->save($order);
+        $this->_transactionRepository->save($transaction);
 
         if ($this->_configData->getIsAutomaticallyGenerateInvoice()) {
             $this->_invoiceOrder($order, $transactionId);

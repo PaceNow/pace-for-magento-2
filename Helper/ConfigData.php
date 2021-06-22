@@ -321,7 +321,7 @@ class ConfigData extends AbstractHelper
     {
         $statuses = $this->getConfigValue('pace_approved') ?? Order::STATE_PROCESSING;
 
-        return $statuses;
+        return Order::STATE_PROCESSING;
     }
 
     public function getBaseWidgetConfig()

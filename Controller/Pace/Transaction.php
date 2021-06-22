@@ -333,29 +333,29 @@ abstract class Transaction implements ActionInterface
      * @param Order $order
      * @param string $transactionId
      */
-    protected function _invoiceOrder($order, $transactionId)
-    {
-        if ($order->canInvoice()) {
-            try {
-                $invoice = $this->_invoiceService->prepareInvoice($order);
-                $invoice->setTransactionId($transactionId);
-                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
-                $invoice->register();
-                $this->_invoiceRepository->save($invoice);
-                $dbTransactionSave = $this->_dbTransaction
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder());
-                $dbTransactionSave->save();
-                $order->addCommentToStatusHistory(
-                    __('Notified customer about invoice creation #%1', $invoice->getId())
-                )->setIsCustomerNotified(true);
-                $this->_orderRepository->save($order);
-            } catch (\Exception $exception) {
-                $order->addCommentToStatusHistory(
-                    __('Failed to generate invoice automatically')
-                );
-                $this->_orderRepository->save($order);
-            }
-        }
-    }
+    // protected function _invoiceOrder($order, $transactionId)
+    // {
+    //     if ($order->canInvoice()) {
+    //         try {
+    //             $invoice = $this->_invoiceService->prepareInvoice($order);
+    //             $invoice->setTransactionId($transactionId);
+    //             $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
+    //             $invoice->register();
+    //             $this->_invoiceRepository->save($invoice);
+    //             $dbTransactionSave = $this->_dbTransaction
+    //                 ->addObject($invoice)
+    //                 ->addObject($invoice->getOrder());
+    //             $dbTransactionSave->save();
+    //             $order->addCommentToStatusHistory(
+    //                 __('Notified customer about invoice creation #%1', $invoice->getId())
+    //             )->setIsCustomerNotified(true);
+    //             $this->_orderRepository->save($order);
+    //         } catch (\Exception $exception) {
+    //             $order->addCommentToStatusHistory(
+    //                 __('Failed to generate invoice automatically')
+    //             );
+    //             $this->_orderRepository->save($order);
+    //         }
+    //     }
+    // }
 }
