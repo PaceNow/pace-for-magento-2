@@ -22,6 +22,7 @@ class VerifyTransaction extends Transaction
 
         switch ($verifyResult) {
             case self::VERIFY_SUCCESS:
+                $this->_handleApprove($order);
                 return $resultRedirect->setUrl(self::SUCCESS_REDIRECT_URL);
                 break;
             case self::VERIFY_FAILED:

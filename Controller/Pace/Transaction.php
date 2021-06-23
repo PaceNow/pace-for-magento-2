@@ -266,7 +266,7 @@ abstract class Transaction implements ActionInterface
 
     protected function _handleCancel($order = null, $isError = false)
     {
-        $order = is_null($order) ? 
+        $order = !is_null($order) ? 
             $order : $this->_checkoutSession->getLastRealOrder();
         $order->setStatus($this->_configData->getCancelStatus());
         $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
@@ -278,6 +278,15 @@ abstract class Transaction implements ActionInterface
         } else {
             $this->_messageManager->addNoticeMessage('Your order was cancelled.');
         }
+    }
+
+    protected function _handleClose($order)
+    {
+        $order = !is_null($order) ? 
+            $order : $this->_checkoutSession->getLastRealOrder();
+        $order->setStatus($this->_configData->getExpiredStatus());
+        $order->addCommentToStatusHistory('Pace transaction has been expired');
+        $this->_orderRepository->save($order);
     }
 
     protected function _handleApprove($order)

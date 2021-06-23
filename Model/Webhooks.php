@@ -120,20 +120,27 @@ class Webhooks extends Transaction implements WebhookManagementInterface
             }
 
             $order = $this->_orderRepository->get($params['referenceID']);
-          
+            
             if (!$order) {
                 throw new \Exception('Unknow orders');
             }
 
+            $orderStatus = $order->getStatus();
             switch ($params['event']) {
                 case 'approved':
-                    $this->_handleApprove($order);
+                    if ($this->_configData->getApprovedStatus() !== $orderStatus) {
+                        $this->_handleApprove($order);    
+                    }
                     break;
                 case 'cancelled':
-                    $this->_handleCancel($order);
+                    if ($this->_configData->getCancelStatus() !== $orderStatus) {
+                        $this->_handleCancel($order);    
+                    }
                     break;
                 case 'expired':
-                    
+                    if ($this->_configData->getExpiredStatus() !== $orderStatus) {
+                        $this->_handleClose($order);    
+                    }
                     break;
                 default:
                     // code...

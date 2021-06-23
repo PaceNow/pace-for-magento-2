@@ -337,6 +337,19 @@ class ConfigData extends AbstractHelper
         return $statuses;
     }
 
+    /**
+     * Get Pace expired statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getExpiredStatus()
+    {
+        $statuses = $this->getConfigValue('pace_expired') ?? Order::STATE_CLOSED;
+
+        return $statuses;
+    }
+
     public function getBaseWidgetConfig()
     {
         $styles = [
