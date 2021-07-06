@@ -268,7 +268,9 @@ abstract class Transaction implements ActionInterface
     {
         $order = !is_null($order) ? 
             $order : $this->_checkoutSession->getLastRealOrder();
-        $order->setStatus($this->_configData->getCancelStatus());
+
+        $paceStatuses = $this->_configData->getCancelStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
         $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
         $this->_orderRepository->save($order);
         $this->_orderManagement->cancel($order->getId());
@@ -284,7 +286,8 @@ abstract class Transaction implements ActionInterface
     {
         $order = !is_null($order) ? 
             $order : $this->_checkoutSession->getLastRealOrder();
-        $order->setStatus($this->_configData->getExpiredStatus());
+        $paceStatuses = $this->_configData->getExpiredStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
         $order->addCommentToStatusHistory('Pace transaction has been expired');
         $this->_orderRepository->save($order);
     }
@@ -316,8 +319,13 @@ abstract class Transaction implements ActionInterface
             $this->_logger->info($e->getMessage());
         }
 
-        $order->setStatus($this->_configData->getApprovedStatus());
-        $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));
+        $paceStatuses = $this->_configData->getApprovedStatus();
+
+        if ($paceStatuses) {
+            $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+            $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));    
+        }
+        
         $payment->setLastTransId($transactionId);
         $payment->setTransactionId($transactionId);
 

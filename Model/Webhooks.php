@@ -110,6 +110,7 @@ class Webhooks extends Transaction implements WebhookManagementInterface
     public function _handle()
     {   
         $params = $this->_webApiRequest->getBodyParams();
+        
         try {
             if (!isset($params['status'])) {
                 throw new \Exception('Unknow Pace webhooks response status');
@@ -118,7 +119,7 @@ class Webhooks extends Transaction implements WebhookManagementInterface
             if ('success' !== $params['status']) {
                 throw new \Exception('Unsuccessfully handle webhooks callback');
             }
-
+            
             $order = $this->_orderRepository->get($params['referenceID']);
             
             if (!$order) {
@@ -134,7 +135,7 @@ class Webhooks extends Transaction implements WebhookManagementInterface
                     break;
                 case 'cancelled':
                     if ($this->_configData->getCancelStatus() !== $orderStatus) {
-                        $this->_handleCancel($order);    
+                        $this->_handleCancel($order);
                     }
                     break;
                 case 'expired':

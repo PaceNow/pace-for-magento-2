@@ -312,14 +312,39 @@ class ConfigData extends AbstractHelper
     }
 
     /**
+     * Get state that assigned status
+     * 
+     * @param  string $status order status
+     * @since 1.0.3
+     * @return strinh
+     */
+    public function getStateFromStatus($status)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection = $resource->getConnection();
+        $select = $connection->select()
+            ->from(
+                'sales_order_status_state',
+                'state'
+            )
+            ->where('status = ?', $status);
+        $data = $connection->fetchOne($select);
+
+        return $data;
+    }
+
+    /**
      * Get Pace approved statuses
      * 
      * @since 1.0.3
      * @return string
      */
     public function getApprovedStatus()
-    {
-        $statuses = $this->getConfigValue('pace_approved') ?? Order::STATE_PROCESSING;
+    {   
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_approved') ?? Order::STATE_PROCESSING;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
 
         return $statuses;
     }
@@ -332,7 +357,9 @@ class ConfigData extends AbstractHelper
      */
     public function getCancelStatus()
     {
-        $statuses = $this->getConfigValue('pace_canceled') ?? Order::STATE_CANCELED;
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_canceled') ?? Order::STATE_CANCELED;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
 
         return $statuses;
     }
@@ -345,7 +372,9 @@ class ConfigData extends AbstractHelper
      */
     public function getExpiredStatus()
     {
-        $statuses = $this->getConfigValue('pace_expired') ?? Order::STATE_CLOSED;
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_expired') ?? Order::STATE_CLOSED;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
 
         return $statuses;
     }
