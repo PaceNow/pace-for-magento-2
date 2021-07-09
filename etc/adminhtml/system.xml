@@ -93,6 +93,26 @@
                             <field id="environment">production</field>
                         </depends>
                     </group>
+                    <group id="select_order_state" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Manage Orders</label>
+                        <comment><![CDATA[Manage your orders by choosing the status you want them to have when their corresponding Pace transactions have changed status.]]></comment>
+                        <attribute type="expanded">1</attribute>
+                        <field id="order_processing" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Approved</label>
+                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <config_path>payment/pace_pay/pace_approved</config_path>
+                        </field>
+                        <field id="order_cancel" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Canceled</label>
+                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <config_path>payment/pace_pay/pace_canceled</config_path>
+                        </field>
+                        <field id="order_expired" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Expired</label>
+                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <config_path>payment/pace_pay/pace_expired</config_path>
+                        </field>
+                    </group>
                 </group>
                 <group id="marketing_widgets" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pace's Widgets</label>
@@ -183,6 +203,11 @@
                     <group id="checkout" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Checkout Widget</label>
                         <comment><![CDATA[<div style="width: 100%; display: flex; justify-content: center;"><img style="max-width: 100%;" src="https://assets.pacenow.co/images/developers/widgets/checkout-color-reference.jpeg"/></div>]]></comment>
+                        <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enabled</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/pace_pay/checkout_active</config_path>
+                        </field>
                         <field id="text_primry_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Text Primary Color</label>
                             <config_path>payment/pace_pay/checkout_text_primary_color</config_path>

@@ -17,7 +17,7 @@ final class ConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'pace_pay';
     const MODULE_NAME = 'Pace_Pay';
-    const PLUGIN_NAME = 'PaceForMagento2';
+    const PLUGIN_NAME = 'Pace For Magento 2';
 
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,

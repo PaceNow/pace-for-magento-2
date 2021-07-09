@@ -85,7 +85,7 @@ class RefreshPaymentPlans extends Action
         }
     }
 
-    private function _updatePaymentPlan($storeId, $env, $plans)
+    public function _updatePaymentPlan($storeId, $env, $plans)
     {
         if (!$plans) {
             return;
@@ -101,10 +101,6 @@ class RefreshPaymentPlans extends Action
             $storeId,
             $env
         );
-        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_ID, $id, $storeId, $env);
-        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_CURRENCY, $currency, $storeId, $env);
-        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MIN, $min, $storeId, $env);
-        // $this->_configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLAN_MAX, $max, $storeId, $env);
     }
 
     public function refreshPlans()

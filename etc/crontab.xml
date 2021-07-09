@@ -2,9 +2,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="pace_pay">
-        <job name="pace_pay_cron" instance="Pace\Pay\Cron\VerifyTransaction" method="execute">
-            <config_path>crontab/default/jobs_pace_cron_schedule_cron_expr</config_path>
-        </job>
         <job name="pace_pay_refresh_payment_plans_cron" instance="Pace\Pay\Cron\RefreshPaymentPlans" method="execute">
             <schedule>0 */2 * * *</schedule>
         </job>

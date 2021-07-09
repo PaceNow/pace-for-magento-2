@@ -24,7 +24,7 @@ class PaymentMethodAvailable implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $grandTotal = $this->_checkoutSession->getQuote()->getGrandTotal();
+        // $grandTotal = $this->_checkoutSession->getQuote()->getGrandTotal();
         if ($observer->getEvent()->getMethodInstance()->getCode() == "pace_pay") {
             $checkResult = $observer->getEvent()->getResult();
             try {
@@ -38,7 +38,7 @@ class PaymentMethodAvailable implements ObserverInterface
                     throw new \Exception("Pace payment methods is invalid");
                 }
 
-                $checkResult->setData('is_available', $grandTotal >= $paymentPlan->minAmount->actualValue && $grandTotal <= $paymentPlan->maxAmount->actualValue);
+                $checkResult->setData('is_available', true);
             } catch (\Exception $e) {
                 $this->_logger->info($e->getMessage());
                 $checkResult->setData('is_available', false);

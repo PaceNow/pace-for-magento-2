@@ -14,6 +14,10 @@ use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Sales\Model\Order;
+
+use Pace\Pay\Model\Ui\ConfigProvider;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
@@ -60,6 +64,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_SINGLE_PRODUCT_TEXT_SECONDARY_COLOR = "single_product_text_secondary_color";
     const CONFIG_SINGLE_PRODUCT_FONT_SIZE = "single_product_font_size";
     const CONFIG_MULTI_PRODUCTS_ACTIVE = "multi_products_active";
+    const CONFIG_CHECKOUT_ACTIVE = "checkout_active";
     const CONFIG_MULTI_PRODUCTS_LOGO_THEME = "multi_product_logo_theme";
     const CONFIG_MULTI_PRODUCTS_TEXT_COLOR = "multi_products_text_color";
     const CONFIG_MULTI_PRODUCTS_FONT_SIZE = "multi_products_font_size";
@@ -89,6 +94,11 @@ class ConfigData extends AbstractHelper
     protected $_deploymentconfig;
 
     /**
+     * @var ProductMetadataInterface
+     */
+    protected $_metaDataInterface;
+
+    /**
      * @var ComponentRegistrarInterface
      */
     protected $_componentRegistrar;
@@ -108,7 +118,8 @@ class ConfigData extends AbstractHelper
         ModuleListInterface $moduleList,
         ReadFactory $readFactory,
         ComponentRegistrarInterface $componentRegistrar,
-        DeploymentConfig $deploymentConfig
+        DeploymentConfig $deploymentConfig,
+        ProductMetadataInterface $productMetadata
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
@@ -117,6 +128,7 @@ class ConfigData extends AbstractHelper
         $this->cacheTypeList = $cacheTypeList;
         $this->_moduleList = $moduleList;
         $this->_readFactory = $readFactory;
+        $this->_metaDataInterface = $productMetadata;
         $this->_componentRegistrar = $componentRegistrar;
         $this->_deploymentconfig = $deploymentConfig;
     }
@@ -139,14 +151,15 @@ class ConfigData extends AbstractHelper
                 $listAvailableCurrencies[$plan->currencyCode] = $plan;
             }
 
-            $storeCurrency = $this->_storeManager->getStore()->getCurrentCurrencyCode();
+            $storeCurrency = $this->_storeManager->getStore($storeId)->getCurrentCurrencyCode();
 
             if (!in_array($storeCurrency, array_keys($listAvailableCurrencies))) {
                 throw new \Exception("Pace doesn't support the client currency");
             }
 
             $getPacePlanFollowCurrency = $listAvailableCurrencies[$storeCurrency];
-            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE);
+            $storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+
             if ($getPacePlanFollowCurrency->country !== $storeCountry) {
                 throw new \Exception("Pace doesn't support the client country");
             }
@@ -270,6 +283,102 @@ class ConfigData extends AbstractHelper
         return $clientSecret;
     }
 
+    /**
+     * Get Pace Http headers
+     *
+     * @since 1.0.3
+     * @param  int $store store Id
+     * @return array
+     */
+    public function getBasePayload($store = null)
+    {
+        $magentoVersion = $this->_metaDataInterface->getVersion();
+        $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
+        $platformVersionString = ConfigProvider::PLUGIN_NAME . ', ' . $pluginVersion . ', ' . $magentoVersion;
+
+        $authToken = base64_encode(
+            $this->getClientId($store) . ':' .
+            $this->getClientSecret($store)
+        );
+
+        $pacePayload = [];
+        $pacePayload['headers'] = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Basic ' . $authToken,
+            'X-Pace-PlatformVersion' => $platformVersionString,
+        ];
+
+        return $pacePayload;
+    }
+
+    /**
+     * Get state that assigned status
+     * 
+     * @param  string $status order status
+     * @since 1.0.3
+     * @return strinh
+     */
+    public function getStateFromStatus($status)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection = $resource->getConnection();
+        $select = $connection->select()
+            ->from(
+                'sales_order_status_state',
+                'state'
+            )
+            ->where('status = ?', $status);
+        $data = $connection->fetchOne($select);
+
+        return $data;
+    }
+
+    /**
+     * Get Pace approved statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getApprovedStatus()
+    {   
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_approved') ?? Order::STATE_PROCESSING;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
+
+        return $statuses;
+    }
+
+    /**
+     * Get Pace cancel statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getCancelStatus()
+    {
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_canceled') ?? Order::STATE_CANCELED;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
+
+        return $statuses;
+    }
+
+    /**
+     * Get Pace expired statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getExpiredStatus()
+    {
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_expired') ?? Order::STATE_CLOSED;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
+
+        return $statuses;
+    }
+
     public function getBaseWidgetConfig()
     {
         $styles = [
@@ -284,6 +393,7 @@ class ConfigData extends AbstractHelper
 
         return [
             "isActive" => $this->getConfigValue(self::CONFIG_ACTIVE) == '1',
+            "baseActive" => $this->getConfigValue(self::CONFIG_WIDGETS_ACTIVE) == '1',
             "fallbackWidget" => $this->getConfigValue(self::CONFIG_FALLBACK_WIDGET) == "1",
             "styles" => $styles,
         ];
@@ -347,6 +457,7 @@ class ConfigData extends AbstractHelper
         });
 
         return [
+            "isActive" => $this->getConfigValue(self::CONFIG_CHECKOUT_ACTIVE),
             "styles" => $styles,
         ];
     }
