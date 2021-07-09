@@ -19,16 +19,19 @@ use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
-use \Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Payment\Repository as PaymentRepository;
+use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Magento\Framework\DB\Transaction as DBTransaction;
 use Magento\Framework\Module\ModuleListInterface;
 use Pace\Pay\Model\Ui\ConfigProvider;
 use Psr\Log\LoggerInterface;
 use Magento\Sales\Api\OrderManagementInterface;
+
+use Zend_Http_Client;
 
 abstract class Transaction implements ActionInterface
 {
@@ -41,11 +44,6 @@ abstract class Transaction implements ActionInterface
      * @var Session
      */
     protected $_checkoutSession;
-
-    /**
-     * @var ProductMetadataInterface
-     */
-    protected $_metaDataInterface;
 
     /**
      * @var ZendClient
@@ -180,7 +178,6 @@ abstract class Transaction implements ActionInterface
     public function __construct(
         JsonFactory $resultJsonFactory,
         Session $checkoutSession,
-        ProductMetadataInterface $productMetadata,
         ZendClient $client,
         PayJsonConverter $jsonConverter,
         ConfigData $configData,
@@ -206,7 +203,6 @@ abstract class Transaction implements ActionInterface
     {
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_checkoutSession = $checkoutSession;
-        $this->_metaDataInterface = $productMetadata;
         $this->_client = $client;
         $this->_jsonConverter = $jsonConverter;
         $this->_configData = $configData;
@@ -251,21 +247,7 @@ abstract class Transaction implements ActionInterface
      */
     protected function _getBasePayload($store = null)
     {
-        $magentoVersion = $this->_metaDataInterface->getVersion();
-        $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
-        $platformVersionString = ConfigProvider::PLUGIN_NAME . ',' . $pluginVersion . ',' . $magentoVersion;
-
-        $authToken = base64_encode(
-            $this->_configData->getClientId($store) . ':' .
-            $this->_configData->getClientSecret($store)
-        );
-
-        $pacePayload = [];
-        $pacePayload['headers'] = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Basic ' . $authToken,
-            'X-Pace-PlatformVersion' => $platformVersionString,
-        ];
+        $pacePayload = $this->_configData->getBasePayload($store);
 
         return $pacePayload;
     }
@@ -282,10 +264,13 @@ abstract class Transaction implements ActionInterface
         }
     }
 
-    protected function _handleCancel($isError = false)
+    protected function _handleCancel($order = null, $isError = false)
     {
-        $order = $this->_checkoutSession->getLastRealOrder();
-        $order->setStatus(Order::STATE_CANCELED);
+        $order = !is_null($order) ? 
+            $order : $this->_checkoutSession->getLastRealOrder();
+
+        $paceStatuses = $this->_configData->getCancelStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
         $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
         $this->_orderRepository->save($order);
         $this->_orderManagement->cancel($order->getId());
@@ -294,6 +279,107 @@ abstract class Transaction implements ActionInterface
             $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
         } else {
             $this->_messageManager->addNoticeMessage('Your order was cancelled.');
+        }
+    }
+
+    protected function _handleClose($order)
+    {
+        $order = !is_null($order) ? 
+            $order : $this->_checkoutSession->getLastRealOrder();
+        $paceStatuses = $this->_configData->getExpiredStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+        $order->addCommentToStatusHistory('Pace transaction has been expired');
+        $this->_orderRepository->save($order);
+    }
+
+    protected function _handleApprove($order)
+    {
+        $payment = $order->getPayment();
+        $payment->setIsTransactionClosed(true);
+
+        $storeId = $order->getStoreId();
+        $transactionId = $payment->getAdditionalData();
+
+        $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/' . $transactionId;
+        $pacePayload = $this->_configData->getBasePayload($storeId);
+        $paceTransaction = null;
+        try {
+            $this->_client->resetParameters();
+            $this->_client->setUri($endpoint);
+            $this->_client->setMethod(Zend_Http_Client::GET);
+            $this->_client->setHeaders($pacePayload['headers']);
+            $response = $this->_client->request();
+
+            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
+                throw new \Exception('Unknown Pace transaction statuses');
+            }
+
+            $paceTransaction = json_decode($response->getBody());
+        } catch (\Exception $exception) {
+            $this->_logger->info($e->getMessage());
+        }
+
+        $paceStatuses = $this->_configData->getApprovedStatus();
+
+        if ($paceStatuses) {
+            $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+            $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));    
+        }
+        
+        $payment->setLastTransId($transactionId);
+        $payment->setTransactionId($transactionId);
+
+        if (!is_null($paceTransaction)) {
+            $additionalPaymentInformation = [PaymentTransaction::RAW_DETAILS => json_encode($paceTransaction)];
+            $payment->setAdditionalInformation($additionalPaymentInformation);
+            $transaction = $this->_transactionBuilder->setPayment($payment)
+                ->setOrder($order)
+                ->setTransactionId($transactionId)
+                ->setAdditionalInformation($additionalPaymentInformation)
+                ->setFailSafe(true)
+                ->build(PaymentTransaction::TYPE_CAPTURE);
+        }
+        
+        $payment->setParentTransactionId(null);
+
+        $this->_paymentRepository->save($payment);
+        $this->_orderRepository->save($order);
+        $this->_transactionRepository->save($transaction);
+
+        if ($this->_configData->getIsAutomaticallyGenerateInvoice()) {
+            $this->_invoiceOrder($order, $transactionId);
+        }
+
+        $this->_orderRepository->save($order);
+    }
+
+    /**
+     * @param Order $order
+     * @param string $transactionId
+     */
+    protected function _invoiceOrder($order, $transactionId)
+    {
+        if ($order->canInvoice()) {
+            try {
+                $invoice = $this->_invoiceService->prepareInvoice($order);
+                $invoice->setTransactionId($transactionId);
+                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
+                $invoice->register();
+                $this->_invoiceRepository->save($invoice);
+                $dbTransactionSave = $this->_dbTransaction
+                    ->addObject($invoice)
+                    ->addObject($invoice->getOrder());
+                $dbTransactionSave->save();
+                $order->addCommentToStatusHistory(
+                    __('Notified customer about invoice creation #%1', $invoice->getId())
+                )->setIsCustomerNotified(true);
+                $this->_orderRepository->save($order);
+            } catch (\Exception $exception) {
+                $order->addCommentToStatusHistory(
+                    __('Failed to generate invoice automatically')
+                );
+                $this->_orderRepository->save($order);
+            }
         }
     }
 }

@@ -14,6 +14,10 @@ use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Sales\Model\Order;
+
+use Pace\Pay\Model\Ui\ConfigProvider;
 use Pace\Pay\Model\Adminhtml\Source\Environment;
 
 const CONFIG_PREFIX = 'payment/pace_pay/';
@@ -90,6 +94,11 @@ class ConfigData extends AbstractHelper
     protected $_deploymentconfig;
 
     /**
+     * @var ProductMetadataInterface
+     */
+    protected $_metaDataInterface;
+
+    /**
      * @var ComponentRegistrarInterface
      */
     protected $_componentRegistrar;
@@ -109,7 +118,8 @@ class ConfigData extends AbstractHelper
         ModuleListInterface $moduleList,
         ReadFactory $readFactory,
         ComponentRegistrarInterface $componentRegistrar,
-        DeploymentConfig $deploymentConfig
+        DeploymentConfig $deploymentConfig,
+        ProductMetadataInterface $productMetadata
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
@@ -118,6 +128,7 @@ class ConfigData extends AbstractHelper
         $this->cacheTypeList = $cacheTypeList;
         $this->_moduleList = $moduleList;
         $this->_readFactory = $readFactory;
+        $this->_metaDataInterface = $productMetadata;
         $this->_componentRegistrar = $componentRegistrar;
         $this->_deploymentconfig = $deploymentConfig;
     }
@@ -270,6 +281,102 @@ class ConfigData extends AbstractHelper
         $clientSecret = $this->encryptor->decrypt($clientSecret);
 
         return $clientSecret;
+    }
+
+    /**
+     * Get Pace Http headers
+     *
+     * @since 1.0.3
+     * @param  int $store store Id
+     * @return array
+     */
+    public function getBasePayload($store = null)
+    {
+        $magentoVersion = $this->_metaDataInterface->getVersion();
+        $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
+        $platformVersionString = ConfigProvider::PLUGIN_NAME . ', ' . $pluginVersion . ', ' . $magentoVersion;
+
+        $authToken = base64_encode(
+            $this->getClientId($store) . ':' .
+            $this->getClientSecret($store)
+        );
+
+        $pacePayload = [];
+        $pacePayload['headers'] = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Basic ' . $authToken,
+            'X-Pace-PlatformVersion' => $platformVersionString,
+        ];
+
+        return $pacePayload;
+    }
+
+    /**
+     * Get state that assigned status
+     * 
+     * @param  string $status order status
+     * @since 1.0.3
+     * @return strinh
+     */
+    public function getStateFromStatus($status)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection = $resource->getConnection();
+        $select = $connection->select()
+            ->from(
+                'sales_order_status_state',
+                'state'
+            )
+            ->where('status = ?', $status);
+        $data = $connection->fetchOne($select);
+
+        return $data;
+    }
+
+    /**
+     * Get Pace approved statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getApprovedStatus()
+    {   
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_approved') ?? Order::STATE_PROCESSING;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
+
+        return $statuses;
+    }
+
+    /**
+     * Get Pace cancel statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getCancelStatus()
+    {
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_canceled') ?? Order::STATE_CANCELED;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
+
+        return $statuses;
+    }
+
+    /**
+     * Get Pace expired statuses
+     * 
+     * @since 1.0.3
+     * @return string
+     */
+    public function getExpiredStatus()
+    {
+        $statuses = array();
+        $statuses['status'] = $this->getConfigValue('pace_expired') ?? Order::STATE_CLOSED;
+        $statuses['state'] = $this->getStateFromStatus($statuses['status']);
+
+        return $statuses;
     }
 
     public function getBaseWidgetConfig()
