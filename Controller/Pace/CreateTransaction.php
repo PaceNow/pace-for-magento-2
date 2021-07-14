@@ -19,6 +19,7 @@ class CreateTransaction extends Transaction
             'items' => $this->getSourceitems($order),
             'country' => $order->getBillingAddress()->getCountryId(),
             'currency' => $order->getOrderCurrencyCode(),
+            'expiringAt' => $this->_configData->getExpiredTime(),
             'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
             'referenceId' => $order->getId(),
             'amountFloat' => $order->getTotalDue(),

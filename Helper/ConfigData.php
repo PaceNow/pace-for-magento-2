@@ -379,6 +379,24 @@ class ConfigData extends AbstractHelper
         return $statuses;
     }
 
+    /**
+     * Get Pace expiry time
+     *
+     * @since 1.0.4
+     * @return string
+     */
+    public function getExpiredTime()
+    {
+        $storeId = $this->_storeManager->getStore()->getId();
+        $expired_time = $this->getConfigValue('expired_time', $storeId);
+
+        if ($expired_time) {
+            return $expired_time;
+        }
+        
+        return '';
+    }
+
     public function getBaseWidgetConfig()
     {
         $styles = [

@@ -113,6 +113,16 @@
                             <config_path>payment/pace_pay/pace_expired</config_path>
                         </field>
                     </group>
+                    <group id="payment_expiry_time" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <label>Payment Expiry Time</label>
+                        <comment><![CDATA[Expiry time of the Pace payment created for an order (by minute).]]></comment>
+                        <attribute type="expanded">1</attribute>
+                        <field id="expired_time" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                            <label>Expired Time</label>
+                            <validate>integer validate-number validate-length minimum-length-2</validate>
+                            <config_path>payment/pace_pay/expired_time</config_path>
+                        </field>
+                    </group>
                 </group>
                 <group id="marketing_widgets" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pace's Widgets</label>
@@ -237,11 +247,6 @@
                             <label>Font size</label>
                             <config_path>payment/pace_pay/checkout_font_size</config_path>
                             <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
-                        </field>
-                             <field id="interval_time" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                            <label>Sync order status</label>
-                            <source_model>Pace\Pay\Model\Adminhtml\Source\CronIntervalTime</source_model>
-                            <config_path>crontab/default/jobs_pace_cron_schedule_cron_expr</config_path>
                         </field>
                     </group>
                 </group>
