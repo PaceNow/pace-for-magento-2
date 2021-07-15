@@ -391,7 +391,10 @@ class ConfigData extends AbstractHelper
         $expired_time = $this->getConfigValue('expired_time', $storeId);
 
         if ($expired_time) {
-            return $expired_time;
+            $now = new \DateTime();
+            $expired_time = $now->modify(sprintf('+%s minutes', $expired_time));
+            
+            return $expired_time->format('Y-m-d H:i:s');
         }
         
         return '';
