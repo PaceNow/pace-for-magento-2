@@ -117,9 +117,9 @@
                         <label>Payment Expiry Time</label>
                         <comment><![CDATA[Expiry time of the Pace payment created for an order (by minute).]]></comment>
                         <attribute type="expanded">1</attribute>
-                        <field id="expired_time" translate="label" type="text" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
+                        <field id="expired_time" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
                             <label>Expired Time</label>
-                            <validate>integer validate-number validate-length minimum-length-2</validate>
+                            <source_model>Pace\Pay\Model\Adminhtml\Source\ExpiryTimeSetting</source_model>
                             <config_path>payment/pace_pay/expired_time</config_path>
                         </field>
                     </group>
