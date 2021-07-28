@@ -122,6 +122,11 @@
                             <source_model>Pace\Pay\Model\Adminhtml\Source\ExpiryTimeSetting</source_model>
                             <config_path>payment/pace_pay/expired_time</config_path>
                         </field>
+                        <field id="reinstate_order" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Allow Pace to reinstate order when payment is approved</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/pace_pay/reinstate_order</config_path>
+                        </field>
                     </group>
                 </group>
                 <group id="marketing_widgets" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">

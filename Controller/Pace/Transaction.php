@@ -353,6 +353,11 @@ abstract class Transaction implements ActionInterface
         $this->_orderRepository->save($order);
     }
 
+    protected function _savePaceTransaction()
+    {
+        
+    }
+
     /**
      * @param Order $order
      * @param string $transactionId

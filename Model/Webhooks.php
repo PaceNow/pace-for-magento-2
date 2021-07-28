@@ -126,11 +126,27 @@ class Webhooks extends Transaction implements WebhookManagementInterface
                 throw new \Exception('Unknow orders');
             }
 
-            $orderStatus = $order->getStatus();
+            $state = $order->getState();
+            $status = $order->getStatus();
+            $storeId = $order->getStoreId();
+
+            /**
+             * applies the scenario on webbhoks update order status
+             * @since 1.0.4
+             */
             switch ($params['event']) {
                 case 'approved':
-                    if ($this->_configData->getApprovedStatus() !== $orderStatus) {
-                        $this->_handleApprove($order);    
+                    // Only complete an order when it has a new state
+                    if ('new' == $state) {
+                        $this->_handleApprove($order);
+                    }
+
+                    if ('canceled' == $state) {
+                        $isReinstate = $this->_configData->getConfigValue('reinstate_order', $storeId);
+
+                        if ($isReinstate && 'yes' == $isReinstate) {
+                            $this->_handleApprove($order);
+                        }
                     }
                     break;
                 case 'cancelled':
