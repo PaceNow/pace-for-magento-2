@@ -137,27 +137,33 @@ class Webhooks extends Transaction implements WebhookManagementInterface
             switch ($params['event']) {
                 case 'approved':
                     // Only complete an order when it has a new state
-                    if ('new' == $state) {
+                    if ('pending_payment' == $state) {
                         $this->_handleApprove($order);
                     }
 
                     if ('canceled' == $state) {
                         $isReinstate = $this->_configData->getConfigValue('reinstate_order', $storeId);
 
-                        if ($isReinstate && 'yes' == $isReinstate) {
+                        if ($isReinstate && '1' == $isReinstate) {
                             $this->_handleApprove($order);
                         }
                     }
                     break;
                 case 'cancelled':
-                    if ($this->_configData->getCancelStatus() !== $orderStatus) {
+                    if ('canceled' !== $state) {
                         $this->_handleCancel($order);
                     }
                     break;
                 case 'expired':
-                    if ($this->_configData->getExpiredStatus() !== $orderStatus) {
-                        $this->_handleClose($order);    
+                    // follows scenario 1: if order already cancelled, then add the comment for order
+                    $expiredNote = __('The transaction (Reference ID: %1) has expired. Please try your payment again or contact the admin.', $params['transactionID']);
+                    $order->addStatusHistoryComment($expiredNote);
+                    
+                    if ('pending_payment' == $state) {
+                        $this->_handleClose($order);
                     }
+                    
+                    $this->_orderRepository->save($order);
                     break;
                 default:
                     // code...

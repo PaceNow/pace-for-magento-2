@@ -10,11 +10,6 @@ class CreateTransaction extends Transaction
     public function execute()
     {
         $order = $this->_checkoutSession->getLastRealOrder();
-        echo '<pre>';
-        var_dump($order->getState());
-        print_r($order->getState());
-        echo '</pre>';
-        die;
         $pacePayload = $this->_getBasePayload();
         $redirectUrls = [
             'success' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction',
