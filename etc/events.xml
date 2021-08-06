@@ -22,8 +22,4 @@
     <event name="layout_generate_blocks_after">
         <observer name="remove_block" instance="Pace\Pay\Model\Observer\RemoveBlock"/>
     </event>
-    <event name="order_cancel_after">
-        <observer name="pace_pay_cancel_order"
-                  instance="Pace\Pay\Observer\CancelOrderObserver"/>
-    </event>
 </config>
