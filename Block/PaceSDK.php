@@ -27,7 +27,7 @@ class PaceSDK extends Template
      */
     public function isAvailable()
     {
-        $paymentPlan = $this->_configData->getPaymentPlan();
+        $paymentPlan = $this->_config->getPaymentPlan();
 
         if ( isset( $paymentPlan ) ) {
             $plans = $paymentPlan['paymentPlans'];
