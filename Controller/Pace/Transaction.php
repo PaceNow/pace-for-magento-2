@@ -305,7 +305,8 @@ abstract class Transaction implements ActionInterface
         
         // get approved statuses by merchant setting
         $paceStatuses = $this->_configData->getApprovedStatus();
-
+        $transactionId = $payment->getAdditionalData();
+        
         if ( $paceStatuses ) {
             $order->setState( $paceStatuses['state'] )->setStatus( $paceStatuses['status'] );
             $order->addStatusHistoryComment( __( 'Pace payment is completed (Reference ID: %1)', $transactionId ) );    
@@ -325,7 +326,7 @@ abstract class Transaction implements ActionInterface
 
         if ($transactionId) {
             $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/' . $transactionId;
-            $headers = $this->_configData->getBasePayload($storeId)[headers];
+            $headers = $this->_configData->getBasePayload($storeId)['headers'];
 
             try {
                 $this->_client->resetParameters();
