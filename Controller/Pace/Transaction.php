@@ -307,13 +307,13 @@ abstract class Transaction implements ActionInterface
         $paceStatuses = $this->_configData->getApprovedStatus();
         $transactionId = $payment->getAdditionalData();
         
+        if ( $this->_configData->getIsAutomaticallyGenerateInvoice() ) {
+            $this->_invoiceOrder( $order, $transactionId );
+        }
+
         if ( $paceStatuses ) {
             $order->setState( $paceStatuses['state'] )->setStatus( $paceStatuses['status'] );
             $order->addStatusHistoryComment( __( 'Pace payment is completed (Reference ID: %1)', $transactionId ) );    
-        }
-
-        if ( $this->_configData->getIsAutomaticallyGenerateInvoice() ) {
-            $this->_invoiceOrder( $order, $transactionId );
         }
 
         $this->_orderRepository->save( $order );
@@ -364,7 +364,9 @@ abstract class Transaction implements ActionInterface
     }
 
     /**
-     * @param Order $order
+     * Create invoice during the complete orders
+     * 
+     * @param Magento\Sales\Model\Order $order
      * @param string $transactionId
      */
     protected function _invoiceOrder($order, $transactionId)
