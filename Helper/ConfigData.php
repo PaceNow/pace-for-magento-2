@@ -287,18 +287,18 @@ class ConfigData extends AbstractHelper
      * Get Pace Http headers
      *
      * @since 1.0.3
-     * @param  int $store store Id
+     * @param  int $storeId
      * @return array
      */
-    public function getBasePayload($store = null)
+    public function getBasePayload($storeId = null)
     {
         $magentoVersion = $this->_metaDataInterface->getVersion();
         $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
         $platformVersionString = ConfigProvider::PLUGIN_NAME . ', ' . $pluginVersion . ', ' . $magentoVersion;
 
         $authToken = base64_encode(
-            $this->getClientId($store) . ':' .
-            $this->getClientSecret($store)
+            $this->getClientId($storeId) . ':' .
+            $this->getClientSecret($storeId)
         );
 
         $pacePayload = [];

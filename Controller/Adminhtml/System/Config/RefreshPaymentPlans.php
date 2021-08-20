@@ -46,22 +46,6 @@ class RefreshPaymentPlans extends Action
         parent::__construct($context);
     }
 
-    private function _getBasePayload($clientId, $clientSecret)
-    {
-        $authToken = base64_encode(
-            $clientId . ':' .
-            $clientSecret
-        );
-
-        $pacePayload = [];
-        $pacePayload['headers'] = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Basic ' . $authToken,
-        ];
-
-        return $pacePayload;
-    }
-
     protected function _jsonResponse($data, $statusCode = 200)
     {
         $result = $this->_resultJsonFactory->create();
@@ -109,7 +93,7 @@ class RefreshPaymentPlans extends Action
         $stores = $this->_storeRepository->getList();
         foreach ($stores as $store) {
             $storeId = $store->getId();
-            $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/plans';
+            
             $clientId = $this->_configData->getClientId($storeId);
             $clientSecret = $this->_configData->getClientSecret($storeId);
             $env = $this->_configData->getApiEnvironment($storeId);
@@ -121,9 +105,10 @@ class RefreshPaymentPlans extends Action
                 continue;
             }
 
-            $pacePayload = $this->_getBasePayload($clientId, $clientSecret);
+            $pacePayload = $this->_configData->getBasePayload( $storeId );
 
             try {
+                $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/plans';
                 $this->_client->setUri($endpoint);
                 $this->_client->setMethod(Zend_Http_Client::GET);
                 $this->_client->setHeaders($pacePayload['headers']);
