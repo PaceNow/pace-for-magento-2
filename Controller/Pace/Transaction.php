@@ -264,6 +264,48 @@ abstract class Transaction implements ActionInterface
         }
     }
 
+    /**
+     * Create invoice during the complete orders
+     * 
+     * @param Magento\Sales\Model\Order $order
+     * @param string $transactionId
+     */
+    protected function _invoiceOrder($order, $transactionId)
+    {
+        if ($order->canInvoice()) {
+            try {
+                $invoice = $this->_invoiceService->prepareInvoice($order);
+                $invoice->setTransactionId($transactionId);
+                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
+                $invoice->register();
+                $this->_invoiceRepository->save($invoice);
+                $dbTransactionSave = $this->_dbTransaction
+                    ->addObject($invoice)
+                    ->addObject($invoice->getOrder());
+                $dbTransactionSave->save();
+                $order->addCommentToStatusHistory(
+                    __('Notified customer about invoice creation #%1', $invoice->getId())
+                )->setIsCustomerNotified(true);
+                $this->_orderRepository->save($order);
+            } catch (\Exception $exception) {
+                $order->addCommentToStatusHistory(
+                    __('Failed to generate invoice automatically')
+                );
+                $this->_orderRepository->save($order);
+            }
+        }
+    }
+
+    protected function _handleClose($order)
+    {
+        $order = !is_null($order) ? 
+            $order : $this->_checkoutSession->getLastRealOrder();
+        $paceStatuses = $this->_configData->getExpiredStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+        $order->addCommentToStatusHistory('Pace transaction has been expired');
+        $this->_orderRepository->save($order);
+    }
+
     protected function _handleCancel($order = null, $isError = false)
     {
         $order = !is_null($order) ? 
@@ -283,16 +325,6 @@ abstract class Transaction implements ActionInterface
         }
     }
 
-    protected function _handleClose($order)
-    {
-        $order = !is_null($order) ? 
-            $order : $this->_checkoutSession->getLastRealOrder();
-        $paceStatuses = $this->_configData->getExpiredStatus();
-        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
-        $order->addCommentToStatusHistory('Pace transaction has been expired');
-        $this->_orderRepository->save($order);
-    }
-
     protected function _handleApprove($order, $isReinstate = false)
     {
         $payment = $order->getPayment();
@@ -303,20 +335,57 @@ abstract class Transaction implements ActionInterface
             $this->createTransactionAttachedOrder( $order, $payment );
         }
         
-        // get approved statuses by merchant setting
-        $paceStatuses = $this->_configData->getApprovedStatus();
         $transactionId = $payment->getAdditionalData();
         
         if ( $this->_configData->getIsAutomaticallyGenerateInvoice() ) {
             $this->_invoiceOrder( $order, $transactionId );
         }
 
-        if ( $paceStatuses ) {
-            $order->setState( $paceStatuses['state'] )->setStatus( $paceStatuses['status'] );
-            $order->addStatusHistoryComment( __( 'Pace payment is completed (Reference ID: %1)', $transactionId ) );    
-        }
+        // get approved statuses by merchant setting
+        $this->_applyApprovedStateOrders( $order );
+
+        $order->addStatusHistoryComment( __( 'Pace payment is completed (Reference ID: %1)', $transactionId ) );
 
         $this->_orderRepository->save( $order );
+    }
+
+    /**
+     * Update orders depends on Product type (giftcard or others one)
+     * 
+     * @param  Magento\Sales\Model\Order $order
+     * 
+     * @since 1.0.4
+     */
+    protected function _applyApprovedStateOrders($order)
+    {
+        if ( !empty( $order->getAllItems() ) ) {
+            
+            $isContains = false;
+
+            foreach ( $order->getAllItems() as $item ) {
+                
+                // check if each item in orders has 'giftcard' type
+                if ( 'giftcard' == $item->getProductType() ) {
+                    $isContains = true;
+                }
+
+                continue;
+            }
+
+            if ( $isContains ) {
+                // make order complete
+                $order->setState( Order::STATE_COMPLETE )->setStatus( Order::STATE_COMPLETE );
+            } else {
+                // change state & status based on setting
+                $approvedStatus = $this->_configData->getApprovedStatus();
+
+                if ( $approvedStatus ) {
+                    $order->setState( $approvedStatus['state'] )->approvedStatus( $paceStatuses['status'] );
+                }
+            }
+
+            $this->_orderRepository->save( $order );
+        }
     }
 
     protected function createTransactionAttachedOrder($order, $payment)
@@ -359,38 +428,6 @@ abstract class Transaction implements ActionInterface
                 $this->_transactionRepository->save( $newOrdersTransaction );
             } catch (\Exception $e) {
                 $this->_logger->info($e->getMessage());
-            }
-        }
-    }
-
-    /**
-     * Create invoice during the complete orders
-     * 
-     * @param Magento\Sales\Model\Order $order
-     * @param string $transactionId
-     */
-    protected function _invoiceOrder($order, $transactionId)
-    {
-        if ($order->canInvoice()) {
-            try {
-                $invoice = $this->_invoiceService->prepareInvoice($order);
-                $invoice->setTransactionId($transactionId);
-                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
-                $invoice->register();
-                $this->_invoiceRepository->save($invoice);
-                $dbTransactionSave = $this->_dbTransaction
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder());
-                $dbTransactionSave->save();
-                $order->addCommentToStatusHistory(
-                    __('Notified customer about invoice creation #%1', $invoice->getId())
-                )->setIsCustomerNotified(true);
-                $this->_orderRepository->save($order);
-            } catch (\Exception $exception) {
-                $order->addCommentToStatusHistory(
-                    __('Failed to generate invoice automatically')
-                );
-                $this->_orderRepository->save($order);
             }
         }
     }
