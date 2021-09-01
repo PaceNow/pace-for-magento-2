@@ -380,7 +380,7 @@ abstract class Transaction implements ActionInterface
                 $approvedStatus = $this->_configData->getApprovedStatus();
 
                 if ( $approvedStatus ) {
-                    $order->setState( $approvedStatus['state'] )->approvedStatus( $paceStatuses['status'] );
+                    $order->setState( $approvedStatus['state'] )->setStatus( $approvedStatus['status'] );
                 }
             }
 
