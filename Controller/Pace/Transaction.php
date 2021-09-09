@@ -360,25 +360,25 @@ abstract class Transaction implements ActionInterface
     {
         if ( !empty( $order->getAllItems() ) ) {
             
-            $giftcard = false;
-            $anothers = false;
+            $isContainGiftcard = false;
+            $anothers = array();
 
-            foreach ( $order->getAllItems() as $item ) {
-                
+            $items = $order->getAllItems();
+            foreach ( $items as $item ) {
                 // check if each item in orders has 'giftcard' type
                 if ( 'giftcard' == $item->getProductType() ) {
-                    $isContains = true;
+                    $isContainGiftcard = true;
                     continue;
                 }
 
                 if ( 'giftcard' !== $item->getProductType() ) {
-                    $anothers = true;
+                    array_push( $anothers, $item );
                     continue;
                 }
             }
 
             // complete orders if contains only giftcard product
-            if ( !( $giftcard && $anothers )  ) {
+            if ( $isContainGiftcard && 0 == count( $anothers ) ) {
                 $order->setState( Order::STATE_COMPLETE )->setStatus( Order::STATE_COMPLETE );
             } else {
                 // change state & status based on setting
