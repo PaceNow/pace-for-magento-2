@@ -72,7 +72,7 @@ class VerifyTransaction extends Transaction
                 throw new \Exception('Failed to get Pace transactions');
             }
 
-            $transaction = json_decode($response->getBody());
+            $transaction = json_decode( $response->getBody() );
             $statuses = $transaction->{'status'};
 
             if ( 'approved' == $statuses ) {
