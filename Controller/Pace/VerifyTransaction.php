@@ -45,9 +45,14 @@ class VerifyTransaction extends Transaction
     public function verifyAndInvoiceOrder($order)
     {
         $payment = $order->getPayment();
+
+        if ( is_null( $payment ) ) {
+            return self::VERIFY_UNKNOWN;
+        }
+
         $transactionId = $payment->getAdditionalData();
 
-        if ($transactionId == null || $transactionId == '') {
+        if ( is_null( $transactionId ) || empty( $transactionId ) ) {
             return self::VERIFY_FAILED;
         }
 
@@ -56,20 +61,21 @@ class VerifyTransaction extends Transaction
 
         $this->_client->resetParameters();
         $paceTransaction = null;
+
         try {
-            $this->_client->setUri($endpoint);
-            $this->_client->setMethod(Zend_Http_Client::GET);
-            $this->_client->setHeaders($pacePayload['headers']);
+            $this->_client->setUri( $endpoint );
+            $this->_client->setMethod( Zend_Http_Client::GET );
+            $this->_client->setHeaders( $pacePayload['headers'] );
             $response = $this->_client->request();
 
-            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
+            if ( $response->getStatus() < 200 || $response->getStatus() > 299 ) {
                 throw new \Exception('Failed to get Pace transactions');
             }
 
-            $transaction = json_decode($response->getBody());
+            $transaction = json_decode( $response->getBody() );
             $statuses = $transaction->{'status'};
 
-            if ('approved' == $statuses) {
+            if ( 'approved' == $statuses ) {
                 return self::VERIFY_SUCCESS;
             }
 

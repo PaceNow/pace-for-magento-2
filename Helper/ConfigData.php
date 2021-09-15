@@ -287,18 +287,18 @@ class ConfigData extends AbstractHelper
      * Get Pace Http headers
      *
      * @since 1.0.3
-     * @param  int $store store Id
+     * @param  int $storeId
      * @return array
      */
-    public function getBasePayload($store = null)
+    public function getBasePayload($storeId = null)
     {
         $magentoVersion = $this->_metaDataInterface->getVersion();
         $pluginVersion = $this->_moduleList->getOne(ConfigProvider::MODULE_NAME)['setup_version'];
         $platformVersionString = ConfigProvider::PLUGIN_NAME . ', ' . $pluginVersion . ', ' . $magentoVersion;
 
         $authToken = base64_encode(
-            $this->getClientId($store) . ':' .
-            $this->getClientSecret($store)
+            $this->getClientId($storeId) . ':' .
+            $this->getClientSecret($storeId)
         );
 
         $pacePayload = [];
@@ -377,6 +377,27 @@ class ConfigData extends AbstractHelper
         $statuses['state'] = $this->getStateFromStatus($statuses['status']);
 
         return $statuses;
+    }
+
+    /**
+     * Get Pace expiry time
+     *
+     * @since 1.0.4
+     * @return string
+     */
+    public function getExpiredTime()
+    {
+        $storeId = $this->_storeManager->getStore()->getId();
+        $expired_time = $this->getConfigValue('expired_time', $storeId);
+
+        if ($expired_time) {
+            $now = new \DateTime();
+            $expired_time = $now->modify(sprintf('+%s minutes', $expired_time));
+            
+            return $expired_time->format('Y-m-d H:i:s');
+        }
+        
+        return '';
     }
 
     public function getBaseWidgetConfig()

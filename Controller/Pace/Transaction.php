@@ -264,97 +264,10 @@ abstract class Transaction implements ActionInterface
         }
     }
 
-    protected function _handleCancel($order = null, $isError = false)
-    {
-        $order = !is_null($order) ? 
-            $order : $this->_checkoutSession->getLastRealOrder();
-
-        $paceStatuses = $this->_configData->getCancelStatus();
-        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
-        $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
-        $this->_orderRepository->save($order);
-        $this->_orderManagement->cancel($order->getId());
-        $this->_checkoutSession->restoreQuote();
-        if ($isError) {
-            $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
-        } else {
-            $this->_messageManager->addNoticeMessage('Your order was cancelled.');
-        }
-    }
-
-    protected function _handleClose($order)
-    {
-        $order = !is_null($order) ? 
-            $order : $this->_checkoutSession->getLastRealOrder();
-        $paceStatuses = $this->_configData->getExpiredStatus();
-        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
-        $order->addCommentToStatusHistory('Pace transaction has been expired');
-        $this->_orderRepository->save($order);
-    }
-
-    protected function _handleApprove($order)
-    {
-        $payment = $order->getPayment();
-        $payment->setIsTransactionClosed(true);
-
-        $storeId = $order->getStoreId();
-        $transactionId = $payment->getAdditionalData();
-
-        $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/' . $transactionId;
-        $pacePayload = $this->_configData->getBasePayload($storeId);
-        $paceTransaction = null;
-        try {
-            $this->_client->resetParameters();
-            $this->_client->setUri($endpoint);
-            $this->_client->setMethod(Zend_Http_Client::GET);
-            $this->_client->setHeaders($pacePayload['headers']);
-            $response = $this->_client->request();
-
-            if ($response->getStatus() < 200 || $response->getStatus() > 299) {
-                throw new \Exception('Unknown Pace transaction statuses');
-            }
-
-            $paceTransaction = json_decode($response->getBody());
-        } catch (\Exception $exception) {
-            $this->_logger->info($e->getMessage());
-        }
-
-        $paceStatuses = $this->_configData->getApprovedStatus();
-
-        if ($paceStatuses) {
-            $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
-            $order->addStatusHistoryComment(__('Pace payment is completed (Reference ID: %1)', $transactionId));    
-        }
-        
-        $payment->setLastTransId($transactionId);
-        $payment->setTransactionId($transactionId);
-
-        if (!is_null($paceTransaction)) {
-            $additionalPaymentInformation = [PaymentTransaction::RAW_DETAILS => json_encode($paceTransaction)];
-            $payment->setAdditionalInformation($additionalPaymentInformation);
-            $transaction = $this->_transactionBuilder->setPayment($payment)
-                ->setOrder($order)
-                ->setTransactionId($transactionId)
-                ->setAdditionalInformation($additionalPaymentInformation)
-                ->setFailSafe(true)
-                ->build(PaymentTransaction::TYPE_CAPTURE);
-        }
-        
-        $payment->setParentTransactionId(null);
-
-        $this->_paymentRepository->save($payment);
-        $this->_orderRepository->save($order);
-        $this->_transactionRepository->save($transaction);
-
-        if ($this->_configData->getIsAutomaticallyGenerateInvoice()) {
-            $this->_invoiceOrder($order, $transactionId);
-        }
-
-        $this->_orderRepository->save($order);
-    }
-
     /**
-     * @param Order $order
+     * Create invoice during the complete orders
+     * 
+     * @param Magento\Sales\Model\Order $order
      * @param string $transactionId
      */
     protected function _invoiceOrder($order, $transactionId)
@@ -379,6 +292,143 @@ abstract class Transaction implements ActionInterface
                     __('Failed to generate invoice automatically')
                 );
                 $this->_orderRepository->save($order);
+            }
+        }
+    }
+
+    protected function _handleClose($order)
+    {
+        $order = !is_null($order) ? 
+            $order : $this->_checkoutSession->getLastRealOrder();
+        $paceStatuses = $this->_configData->getExpiredStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+        $order->addCommentToStatusHistory('Pace transaction has been expired');
+        $this->_orderRepository->save($order);
+    }
+
+    protected function _handleCancel($order = null, $isError = false)
+    {
+        $order = !is_null($order) ? 
+            $order : $this->_checkoutSession->getLastRealOrder();
+
+        $paceStatuses = $this->_configData->getCancelStatus();
+        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+        $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
+        $this->_orderRepository->save($order);
+        $this->_orderManagement->cancel($order->getId());
+        $this->_checkoutSession->restoreQuote();
+        
+        if ($isError) {
+            $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
+        } else {
+            $this->_messageManager->addNoticeMessage('Your order was cancelled.');
+        }
+    }
+
+    protected function _handleApprove($order, $isReinstate = false)
+    {
+        $payment = $order->getPayment();
+        $payment->setIsTransactionClosed(true);
+
+        // create magento orders transaction
+        if ( !$isReinstate ) {
+            $this->createTransactionAttachedOrder( $order, $payment );
+        }
+        
+        $transactionId = $payment->getAdditionalData();
+        
+        if ( $this->_configData->getIsAutomaticallyGenerateInvoice() ) {
+            $this->_invoiceOrder( $order, $transactionId );
+        }
+
+        // get approved statuses by merchant setting
+        $this->_applyApprovedStateOrders( $order );
+
+        $order->addStatusHistoryComment( __( 'Pace payment is completed (Reference ID: %1)', $transactionId ) );
+
+        $this->_orderRepository->save( $order );
+    }
+
+    /**
+     * Update orders depends on Product type (giftcard or others one)
+     * 
+     * @param  Magento\Sales\Model\Order $order
+     * 
+     * @since 1.0.4
+     */
+    protected function _applyApprovedStateOrders($order)
+    {
+        if ( !empty( $order->getAllItems() ) ) {
+            
+            $onlyHasGiftCard = false;
+
+            $items = $order->getAllItems();
+            foreach ( $items as $item ) {
+                // check if each item in orders has 'giftcard' type
+                if ( 'giftcard' == $item->getProductType() ) {
+                    $onlyHasGiftCard = true;
+                }else{
+                    $onlyHasGiftCard = false;
+                    break;                
+                }
+            }
+
+            // complete orders if contains only giftcard product
+            if ( $onlyHasGiftCard ) {
+                $order->setState( Order::STATE_COMPLETE )->setStatus( Order::STATE_COMPLETE );
+            } else {
+                // change state & status based on setting
+                $approvedStatus = $this->_configData->getApprovedStatus();
+
+                if ( $approvedStatus ) {
+                    $order->setState( $approvedStatus['state'] )->setStatus( $approvedStatus['status'] );
+                }
+            }
+
+            $this->_orderRepository->save( $order );
+        }
+    }
+
+    protected function createTransactionAttachedOrder($order, $payment)
+    {
+        $storeId = $order->getStoreId();
+        $transactionId = $payment->getAdditionalData();
+
+        if ($transactionId) {
+            $endpoint = $this->_configData->getApiEndpoint($storeId) . '/v1/checkouts/' . $transactionId;
+            $headers = $this->_configData->getBasePayload($storeId)['headers'];
+
+            try {
+                $this->_client->resetParameters();
+                $this->_client->setUri($endpoint);
+                $this->_client->setMethod(Zend_Http_Client::GET);
+                $this->_client->setHeaders($headers);
+                $response = $this->_client->request();
+
+                if ($response->getStatus() < 200 || $response->getStatus() > 299) {
+                    throw new \Exception('Unknown Pace transaction statuses');
+                }
+
+                $rawData = $response->getBody();
+                $additionalPaymentInformation = array( PaymentTransaction::RAW_DETAILS => $rawData );
+                // update order payment information
+                $payment->setLastTransId( $transactionId );
+                $payment->setTransactionId( $transactionId );
+                $payment->setAdditionalInformation( $additionalPaymentInformation );
+                $newOrdersTransaction = $this->_transactionBuilder
+                    ->setPayment( $payment )
+                    ->setOrder( $order )
+                    ->setTransactionId( $transactionId )
+                    ->setAdditionalInformation( $additionalPaymentInformation )
+                    ->setFailSafe( true )
+                    ->build( PaymentTransaction::TYPE_CAPTURE );
+
+                $payment->setParentTransactionId( null );
+
+                $this->_paymentRepository->save( $payment );
+                $this->_transactionRepository->save( $newOrdersTransaction );
+            } catch (\Exception $e) {
+                $this->_logger->info($e->getMessage());
             }
         }
     }
