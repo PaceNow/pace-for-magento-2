@@ -9,6 +9,9 @@ class CreateTransaction extends Transaction
 {
     public function execute()
     {
+        // clear old notice messages
+        $this->_messageManager->getMessages(true);
+        
         $order = $this->_checkoutSession->getLastRealOrder();
         $pacePayload = $this->_getBasePayload();
         $redirectUrls = [
