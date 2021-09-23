@@ -112,17 +112,19 @@ class Webhooks extends Transaction implements WebhookManagementInterface
         $params = $this->_webApiRequest->getBodyParams();
         
         try {
-            if (!isset($params['status'])) {
+            if ( !isset( $params['status'] ) ) {
                 throw new \Exception('Unknow Pace webhooks response status');
             }
 
-            if ('success' !== $params['status']) {
+            if ( 'success' !== $params['status'] ) {
                 throw new \Exception('Unsuccessfully handle webhooks callback');
             }
             
-            $order = $this->_orderRepository->get($params['referenceID']);
-            
-            if (!$order) {
+            // $order = $this->_orderRepository->get( $params['referenceID'] );
+            $order = $this->_order->loadByIncrementId( $params['referenceID'] );
+            $this->_logger->info( $order->getId() );
+
+            if ( !$order ) {
                 throw new \Exception('Unknow orders');
             }
 

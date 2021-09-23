@@ -24,7 +24,7 @@ class CreateTransaction extends Transaction
             'currency' => $order->getOrderCurrencyCode(),
             'expiringAt' => $this->_configData->getExpiredTime(),
             'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
-            'referenceId' => $order->getId(),
+            'referenceId' => $order->getRealOrderId(),
             'amountFloat' => $order->getTotalDue(),
             'redirectUrls' => $redirectUrls
         ];
