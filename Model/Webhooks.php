@@ -113,19 +113,17 @@ class Webhooks extends Transaction implements WebhookManagementInterface
         
         try {
             if ( !isset( $params['status'] ) ) {
-                throw new \Exception('Unknow Pace webhooks response status');
+                throw new \Exception( 'Unknow Pace webhooks response status' );
             }
 
             if ( 'success' !== $params['status'] ) {
-                throw new \Exception('Unsuccessfully handle webhooks callback');
+                throw new \Exception( 'Unsuccessfully handle webhooks callback' );
             }
             
-            // $order = $this->_orderRepository->get( $params['referenceID'] );
             $order = $this->_order->loadByIncrementId( $params['referenceID'] );
-            $this->_logger->info( $order->getId() );
 
             if ( !$order ) {
-                throw new \Exception('Unknow orders');
+                throw new \Exception( 'Unknow orders' );
             }
 
             $state = $order->getState();
@@ -136,36 +134,39 @@ class Webhooks extends Transaction implements WebhookManagementInterface
              * applies the scenario on webbhoks update order status
              * @since 1.0.4
              */
-            switch ($params['event']) {
+            switch ( $params['event'] ) {
                 case 'approved':
                     // Only complete an order when it has a new state
-                    if ('pending_payment' == $state) {
-                        $this->_handleApprove($order);
+                    if ( 'pending_payment' == $state ) {
+                        $this->_handleApprove( $order );
                     }
 
-                    if ('canceled' == $state) {
-                        $isReinstate = $this->_configData->getConfigValue('reinstate_order', $storeId);
+                    if ( 'canceled' == $state ) {
+                        $isReinstate = $this->_configData->getConfigValue( 'reinstate_order', $storeId );
 
-                        if ($isReinstate && '1' == $isReinstate) {
-                            $this->_handleApprove($order);
+                        if ( $isReinstate && '1' == $isReinstate ) {
+                            $this->_handleApprove( $order );
                         }
                     }
+
                     break;
                 case 'cancelled':
-                    if ('canceled' !== $state) {
-                        $this->_handleCancel($order);
+                    if ( 'canceled' !== $state ) {
+                        $this->handleCancel( $order );
                     }
+
                     break;
                 case 'expired':
                     // follows scenario 1: if order already cancelled, then add the comment for order
-                    $expiredNote = __('The transaction (Reference ID: %1) has expired. Please try your payment again or contact the admin.', $params['transactionID']);
-                    $order->addStatusHistoryComment($expiredNote);
+                    $expiredNote = __( 'The transaction (Reference ID: %1) has expired. Please try your payment again or contact the admin.', $params['transactionID'] );
+                    $order->addStatusHistoryComment( $expiredNote );
                     
-                    if ('pending_payment' == $state) {
-                        $this->_handleClose($order);
+                    if ( 'pending_payment' == $state ) {
+                        $this->_handleClose( $order );
                     }
                     
-                    $this->_orderRepository->save($order);
+                    $this->_orderRepository->save( $order );
+
                     break;
                 default:
                     // code...
@@ -174,7 +175,7 @@ class Webhooks extends Transaction implements WebhookManagementInterface
 
             return 1;
         } catch (\Exception $e) {
-            $this->_logger->info($e->getMessage());
+            $this->_logger->info( $e->getMessage() );
         }
     }
 }

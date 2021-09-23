@@ -306,23 +306,30 @@ abstract class Transaction implements ActionInterface
         $this->_orderRepository->save($order);
     }
 
-    protected function _handleCancel($order = null, $isError = false)
+    /**
+     * Cancel the order when Pace transaction failed
+     *
+     * @param  Magento\Sales\Model\Order $order   
+     * @param  boolean $isError
+     * @return @void
+     */
+    protected function handleCancel( $order = null, $isError = false )
     {
-        $order = !is_null($order) ? 
-            $order : $this->_checkoutSession->getLastRealOrder();
-
-        $paceStatuses = $this->_configData->getCancelStatus();
-        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
-        $order->addCommentToStatusHistory(__('Order with Pace canceled.'));
-        $this->_orderRepository->save($order);
-        $this->_orderManagement->cancel($order->getId());
+        $cancel_status = $this->_configData->getCancelStatus();
+        $order = is_null( $order ) ? $this->_checkoutSession->getLastRealOrder() : $order;
+        $order->setState( $cancel_status['state'] )->setStatus( $cancel_status['status'] );
+        $order->addCommentToStatusHistory( __( 'Order with Pace has been canceled.' ) );
+        
+        $this->_orderManagement->cancel( $order->getId() );
         $this->_checkoutSession->restoreQuote();
         
-        if ($isError) {
-            $this->_messageManager->addErrorMessage('Could not checkout with Pace. Please try again.');
+        if ( $isError ) {
+            $this->_messageManager->addErrorMessage( "Can't pay with Pace. Please try again." );
         } else {
-            $this->_messageManager->addNoticeMessage('Your order was cancelled.');
+            $this->_messageManager->addNoticeMessage( 'Your order has been cancelled.' );
         }
+
+        $this->_orderRepository->save( $order );
     }
 
     protected function _handleApprove($order, $isReinstate = false)

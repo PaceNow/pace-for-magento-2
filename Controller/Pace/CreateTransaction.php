@@ -9,58 +9,49 @@ class CreateTransaction extends Transaction
 {
     public function execute()
     {
-        // clear old notice messages
-        $this->_messageManager->getMessages(true);
-        
         $order = $this->_checkoutSession->getLastRealOrder();
         $pacePayload = $this->_getBasePayload();
-        $redirectUrls = [
-            'success' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction',
-            'failed' => $this->_getBaseUrl() . 'pace_pay/pace/verifytransaction'    
-        ];
         $pacePayload['body'] = [
-            'items' => $this->getSourceitems($order),
+            'items' => $this->getSourceItems( $order ),
             'country' => $order->getBillingAddress()->getCountryId(),
             'currency' => $order->getOrderCurrencyCode(),
             'expiringAt' => $this->_configData->getExpiredTime(),
             'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
             'referenceId' => $order->getRealOrderId(),
             'amountFloat' => $order->getTotalDue(),
-            'redirectUrls' => $redirectUrls
+            'redirectUrls' => $this->getPaceRedirectURI()
         ];
-        $this->getPaceBilling($order, $pacePayload);
-        $this->getPaceShipping($order, $pacePayload);
+        $this->getPaceBilling( $order, $pacePayload );
+        $this->getPaceShipping( $order, $pacePayload );
       
         $this->_client->resetParameters();
         try {
             $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
 
-            $this->_client->setUri($endpoint);
-            $this->_client->setMethod(Zend_Http_Client::POST);
-            $this->_client->setHeaders($pacePayload['headers']);
-            $this->_client->setRawData(json_encode($pacePayload['body']));
+            $this->_client->setUri( $endpoint );
+            $this->_client->setMethod( Zend_Http_Client::POST );
+            $this->_client->setHeaders( $pacePayload['headers'] );
+            $this->_client->setRawData( json_encode( $pacePayload['body'] ) );
             $response = $this->_client->request();
-            $responseJson = json_decode($response->getBody());
-            $paceTransactionId = $responseJson->{'transactionID'};
+            $responseJson = json_decode( $response->getBody() );
+            $tnxId = $responseJson->{'transactionID'};
 
-            if ($paceTransactionId == null || $paceTransactionId == '') {
+            if ( empty( $tnxId ) ) {
                 throw new \Exception('Fail to create Pace transaction');
             }
 
             $payment = $order->getPayment();
-            $payment->setTransactionId($paceTransactionId);
-            $payment->setAdditionalData($paceTransactionId);
-            $order->addCommentToStatusHistory(
-                __('Pace transaction is created (Reference ID: %1)', $paceTransactionId)
-            );
+            $payment->setTransactionId( $tnxId );
+            $payment->setAdditionalData( $tnxId );
+            $this->_paymentRepository->save( $payment );
 
-            $this->_orderRepository->save($order);
-            $this->_paymentRepository->save($payment);
+            $order->addCommentToStatusHistory( __( 'Pace transaction is created (Reference ID: %1)', $tnxId ) );
+            $this->_orderRepository->save( $order );
 
-            return $this->_jsonResponse($responseJson, $response->getStatus());
+            return $this->_jsonResponse( $responseJson, $response->getStatus() );
         } catch (\Exception $exception) {
-            $this->_handleCancel(null, true);
-            return $this->_jsonResponse([], 500);
+            $this->handleCancel( null, true );
+            return $this->_jsonResponse( [], 500 );
         }
     }
 
@@ -71,7 +62,7 @@ class CreateTransaction extends Transaction
      * @since 1.0.3 
      * @return array 
      */
-    private function getSourceitems($order)
+    private function getSourceItems( $order )
     {
         $orderItems = $order->getAllVisibleItems();
 
@@ -167,6 +158,22 @@ class CreateTransaction extends Transaction
             'phone' => $shippingDetails['telephone'],
             'email' => $shippingDetails['email'],
         ];
+    }
+
+    /**
+     * Prepare Pace redirect urls
+     *
+     * @since 1.0.5
+     * @return array
+     */
+    private function getPaceRedirectURI()
+    {
+        $baseURL = $this->_getBaseUrl();
+
+        return array(
+            'success' => $baseURL . 'pace_pay/pace/verifytransaction',
+            'failed' => $baseURL . 'pace_pay/pace/verifytransaction'
+        );    
     }
 
     /**
