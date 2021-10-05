@@ -16,21 +16,28 @@ class VerifyTransaction extends Transaction
 
     public function execute()
     {
-        $order = $this->_checkoutSession->getLastRealOrder();
-        $verifyResult = $this->verifyAndInvoiceOrder($order);
-        $resultRedirect = $this->_resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        // clear old notice messages
+        $this->clearNotices();
 
-        switch ($verifyResult) {
+        $order = $this->_checkoutSession->getLastRealOrder();
+        $verifyResult = $this->verifyAndInvoiceOrder( $order );
+        $resultRedirect = $this->_resultFactory->create( ResultFactory::TYPE_REDIRECT );
+
+        switch ( $verifyResult ) {
+
             case self::VERIFY_SUCCESS:
-                $this->_handleApprove($order);
-                return $resultRedirect->setUrl(self::SUCCESS_REDIRECT_URL);
+                $this->_handleApprove( $order );
+                return $resultRedirect->setUrl( self::SUCCESS_REDIRECT_URL );
+
                 break;
             case self::VERIFY_FAILED:
-                $this->_handleCancel();
-                return $resultRedirect->setUrl(self::ERROR_REDIRECT_URL);
+                $this->handleCancel();
+                return $resultRedirect->setUrl( self::ERROR_REDIRECT_URL );
+
                 break;
             case self::VERIFY_UNKNOWN:
-                return $resultRedirect->setUrl(self::ERROR_REDIRECT_URL); 
+                return $resultRedirect->setUrl( self::ERROR_REDIRECT_URL );
+
                 break;
             default:
                 // code...
@@ -39,6 +46,8 @@ class VerifyTransaction extends Transaction
     }
 
     /**
+     * Verify Pace transaction, and create invoice if payment successfuly
+     * 
      * @param OrderInterface $order
      * @return string
      */
@@ -86,28 +95,43 @@ class VerifyTransaction extends Transaction
     }
 
     /**
-     * @param Order $order
+     * Make a APIs request to cancel Pace transaction
+     *
+     * @since 1.0.3
+     * @param  Magento\Sales\Model\Order $order
+     * @return boolean
      */
-    public function cancelTransaction($order)
+    public function cancelTransaction( $order )
     {
         $payment = $order->getPayment();
-        $transactionId = $payment->getAdditionalData();
+        $tnxId = $payment->getAdditionalData();
 
-        if ($transactionId == null || $transactionId == '') {
+        if ( empty( $tnxId ) ) {
             return;
         }
 
-        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . $transactionId . '/cancel';
+        $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts/' . $tnxId . '/cancel';
         $pacePayload = $this->_getBasePayload();
 
         $this->_client->resetParameters();
         try {
-            $this->_client->setUri($endpoint);
-            $this->_client->setMethod(Zend_Http_Client::POST);
-            $this->_client->setHeaders($pacePayload['headers']);
+            $this->_client->setUri( $endpoint );
+            $this->_client->setMethod( Zend_Http_Client::POST );
+            $this->_client->setHeaders( $pacePayload['headers'] );
             $this->_client->request();
         } catch (\Exception $exception) {
             return;
         }
+    }
+
+    /**
+     * Clear old notices message
+     *
+     * @since 1.0.5
+     * @return @void
+     */
+    private function clearNotices()
+    {
+        $notices = $this->_messageManager->getMessages( true );
     }
 }
