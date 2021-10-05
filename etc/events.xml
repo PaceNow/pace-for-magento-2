@@ -22,4 +22,9 @@
     <event name="layout_generate_blocks_after">
         <observer name="remove_block" instance="Pace\Pay\Model\Observer\RemoveBlock"/>
     </event>
+
+    <!-- Ignore cart page -->
+    <event name="controller_action_predispatch_checkout_cart_index">
+        <observer name="ignore-cart-page-index" instance="Pace\Pay\Model\Observer\IgnoreCartPage" />
+    </event>
 </config>
