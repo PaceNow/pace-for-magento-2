@@ -2,34 +2,44 @@
 
 namespace Pace\Pay\Model;
 
-use Magento\Checkout\Model\Session;
+use Pace\Pay\Api\WebhookManagementInterface;
+use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Gateway\Http\PayJsonConverter;
+use Pace\Pay\Controller\Pace\Transaction;
+
 use Magento\Quote\Model\QuoteRepository;
-use Magento\Framework\HTTP\ZendClient;
-use Magento\Framework\App\Request\Http;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
+
+use Magento\Catalog\Model\CategoryRepository;
+
+use Magento\Checkout\Model\Session;
+
 use Magento\Framework\DB\Transaction as DBTransaction;
-use Magento\Framework\Webapi\Rest\Request as WebapiRequest;
+use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Request\Http;
+use Magento\Framework\HTTP\ZendClient;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
-use Magento\Sales\Model\Order;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\Result\Json;
+use Magento\Framework\Controller\Result\JsonFactory;
+
 use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Payment\Repository as PaymentRepository;
+use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
-use Magento\Catalog\Model\CategoryRepository;
+use Magento\Sales\Model\Service\InvoiceService;
+
+use Magento\Store\Model\StoreManagerInterface;
 
 use Psr\Log\LoggerInterface;
-
-use Pace\Pay\Helper\ConfigData;
-use Pace\Pay\Controller\Pace\Transaction;
-use Pace\Pay\Gateway\Http\PayJsonConverter;
-use Pace\Pay\Api\WebhookManagementInterface;
 
 /**
  * Class process Pace webhooks callback
@@ -47,57 +57,35 @@ class Webhooks extends Transaction implements WebhookManagementInterface
     protected $_webApiRequest;
 
     public function __construct(
-        WebapiRequest $webApiRequest,
-        JsonFactory $resultJsonFactory,
+        Http $request,
+        Order $order,
+        Context $context,
         Session $checkoutSession,
         ZendClient $client,
-        PayJsonConverter $jsonConverter,
         ConfigData $configData,
-        QuoteRepository $quoteRepository,
-        Http $request,
-        OrderRepositoryInterface $orderRepository,
+        JsonFactory $resultJsonFactory,
+        DBTransaction $dbTransaction,
         ResultFactory $resultFactory,
-        CategoryRepository $categoryRepository,
-        Order $order,
-        StoreManagerInterface $storeManager,
-        TransactionBuilder $transactionBuilder,
-        TransactionRepository $transactionRepository,
-        MessageManagerInterface $messageManager,
-        InvoiceService $invoiceService,
         InvoiceSender $invoiceSender,
+        InvoiceService $invoiceService,
+        QuoteRepository $quoteRepository,
+        LoggerInterface $logger,
+        PayJsonConverter $jsonConverter,
         InvoiceRepository $invoiceRepository,
         PaymentRepository $paymentRepository,
-        DBTransaction $dbTransaction,
+        CategoryRepository $categoryRepository,
+        TransactionBuilder $transactionBuilder,
         ModuleListInterface $moduleList,
-        LoggerInterface $logger,
-        OrderManagementInterface $orderManagement
+        StoreManagerInterface $storeManager,
+        TransactionRepository $transactionRepository,
+        MessageManagerInterface $messageManager,
+        OrderRepositoryInterface $orderRepository,
+        OrderManagementInterface $orderManagement,
+
+        WebapiRequest $webApiRequest
     )
     {
-        parent::__construct(
-            $resultJsonFactory,
-            $checkoutSession,
-            $client,
-            $jsonConverter,
-            $configData,
-            $quoteRepository,
-            $request,
-            $orderRepository,
-            $resultFactory,
-            $categoryRepository,
-            $order,
-            $storeManager,
-            $transactionBuilder,
-            $transactionRepository,
-            $messageManager,
-            $invoiceService,
-            $invoiceSender,
-            $invoiceRepository,
-            $paymentRepository,
-            $dbTransaction,
-            $moduleList,
-            $logger,
-            $orderManagement
-        );
+        parent::__construct($request, $order, $context, $checkoutSession, $client, $configData, $resultJsonFactory, $dbTransaction, $resultFactory, $invoiceSender, $invoiceService, $quoteRepository, $logger, $jsonConverter, $invoiceRepository, $paymentRepository, $categoryRepository, $transactionBuilder, $moduleList, $storeManager, $transactionRepository, $messageManager, $orderRepository, $orderManagement);
 
         $this->_webApiRequest = $webApiRequest;
     }

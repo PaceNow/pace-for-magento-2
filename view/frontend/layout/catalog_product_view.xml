@@ -2,7 +2,12 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="product.info.main">
-            <block class="Pace\Pay\Block\SingleProductWidget" name="pace.singleproduct" after="product.info.price" template="Pace_Pay::singleproductwidget.phtml" ifconfig="payment/pace_pay/single_product_active"/>
+            <block 
+                name="pace.singleproduct" 
+                after="product.info.price" 
+                class="Pace\Pay\Block\SingleProductWidget" 
+                template="Pace_Pay::singleproductwidget.phtml" 
+                ifconfig="payment/pace_pay/single_product_active" />
         </referenceContainer>
     </body>
 </page>

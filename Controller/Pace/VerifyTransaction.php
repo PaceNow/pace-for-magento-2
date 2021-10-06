@@ -24,25 +24,26 @@ class VerifyTransaction extends Transaction
         $resultRedirect = $this->_resultFactory->create( ResultFactory::TYPE_REDIRECT );
 
         switch ( $verifyResult ) {
-
             case self::VERIFY_SUCCESS:
                 $this->_handleApprove( $order );
-                return $resultRedirect->setUrl( self::SUCCESS_REDIRECT_URL );
-
+                $url = self::SUCCESS_REDIRECT_URL;
                 break;
             case self::VERIFY_FAILED:
                 $this->handleCancel();
-                return $resultRedirect->setUrl( self::ERROR_REDIRECT_URL );
-
+                $url = self::ERROR_REDIRECT_URL;
                 break;
             case self::VERIFY_UNKNOWN:
-                return $resultRedirect->setUrl( self::ERROR_REDIRECT_URL );
-
+                $url = self::ERROR_REDIRECT_URL;
                 break;
             default:
-                // code...
+                $url = '/';
                 break;
         }
+
+        // dispatch an event
+        $this->_eventManager->dispatch( 'pace_pay_verifytransaction_before_redirect' );
+
+        return $resultRedirect->setUrl( $url );
     }
 
     /**
@@ -132,6 +133,8 @@ class VerifyTransaction extends Transaction
      */
     private function clearNotices()
     {
-        $notices = $this->_messageManager->getMessages( true );
+        // Magento\Framework\Message\ManagerInterface
+        $message = $this->_messageManager->createMessage( 'notice', 'pace-notice' )->setText( '' );
+        $this->_messageManager->addMessage( $message, 'pace' );
     }
 }
