@@ -82,7 +82,7 @@ class Webhooks extends Transaction implements WebhookManagementInterface
         OrderRepositoryInterface $orderRepository,
         OrderManagementInterface $orderManagement,
 
-        WebapiRequest $webApiRequest,
+        WebapiRequest $webApiRequest
     )
     {
         parent::__construct($request, $order, $context, $checkoutSession, $client, $configData, $resultJsonFactory, $dbTransaction, $resultFactory, $invoiceSender, $invoiceService, $quoteRepository, $logger, $jsonConverter, $invoiceRepository, $paymentRepository, $categoryRepository, $transactionBuilder, $moduleList, $storeManager, $transactionRepository, $messageManager, $orderRepository, $orderManagement);

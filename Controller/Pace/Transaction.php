@@ -200,7 +200,7 @@ abstract class Transaction extends Action implements ActionInterface
         TransactionRepository $transactionRepository,
         MessageManagerInterface $messageManager,
         OrderRepositoryInterface $orderRepository,
-        OrderManagementInterface $orderManagement,
+        OrderManagementInterface $orderManagement
     )
     {
         parent::__construct( $context );
