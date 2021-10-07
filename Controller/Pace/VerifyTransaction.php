@@ -16,9 +16,6 @@ class VerifyTransaction extends Transaction
 
     public function execute()
     {
-        // clear old notice messages
-        $this->clearNotices();
-
         $order = $this->_checkoutSession->getLastRealOrder();
         $verifyResult = $this->verifyAndInvoiceOrder( $order );
         $resultRedirect = $this->_resultFactory->create( ResultFactory::TYPE_REDIRECT );
@@ -123,18 +120,5 @@ class VerifyTransaction extends Transaction
         } catch (\Exception $exception) {
             return;
         }
-    }
-
-    /**
-     * Clear old notices message
-     *
-     * @since 1.0.5
-     * @return @void
-     */
-    private function clearNotices()
-    {
-        // Magento\Framework\Message\ManagerInterface
-        $message = $this->_messageManager->createMessage( 'notice', 'pace-notice' )->setText( '' );
-        $this->_messageManager->addMessage( $message, 'pace' );
     }
 }
