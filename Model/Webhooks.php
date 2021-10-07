@@ -21,6 +21,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\HTTP\ZendClient;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Webapi\Rest\Request as WebapiRequest;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\Result\Json;
@@ -29,7 +30,6 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Payment\Repository as PaymentRepository;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
@@ -71,7 +71,6 @@ class Webhooks extends Transaction implements WebhookManagementInterface
         QuoteRepository $quoteRepository,
         LoggerInterface $logger,
         PayJsonConverter $jsonConverter,
-        InvoiceRepository $invoiceRepository,
         PaymentRepository $paymentRepository,
         CategoryRepository $categoryRepository,
         TransactionBuilder $transactionBuilder,
@@ -85,7 +84,7 @@ class Webhooks extends Transaction implements WebhookManagementInterface
         WebapiRequest $webApiRequest
     )
     {
-        parent::__construct($request, $order, $context, $checkoutSession, $client, $configData, $resultJsonFactory, $dbTransaction, $resultFactory, $invoiceSender, $invoiceService, $quoteRepository, $logger, $jsonConverter, $invoiceRepository, $paymentRepository, $categoryRepository, $transactionBuilder, $moduleList, $storeManager, $transactionRepository, $messageManager, $orderRepository, $orderManagement);
+        parent::__construct($request, $order, $context, $checkoutSession, $client, $configData, $resultJsonFactory, $dbTransaction, $resultFactory, $invoiceSender, $invoiceService, $quoteRepository, $logger, $jsonConverter, $paymentRepository, $categoryRepository, $transactionBuilder, $moduleList, $storeManager, $transactionRepository, $messageManager, $orderRepository, $orderManagement);
 
         $this->_webApiRequest = $webApiRequest;
     }
