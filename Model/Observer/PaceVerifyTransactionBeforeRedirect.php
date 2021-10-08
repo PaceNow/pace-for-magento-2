@@ -115,7 +115,7 @@ class PaceVerifyTransactionBeforeRedirect implements ObserverInterface
             $publicCookieMetadata->setDurationOneYear();
             $publicCookieMetadata->setPath('/');
             $publicCookieMetadata->setHttpOnly(false);
-            $publicCookieMetadata->setSameSite('Strict');
+            // $publicCookieMetadata->setSameSite('Strict'); only on version > 2.4.*
 
             $this->_cookieManager->setPublicCookie(
                 self::MESSAGES_COOKIES_NAME,
