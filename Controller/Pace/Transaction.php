@@ -2,38 +2,46 @@
 
 namespace Pace\Pay\Controller\Pace;
 
+use Pace\Pay\Model\Ui\ConfigProvider;
+use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Gateway\Http\PayJsonConverter;
+
+use Magento\Quote\Model\QuoteRepository;
+
 use Magento\Catalog\Model\CategoryRepository;
+
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Controller\Result\Json;
-use Magento\Framework\Controller\Result\JsonFactory;
+
+use Magento\Framework\DB\Transaction as DBTransaction;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\ProductMetadataInterface;
-use Magento\Framework\HTTP\ZendClient;
-use Pace\Pay\Gateway\Http\PayJsonConverter;
-use Pace\Pay\Helper\ConfigData;
-use Magento\Quote\Model\QuoteRepository;
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Sales\Model\Order;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
-use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
+use Magento\Framework\HTTP\ZendClient;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
-use Magento\Sales\Model\Service\InvoiceService;
-use Magento\Sales\Model\Order\InvoiceRepository;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\Result\Json;
+use Magento\Framework\Controller\Result\JsonFactory;
+
+use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Payment\Repository as PaymentRepository;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
-use Magento\Framework\DB\Transaction as DBTransaction;
-use Magento\Framework\Module\ModuleListInterface;
-use Pace\Pay\Model\Ui\ConfigProvider;
+use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
+use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
+use Magento\Sales\Model\Service\InvoiceService;
+
+use Magento\Store\Model\StoreManagerInterface;
+
 use Psr\Log\LoggerInterface;
-use Magento\Sales\Api\OrderManagementInterface;
 
 use Zend_Http_Client;
 
-abstract class Transaction implements ActionInterface
+abstract class Transaction extends Action implements ActionInterface 
 {
     /**
      * @var JsonFactory
@@ -121,11 +129,6 @@ abstract class Transaction implements ActionInterface
     protected $_invoiceSender;
 
     /**
-     * @var InvoiceRepository
-     */
-    protected $_invoiceRepository;
-
-    /**
      * @var PaymentRepository
      */
     protected $_paymentRepository;
@@ -169,61 +172,60 @@ abstract class Transaction implements ActionInterface
      * @param MessageManagerInterface $messageManager
      * @param InvoiceService $invoiceService
      * @param InvoiceSender $invoiceSender
-     * @param InvoiceRepository $invoiceRepository
      * @param PaymentRepository $_paymentRepository
      * @param DBTransaction $dbTransaction
      * @param ModuleListInterface $moduleList
      * @param LoggerInterface $logger
      */
     public function __construct(
-        JsonFactory $resultJsonFactory,
+        Http $request,
+        Order $order,
+        Context $context,
         Session $checkoutSession,
         ZendClient $client,
-        PayJsonConverter $jsonConverter,
         ConfigData $configData,
-        QuoteRepository $quoteRepository,
-        Http $request,
-        OrderRepositoryInterface $orderRepository,
+        JsonFactory $resultJsonFactory,
+        DBTransaction $dbTransaction,
         ResultFactory $resultFactory,
+        InvoiceSender $invoiceSender,
+        InvoiceService $invoiceService,
+        QuoteRepository $quoteRepository,
+        LoggerInterface $logger,
+        PayJsonConverter $jsonConverter,
+        PaymentRepository $paymentRepository,
         CategoryRepository $categoryRepository,
-        Order $order,
-        StoreManagerInterface $storeManager,
         TransactionBuilder $transactionBuilder,
+        ModuleListInterface $moduleList,
+        StoreManagerInterface $storeManager,
         TransactionRepository $transactionRepository,
         MessageManagerInterface $messageManager,
-        InvoiceService $invoiceService,
-        InvoiceSender $invoiceSender,
-        InvoiceRepository $invoiceRepository,
-        PaymentRepository $_paymentRepository,
-        DBTransaction $dbTransaction,
-        ModuleListInterface $moduleList,
-        LoggerInterface $logger,
+        OrderRepositoryInterface $orderRepository,
         OrderManagementInterface $orderManagement
     )
     {
-        $this->_resultJsonFactory = $resultJsonFactory;
-        $this->_checkoutSession = $checkoutSession;
-        $this->_client = $client;
-        $this->_jsonConverter = $jsonConverter;
-        $this->_configData = $configData;
-        $this->_quoteRepository = $quoteRepository;
-        $this->_request = $request;
-        $this->_orderRepository = $orderRepository;
-        $this->_resultFactory = $resultFactory;
-        $this->_categoryRepository = $categoryRepository;
+        parent::__construct( $context );
         $this->_order = $order;
+        $this->_client = $client;
+        $this->_logger = $logger;
+        $this->_request = $request;
+        $this->_configData = $configData;
+        $this->_moduleList = $moduleList;
         $this->_storeManager = $storeManager;
+        $this->_jsonConverter = $jsonConverter;
+        $this->_resultFactory = $resultFactory;
+        $this->_invoiceSender = $invoiceSender;
+        $this->_dbTransaction = $dbTransaction;
+        $this->_invoiceService = $invoiceService;
+        $this->_messageManager = $messageManager;
+        $this->_checkoutSession = $checkoutSession;
+        $this->_quoteRepository = $quoteRepository;
+        $this->_orderRepository = $orderRepository;
+        $this->_orderManagement = $orderManagement;
+        $this->_resultJsonFactory = $resultJsonFactory;
+        $this->_paymentRepository = $paymentRepository;
+        $this->_categoryRepository = $categoryRepository;
         $this->_transactionBuilder = $transactionBuilder;
         $this->_transactionRepository = $transactionRepository;
-        $this->_messageManager = $messageManager;
-        $this->_invoiceService = $invoiceService;
-        $this->_invoiceSender = $invoiceSender;
-        $this->_invoiceRepository = $invoiceRepository;
-        $this->_paymentRepository = $_paymentRepository;
-        $this->_dbTransaction = $dbTransaction;
-        $this->_moduleList = $moduleList;
-        $this->_logger = $logger;
-        $this->_orderManagement = $orderManagement;
     }
 
     public abstract function execute();
@@ -278,21 +280,17 @@ abstract class Transaction implements ActionInterface
                 $invoice->setTransactionId($transactionId);
                 $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
                 $invoice->register();
-                $this->_invoiceRepository->save($invoice);
-                $dbTransactionSave = $this->_dbTransaction
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder());
+                $invoice->save();
+                
+                $dbTransactionSave = $this->_dbTransaction->addObject($invoice)->addObject($invoice->getOrder());
                 $dbTransactionSave->save();
-                $order->addCommentToStatusHistory(
-                    __('Notified customer about invoice creation #%1', $invoice->getId())
-                )->setIsCustomerNotified(true);
-                $this->_orderRepository->save($order);
+                $order->addCommentToStatusHistory( __('Notified customer about invoice creation #%1', $invoice->getId()) )
+                      ->setIsCustomerNotified(true);
             } catch (\Exception $exception) {
-                $order->addCommentToStatusHistory(
-                    __('Failed to generate invoice automatically')
-                );
-                $this->_orderRepository->save($order);
+                $order->addCommentToStatusHistory( __('Failed to generate invoice automatically') );
             }
+
+            $this->_orderRepository->save($order);
         }
     }
 
@@ -326,7 +324,8 @@ abstract class Transaction implements ActionInterface
         if ( $isError ) {
             $this->_messageManager->addErrorMessage( "Can't pay with Pace. Please try again." );
         } else {
-            $this->_messageManager->addNoticeMessage( 'Your order has been cancelled.' );
+            $message = $this->_messageManager->createMessage( 'notice', 'pace-notice' )->setText( 'Your order has been cancelled.' );
+            $this->_messageManager->addMessage( $message, 'pace' );
         }
 
         $this->_orderRepository->save( $order );

@@ -16,33 +16,31 @@ class VerifyTransaction extends Transaction
 
     public function execute()
     {
-        // clear old notice messages
-        $this->clearNotices();
-
         $order = $this->_checkoutSession->getLastRealOrder();
         $verifyResult = $this->verifyAndInvoiceOrder( $order );
         $resultRedirect = $this->_resultFactory->create( ResultFactory::TYPE_REDIRECT );
 
         switch ( $verifyResult ) {
-
             case self::VERIFY_SUCCESS:
                 $this->_handleApprove( $order );
-                return $resultRedirect->setUrl( self::SUCCESS_REDIRECT_URL );
-
+                $url = self::SUCCESS_REDIRECT_URL;
                 break;
             case self::VERIFY_FAILED:
                 $this->handleCancel();
-                return $resultRedirect->setUrl( self::ERROR_REDIRECT_URL );
-
+                $url = self::ERROR_REDIRECT_URL;
                 break;
             case self::VERIFY_UNKNOWN:
-                return $resultRedirect->setUrl( self::ERROR_REDIRECT_URL );
-
+                $url = self::ERROR_REDIRECT_URL;
                 break;
             default:
-                // code...
+                $url = '/';
                 break;
         }
+
+        // dispatch an event
+        $this->_eventManager->dispatch( 'pace_pay_verifytransaction_before_redirect' );
+
+        return $resultRedirect->setUrl( $url );
     }
 
     /**
@@ -122,16 +120,5 @@ class VerifyTransaction extends Transaction
         } catch (\Exception $exception) {
             return;
         }
-    }
-
-    /**
-     * Clear old notices message
-     *
-     * @since 1.0.5
-     * @return @void
-     */
-    private function clearNotices()
-    {
-        $notices = $this->_messageManager->getMessages( true );
     }
 }
