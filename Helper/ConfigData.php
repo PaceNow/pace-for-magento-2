@@ -7,14 +7,16 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
-use Magento\Framework\Module\ModuleListInterface;
+
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\App\ProductMetadataInterface;
+
 use Magento\Sales\Model\Order;
 
 use Pace\Pay\Model\Ui\ConfigProvider;
@@ -57,6 +59,7 @@ class ConfigData extends AbstractHelper
     const CONFIG_PRODUCTION_CLIENT_SECRET = "production_client_secret";
     const CONFIG_SORT_ORDER = "sort_order";
     const CONFIG_WIDGETS_ACTIVE = "widgets_active";
+    const CONFIG_BLACK_LISTED = "widget_blacklisted";
     const CONFIG_SINGLE_PRODUCT_ACTIVE = "single_product_active";
     const CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE = 'single_product_container_style';
     const CONFIG_SINGLE_PRODUCT_LOGO_THEME = "single_product_logo_theme";

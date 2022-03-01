@@ -4,7 +4,9 @@ namespace Pace\Pay\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer as EventObserver;
+
 use Psr\Log\LoggerInterface;
+
 use Pace\Pay\Cron\RefreshPaymentPlans;
 
 class ConfigPaymentObserver implements ObserverInterface
