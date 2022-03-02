@@ -161,7 +161,6 @@
                         <label>Blacklisted Product Categories</label>
                         <config_path>payment/pace_pay/widget_blacklisted</config_path>
                         <source_model>Pace\Pay\Model\Adminhtml\Source\Categories</source_model>
-                        <!-- <frontend_model>Pace\Pay\Block\Adminhtml\System\Config\MultiSelect</frontend_model> -->
                     </field>
                     <group id="single_product" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Single Product Widget</label>

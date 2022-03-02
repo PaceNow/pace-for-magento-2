@@ -53,31 +53,12 @@ class SingleProductWidget extends Template
     public function isBlacklisted()
     {
         $categories = $this->_product->getCategoryIds();
-        
-        return $categories;
-    }
+        $blacklisted = $this->_config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
 
-    // No styles rendered if price does not fall within range and no fallback is set too.
-    public function getSingleProductContainerStyle()
-    {
-        $fallbackWidget = $this->_config->getConfigValue(ConfigData::CONFIG_FALLBACK_WIDGET);
-        $paymentPlan = $this->_config->getPaymentPlan();
-
-        if (!$paymentPlan || !isset($paymentPlan['paymentPlans'])) {
-            return "display: none;";
+        if (empty($categories) || empty($blacklisted)) {
+            return 0;
         }
 
-        $paymentPlan = $paymentPlan['paymentPlans'];
-        $minAmount = $paymentPlan->minAmount->actualValue;
-        $maxAmount = $paymentPlan->maxAmount->actualValue;
-        $productPrice = $this->getProductPrice();
-        $style = $this->_config->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_CONTAINER_STYLE);
-        if (($productPrice < $minAmount || $productPrice > $maxAmount) && !$fallbackWidget) {
-            $style = "display: none;";
-        } else if (!isset($style)) {
-            $style = "";
-        }
-
-        return $style;
+        return count(array_intersect($categories, explode(',', $blacklisted)));
     }
 }

@@ -1,5 +1,4 @@
 <div 
 	class="pace-pay_single-product-widget-container" 
 	data-price="<?php echo $block->getProductPrice(); ?>"
-	data-blacklisted="<?php echo json_encode($block->isBlacklisted()); ?>"
-	data-test="<?php echo gettype($block->isBlacklisted()); ?>" />
+	data-blacklisted="<?php echo $block->isBlacklisted(); ?>" />
