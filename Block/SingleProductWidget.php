@@ -32,15 +32,15 @@ class SingleProductWidget extends Template
         Registry $registry,
         ConfigData $configData
     ) {
+        parent::__construct($context);
+
         $this->_config = $configData;
         $this->_registry = $registry;
-        parent::__construct($context);
+        $this->_product = $this->_registry->registry('current_product');
     }
 
     public function getProductPrice()
     {
-        $this->_product = $this->_registry->registry('current_product');
-
         return $this->_product->getFinalPrice();
     }
 
