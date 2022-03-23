@@ -157,6 +157,11 @@
                         <config_path>payment/pace_pay/base_text_secondary_color</config_path>
                         <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value" target="_blank">color</a>]]></comment>
                     </field>
+                    <field id="widget_blacklisted" translate="label" type="multiselect" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Blacklisted Product Categories</label>
+                        <config_path>payment/pace_pay/widget_blacklisted</config_path>
+                        <source_model>Pace\Pay\Model\Adminhtml\Source\Categories</source_model>
+                    </field>
                     <group id="single_product" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Single Product Widget</label>
                         <comment><![CDATA[<div style="width: 100%; display: flex; justify-content: center;"><img style="max-width: 100%;" src="https://assets.pacenow.co/images/developers/widgets/single-product-color-reference.jpeg"/></div>]]></comment>

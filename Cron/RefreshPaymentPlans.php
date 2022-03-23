@@ -3,9 +3,11 @@
 namespace Pace\Pay\Cron;
 
 use Magento\Store\Api\StoreRepositoryInterface;
-use Pace\Pay\Controller\Adminhtml\System\Config\RefreshPaymentPlans as ConfigRefreshPaymentPlans;
 use Magento\Store\Model\StoreManagerInterface;
+
 use Psr\Log\LoggerInterface;
+
+use Pace\Pay\Controller\Adminhtml\System\Config\RefreshPaymentPlans as ConfigRefreshPaymentPlans;
 
 class RefreshPaymentPlans
 {

@@ -99,8 +99,7 @@ class RefreshPaymentPlans extends Action
             $env = $this->_configData->getApiEnvironment($storeId);
 
             if (!$clientId && !$clientSecret) {
-                $this->_logger
-                    ->info('No API credentials found for storeID ' . $storeId);
+                $this->_logger->info('No API credentials found for storeID ' . $storeId);
                 $this->_updatePaymentPlan($storeId, $env, null);
                 continue;
             }
@@ -113,34 +112,32 @@ class RefreshPaymentPlans extends Action
                 $this->_client->setMethod(Zend_Http_Client::GET);
                 $this->_client->setHeaders($pacePayload['headers']);
                 $response = $this->_client->request();
+
                 if ($response->getStatus() < 200 || $response->getStatus() > 299) {
                     $this->_updatePaymentPlan($storeId, $env, null);
                     $this->_messageManager->addErrorMessage('Pace Config Error: Invalid API Credentials for storeId: ' . $storeId);
                     continue;
                 }
-                $responseJson = json_decode($response->getBody());
 
+                $responseJson = json_decode($response->getBody());
                 $paymentPlans = $responseJson->{'list'};
 
                 if (isset($paymentPlans)) {
                     $this->_updatePaymentPlan($storeId, $env, $paymentPlans);
 
-                    $this->_logger
-                        ->info('Pace refresh payment success for storeId ' . $storeId);
-                    $this->_logger
-                        ->info(json_encode($paymentPlans));
+                    $this->_logger->info('Pace refresh payment success for storeId ' . $storeId);
+                    $this->_logger->info(json_encode($paymentPlans));
                 } else {
                     $this->_updatePaymentPlan($storeId, $env, null);
-                    $this->_logger
-                        ->info('Pace refresh payment failure for storeId ' . $storeId);
+                    $this->_logger->info('Pace refresh payment failure for storeId ' . $storeId);
                 }
             } catch (\Exception $exception) {
                 // $this->_updatePaymentPlan($storeId, $env, null, null, null, null);
-                $this->_logger->error('Pace refresh payment failed with exception - ' .
-                    $exception);
+                $this->_logger->error('Pace refresh payment failed with exception - ' . $exception);
                 $this->_messageManager->addErrorMessage('Something went wrong while refreshing the payment plan.');
             }
         }
+        
         $this->_logger->info('Pace refresh payment plan execution complete');
         return self::REFRESH_SUCCESS;
     }
