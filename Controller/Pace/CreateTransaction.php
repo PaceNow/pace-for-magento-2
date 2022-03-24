@@ -7,22 +7,28 @@ use Zend_Http_Client;
 
 class CreateTransaction extends Transaction
 {
+    /**
+     * Create Pace transaction
+     * 
+     * @since 1.0.0
+     * @return Json
+     */
     public function execute()
     {
         $order = $this->_checkoutSession->getLastRealOrder();
         $pacePayload = $this->_getBasePayload();
         $pacePayload['body'] = [
-            'items' => $this->getSourceItems( $order ),
+            'items' => $this->getSourceItems($order),
             'country' => $order->getBillingAddress()->getCountryId(),
             'currency' => $order->getOrderCurrencyCode(),
             'expiringAt' => $this->_configData->getExpiredTime(),
             'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
             'referenceId' => $order->getRealOrderId(),
             'amountFloat' => $order->getTotalDue(),
-            'redirectUrls' => $this->getPaceRedirectURI()
+            'redirectUrls' => $this->getPaceRedirectURI($order)
         ];
-        $this->getPaceBilling( $order, $pacePayload );
-        $this->getPaceShipping( $order, $pacePayload );
+        $this->getPaceBilling($order, $pacePayload);
+        $this->getPaceShipping($order, $pacePayload);
       
         $this->_client->resetParameters();
         try {
@@ -36,7 +42,7 @@ class CreateTransaction extends Transaction
             $responseJson = json_decode( $response->getBody() );
             $tnxId = $responseJson->{'transactionID'};
 
-            if ( empty( $tnxId ) ) {
+            if ( isset( $tnxId ) ) {
                 throw new \Exception('Fail to create Pace transaction');
             }
 
@@ -80,8 +86,10 @@ class CreateTransaction extends Transaction
                 'unitPriceCents' => $item->getPrice(),
                 'productUrl' => $item->getProduct()->getProductUrl(),
                 'brand' => '',
-                'tags' => array_map(array($this, '_getCategoryName'), $item->getProduct()
-                    ->getCategoryIds()),
+                'tags' => array_map(
+                    [$this, '_getCategoryName'], 
+                    $item->getProduct()->getCategoryIds()
+                ),
             ];
         }, $orderItems);
 
@@ -92,7 +100,7 @@ class CreateTransaction extends Transaction
      * Prepare Pace transaction billing
      * 
      * @param Magento\Sales\Model\Order $order
-     * @param arrat $pacePayload 
+     * @param array $pacePayload 
      * @since 0.0.26
      */
     private function getPaceBilling($order, &$pacePayload)
@@ -130,6 +138,7 @@ class CreateTransaction extends Transaction
      * @param Magento\Sales\Model\Order $order
      * @param array $pacePayload 
      * @since 0.0.26
+     * @return void
      */
     private function getPaceShipping($order, &$pacePayload)
     {   
@@ -163,10 +172,11 @@ class CreateTransaction extends Transaction
     /**
      * Prepare Pace redirect urls
      *
+     * @param Magento\Sales\Model\Order $order
      * @since 1.0.5
      * @return array
      */
-    private function getPaceRedirectURI()
+    private function getPaceRedirectURI($order)
     {
         $baseURL = $this->_getBaseUrl();
 
