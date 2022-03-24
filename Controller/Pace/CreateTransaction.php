@@ -42,7 +42,7 @@ class CreateTransaction extends Transaction
             $responseJson = json_decode( $response->getBody() );
             $tnxId = $responseJson->{'transactionID'};
 
-            if ( isset( $tnxId ) ) {
+            if ( !isset( $tnxId ) ) {
                 throw new \Exception('Fail to create Pace transaction');
             }
 
