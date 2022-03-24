@@ -16,37 +16,53 @@ class VerifyTransaction extends Transaction
 
     public function execute()
     {
-        $order = $this->_checkoutSession->getLastRealOrder();
-        $verifyResult = $this->verifyAndInvoiceOrder( $order );
-        $resultRedirect = $this->_resultFactory->create( ResultFactory::TYPE_REDIRECT );
+        try {
+            $payload = $this->_request->getParams();
 
-        switch ( $verifyResult ) {
-            case self::VERIFY_SUCCESS:
-                $this->_handleApprove( $order );
-                $url = self::SUCCESS_REDIRECT_URL;
-                break;
-            case self::VERIFY_FAILED:
-                $this->handleCancel();
-                $url = self::ERROR_REDIRECT_URL;
-                break;
-            case self::VERIFY_UNKNOWN:
-                $url = self::ERROR_REDIRECT_URL;
-                break;
-            default:
-                $url = '/';
-                break;
+            if (!isset($payload['merchantReferenceId']) || empty($payload['merchantReferenceId'])) {
+                throw new \Exception('Verify transaction: missing merchantReferenceId.');
+            }
+
+            $referenceId = (int) $payload['merchantReferenceId'];
+            $order = $this->_order->loadByIncrementId($referenceId);
+            
+            if (!$order instanceof \Magento\Sales\Model\Order\Interceptor || empty($order)) {
+                throw new \Exception('Verify transaction: unknow order.');
+            }
+            
+            $verifyResult = $this->verifyAndInvoiceOrder($order);
+            $resultRedirect = $this->_resultFactory->create(ResultFactory::TYPE_REDIRECT);
+
+            switch ( $verifyResult ) {
+                case self::VERIFY_SUCCESS:
+                    $this->_handleApprove($order);
+                    $url = self::SUCCESS_REDIRECT_URL;
+                    break;
+                case self::VERIFY_FAILED:
+                    $this->handleCancel($order);
+                    $url = self::ERROR_REDIRECT_URL;
+                    break;
+                case self::VERIFY_UNKNOWN:
+                    $url = self::ERROR_REDIRECT_URL;
+                    break;
+                default:
+                    $url = '/';
+                    break;
+            }
+
+            $this->_eventManager->dispatch('pace_pay_verifytransaction_before_redirect');
+
+            return $resultRedirect->setUrl($url);
+        } catch (\Exception $e) {
+            $this->_logger->info($e->getMessage());
+            return $resultRedirect->setUrl(self::ERROR_REDIRECT_URL);
         }
-
-        // dispatch an event
-        $this->_eventManager->dispatch( 'pace_pay_verifytransaction_before_redirect' );
-
-        return $resultRedirect->setUrl( $url );
     }
 
     /**
      * Verify Pace transaction, and create invoice if payment successfuly
      * 
-     * @param OrderInterface $order
+     * @param Order $order
      * @return string
      */
     public function verifyAndInvoiceOrder($order)

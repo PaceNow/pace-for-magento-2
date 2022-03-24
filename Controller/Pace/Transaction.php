@@ -298,8 +298,8 @@ abstract class Transaction extends Action implements ActionInterface
     {
         $order = !is_null($order) ? 
             $order : $this->_checkoutSession->getLastRealOrder();
-        $paceStatuses = $this->_configData->getExpiredStatus();
-        $order->setState($paceStatuses['state'])->setStatus($paceStatuses['status']);
+        $expiredStatuses = $this->_configData->getExpiredStatus();
+        $order->setState($expiredStatuses['state'])->setStatus($expiredStatuses['status']);
         $order->addCommentToStatusHistory('Pace transaction has been expired');
         $this->_orderRepository->save($order);
     }
@@ -313,9 +313,19 @@ abstract class Transaction extends Action implements ActionInterface
      */
     protected function handleCancel( $order = null, $isError = false )
     {
-        $cancel_status = $this->_configData->getCancelStatus();
+        $cancelStatus = $this->_configData->getCancelStatus();
+        $expiredStatuses = $this->_configData->getExpiredStatus();
         $order = is_null( $order ) ? $this->_checkoutSession->getLastRealOrder() : $order;
-        $order->setState( $cancel_status['state'] )->setStatus( $cancel_status['status'] );
+
+        if (isset($expiredStatuses) && $expiredStatuses['state'] == $order->getState()) {
+            $this->_messageManager->addMessage( 
+                $this->_messageManager->createMessage('notice', 'pace-notice')->setText('Your order has been expired.'), 
+                'pace' 
+            );
+            return;
+        }
+
+        $order->setState( $cancelStatus['state'] )->setStatus( $cancelStatus['status'] );
         $order->addCommentToStatusHistory( __( 'Order with Pace has been canceled.' ) );
         
         $this->_orderManagement->cancel( $order->getId() );
