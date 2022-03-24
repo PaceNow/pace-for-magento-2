@@ -1,117 +1,106 @@
-## Structure
+# Pace Payment Gateway Module for Magento 2
+
+###### Pace Enterprise Pte. Ltd.
+
+Below are the instructions to install the module on Magento 2. Please ensure you have Pace
+clientId and secret before you proceed.
+
+# Requirements
+
+## Supported Currencies
+
+- Currently, Pace supports the following currencies:
+  - SGD
+
+Note that the Magento store's currency must be in the supported list for the Pace extension to
+work. To set the base currency, navigate to `Stores > Configuration > Currency Setup`.
+
+## Supported Magento Versions
+
+Pace Magento extension is compatible with Magento version 2.30 or greater.
+
+# Installation steps
+
+## Composer
+
+- Add Pace repository
 
 ```
-.
-├── Block
-│   ├── Adminhtml
-│   │   └── System
-│   │       └── Config
-│   │           ├── Label.php - to supply version of the module for display in Pace's system configuration.
-│   │           └── PaymentPlan.php - to provide view/adminhtml/templates/system/config/paymentplan.phtml with data.
-│   ├── Info.php
-│   ├── PaceJS.php - to provide view/frontend/templates/pacejs.phtml with data.
-│   └── SingleProductWidget.php - to provide view/frontend/templates/singleproductwidget.phtml with data.
-├── Controller
-│   ├── Adminhtml
-│   │   └── System
-│   │       └── Config
-│   │           └── RefreshPaymentPlans.php - for refreshing of the payment plan based on Pace's current system config.
-│   └── Pace
-│       ├── CreateTransaction.php
-│       ├── Transaction.php
-│       └── VerifyTransaction.php
-├── Cron
-│   ├── RefreshPaymentPlans.php
-│   └── VerifyTransaction.php
-├── Gateway
-│   ├── Http
-│   │   ├── Client
-│   │   │   ├── ClientMock.php
-│   │   │   └── EmptyClient.php
-│   │   ├── EmptyTransferFactory.php
-│   │   ├── PayJsonConverter.php
-│   │   └── TransferFactory.php
-│   ├── Request
-│   │   ├── AuthorizationRequest.php
-│   │   ├── CaptureRequest.php
-│   │   ├── InitRequest.php
-│   │   ├── MockDataRequest.php
-│   │   └── VoidRequest.php
-│   ├── Response
-│   │   ├── FraudHandler.php
-│   │   └── TxnIdHandler.php
-│   └── Validator
-│       └── ResponseCodeValidator.php
-├── Helper
-│   ├── AdminStoreResolver.php
-│   └── ConfigData.php - Source of truth for Pace's system config values.
-├── Model
-│   ├── Adminhtml
-│   │   └── Source
-│   │       ├── Environment.php
-│   │       ├── PayWithPaceMode.php
-│   │       ├── PaymentAction.php
-│   │       └── WidgetLogoTheme.php
-│   ├── Observer
-│   │   └── RemoveBlock.php - based on Pace's system configurations, we unset the corresponding inactive Blocks here.
-│   └── Ui
-│       └── ConfigProvider.php - to provide the checkout configurations for use in view/frontend/web/js/view/payment/method-renderer/pace_pay.js
-├── Observer
-│   ├── CancelOrderObserver.php
-│   ├── ConfigPaymentObserver.php
-│   ├── DataAssignObserver.php
-│   └── PaymentMethodAvailable.php
-├── etc
-│   ├── adminhtml
-│   │   ├── di.xml
-│   │   ├── routes.xml
-│   │   └── system.xml - define Pace's system configuration
-│   ├── config.xml
-│   ├── cron_groups.xml
-│   ├── crontab.xml
-│   ├── csp_whitelist.xml - whitelist any content security policies here.
-│   ├── di.xml
-│   ├── events.xml
-│   ├── frontend
-│   │   ├── di.xml - checkout config provider is injected here (Model/Ui/ConfigProvider.php).
-│   │   └── routes.xml
-│   └── module.xml
-├── i18n
-│   └── en_US.csv
-├── internal
-│   ├── README.md.template
-│   ├── composer.json.template
-│   ├── generateComposer.sh
-│   └── generateReadme.sh
-├── registration.php
-└── view
-    ├── adminhtml
-    │   ├── layout
-    │   │   └── adminhtml_system_config_edit.xml - used to include the payment plan styles.css.
-    │   ├── templates
-    │   │   └── system
-    │   │       └── config
-    │   │           └── paymentplan.phtml - template of the payment plan component in the admin config page.
-    │   └── web
-    │       └── styles.css - styles for payment plan component in admin config page.
-    └── frontend
-        ├── layout
-        │   ├── catalog_product_view.xml - to declare where to place the single product widget on the product page.
-        │   ├── checkout_index_index.xml - include Pace's payment method renderer.
-        │   └── default.xml - to make templates/pacejs.phtml available to all pages.
-        ├── requirejs-config.js - the url for playground and production pacepay.js are hardcoded here.
-        ├── templates
-        │   ├── pacejs.phtml - to make configs available globally on frontend pages, depends on Block/PaceJS.php.
-        │   └── singleproductwidget.phtml - html placeholder for single product widget.
-        └── web
-            ├── js
-            │   ├── main.js - this js will be run on every page (except the checkout page). initialization of pacepay.js and logic to toggle widgets on and off is done here.
-            │   └── view
-            │       └── payment - the js files needed to render payment method in checkout page. (works together with view/frontend/web/template/payment/form.html)
-            │           ├── method-renderer
-            │           │   └── pace_pay.js
-            │           └── pace_pay.js
-            └── template
-                └── payment
-                    └── form.html - html template of Pace's payment method on the checkout page.
+composer config repositories.pacenow git https://github.com/PaceNow/pace-for-magento-2.git
 ```
+
+- Require Pace_Pay module
+
+```
+composer require pace/module-pay:dev-master#v1.0.8
+```
+
+- Enable Pace_Pay module
+
+```
+./bin/magento module:enable Pace_Pay
+```
+
+- Magento setups and cache clean
+
+```
+./bin/magento setup:upgrade
+```
+
+```
+./bin/magento setup:di:compile
+```
+
+```
+./bin/magento setup:static-content:deploy
+```
+
+```
+./bin/magento cache:clean
+```
+
+## Manual
+
+If you do not choose to use composer, you may copy the files in this repository to
+`<Root Magento Directory>/app/code/Pace/Pay`, and run `Enable Pace_Pay module` and `Magento setups and cache clean` steps in the composer section above.
+
+# Requirements
+
+- Store currency: SGD
+
+# Configuration
+
+From the Magento 2 Admin interface
+
+- Navigate to `Stores > Configuration > Sales > Payment Methods`
+- Under `OTHER PAYMENT METHODS > Pace Pay`
+  - Ensure that Scope is `Default Config`
+    - Set `Enabled` to `Yes`
+    - Save Config
+  - Switch Scope to Store specific scope
+    - Select `Playground` or `Production` for the `Environment`
+    - Set `Client ID` and `Client Secret` under `API config`
+    - Save Config
+- Set the other options as necessary
+- Clear cache from `System > Cache Management > Flush Cache Storage`
+
+# Updating
+
+## Composer
+
+First run
+
+```
+composer update pace/module-pay
+```
+
+followed by `Magento setups and cache clean` steps in the composer section above.
+
+## Manual
+
+Delete the folder `<Root Magento Directory>/app/code/Pace/Pay`, and then redo the `Manual`
+installation section above with the latest files.
+
+# Support
+
+For additional support, contact <merchant-integration@pacenow.co>
