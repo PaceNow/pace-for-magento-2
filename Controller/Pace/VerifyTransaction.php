@@ -16,6 +16,8 @@ class VerifyTransaction extends Transaction
 
     public function execute()
     {
+        $resultRedirect = $this->_resultFactory->create(ResultFactory::TYPE_REDIRECT);
+
         try {
             $payload = $this->_request->getParams();
 
@@ -26,14 +28,12 @@ class VerifyTransaction extends Transaction
             $referenceId = (int) $payload['merchantReferenceId'];
             $order = $this->_order->loadByIncrementId($referenceId);
             
-            if (!$order instanceof \Magento\Sales\Model\Order\Interceptor || empty($order)) {
+            if (empty($order)) {
                 throw new \Exception('Verify transaction: unknow order.');
             }
             
             $verifyResult = $this->verifyAndInvoiceOrder($order);
-            $resultRedirect = $this->_resultFactory->create(ResultFactory::TYPE_REDIRECT);
-
-            switch ( $verifyResult ) {
+            switch ($verifyResult) {
                 case self::VERIFY_SUCCESS:
                     $this->_handleApprove($order);
                     $url = self::SUCCESS_REDIRECT_URL;
