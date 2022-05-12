@@ -168,7 +168,7 @@ class CreateTransaction extends Transaction
             @$response = json_decode($cURL->getBody());
             
             if (isset($response->error)) {
-                throw new Exception("Create Pace transaction failed. Reason: {$result->error->message}");
+                throw new Exception("Create Pace transaction failed. Reason: {$response->error->message}");
             }
             
             $this->doAssignTransactionToOrder($response, $order);

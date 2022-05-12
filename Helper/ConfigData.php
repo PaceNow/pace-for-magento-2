@@ -8,10 +8,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Component\ComponentRegistrar;
-use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Filesystem\Directory\ReadFactory;
 
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -30,7 +27,6 @@ class ConfigData extends AbstractHelper
     const CONFIG_PAYMENT_PLANS = "payment_plans";
     const CONFIG_PACE_SYNC_VERSION = 'pace_sync_version';
     const CONFIG_PAYMENT_PLAN_ID = "payment_plan_id";
-    const CONFIG_GENERATE_INVOICE = "generate_invoice"; // TODO: remove
     const CONFIG_CLIENT_ID = 'client_id';
     const CONFIG_CLIENT_SECRET = 'client_secret';
     const CONFIG_SORT_ORDER = "sort_order";
@@ -42,19 +38,9 @@ class ConfigData extends AbstractHelper
     protected $encryptor;
 
     /**
-     * @var ReadFactory
-     */
-    protected $readFactory;
-
-    /**
      * @var ProductMetadataInterface
      */
     protected $productMetadata;
-
-    /**
-     * @var ComponentRegistrarInterface
-     */
-    protected $_componentRegistrar;
 
     /**
      * @param Context $context
@@ -69,19 +55,15 @@ class ConfigData extends AbstractHelper
         WriterInterface $configWriter,
         TypeListInterface $cacheTypeList,
         ModuleListInterface $moduleList,
-        ReadFactory $readFactory,
-        ComponentRegistrarInterface $componentRegistrar,
         ProductMetadataInterface $productMetadata
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->storeManager = $storeManager;
-        $this->_configWriter = $configWriter;
+        $this->configWriter = $configWriter;
         $this->cacheTypeList = $cacheTypeList;
-        $this->_moduleList = $moduleList;
-        $this->readFactory = $readFactory;
+        $this->moduleList = $moduleList;
         $this->productMetadata = $productMetadata;
-        $this->_componentRegistrar = $componentRegistrar;
     }
 
     /**
@@ -196,27 +178,10 @@ class ConfigData extends AbstractHelper
         return true;
     }
 
-    public function getModuleVersion()
-    {
-        $unknownVersion = __('Unknown version');
-        try {
-            $path = $this->_componentRegistrar->getPath(
-                ComponentRegistrar::MODULE,
-                'Pace_Pay'
-            );
-            $directoryRead = $this->readFactory->create($path);
-            $composerJsonData = $directoryRead->readFile('composer.json');
-            $data = json_decode($composerJsonData);
-
-            return !empty($data->version) ? $data->version : $this->getSetupVersion();
-        } catch (Exception $exception) {
-            return $unknownVersion;
-        }
-    }
-
     public function getSetupVersion()
     {
-        $moduleInfo = $this->_moduleList->getOne('Pace_Pay');
+        $moduleInfo = $this->moduleList->getOne('Pace_Pay');
+
         return $moduleInfo['setup_version'];
     }
 
@@ -239,9 +204,9 @@ class ConfigData extends AbstractHelper
         }
 
         if (isset($value)) {
-            $this->_configWriter->save(CONFIG_PREFIX . $key, $value, ScopeInterface::SCOPE_STORES, $storeId);
+            $this->configWriter->save(CONFIG_PREFIX . $key, $value, ScopeInterface::SCOPE_STORES, $storeId);
         } else {
-            $this->_configWriter->delete(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORES, $storeId);
+            $this->configWriter->delete(CONFIG_PREFIX . $key, ScopeInterface::SCOPE_STORES, $storeId);
         }
 
         $this->cacheTypeList->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);

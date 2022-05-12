@@ -7,17 +7,22 @@ use Pace\Pay\Helper\ConfigData;
 
 class Label extends \Magento\Config\Block\System\Config\Form\Field
 {
+    /**
+     * @var ConfigData
+     */
+    protected $configData;
+
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         ConfigData $configData
     ) {
-        $this->_configData = $configData;
         parent::__construct($context);
+        $this->configData = $configData;
     }
 
 
     protected function _getElementHtml(AbstractElement $element)
     {
-        return $this->_configData->getModuleVersion();
+        return $this->configData->getSetupVersion();
     }
 }

@@ -12,8 +12,6 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 
 use Magento\Sales\Api\OrderManagementInterface;
@@ -61,11 +59,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
     protected $storeManager;
 
     /**
-     * @var ResultFactory
-     */
-    protected $resultFactory;
-
-    /**
      * @var OrderRepositoryInterface
      */
     protected $orderRepository;
@@ -107,7 +100,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
      * @param ConfigData $configData
      * @param Http $request
      * @param OrderRepositoryInterface $orderRepository
-     * @param ResultFactory $resultFactory
      * @param StoreManagerInterface $storeManager
      * @param TransactionBuilder $transactionBuilder
      * @param MessageManagerInterface $messageManager
@@ -123,7 +115,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
         ConfigData $configData,
         JsonFactory $resultJsonFactory,
         DBTransaction $dbTransaction,
-        ResultFactory $resultFactory,
         InvoiceSender $invoiceSender,
         InvoiceService $invoiceService,
         LoggerInterface $logger,
@@ -139,7 +130,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
         $this->request = $request;
         $this->configData = $configData;
         $this->storeManager = $storeManager;
-        $this->resultFactory = $resultFactory;
         $this->_invoiceSender = $invoiceSender;
         $this->dbTransaction = $dbTransaction;
         $this->invoiceService = $invoiceService;
