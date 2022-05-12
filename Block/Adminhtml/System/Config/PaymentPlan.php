@@ -19,9 +19,9 @@ class PaymentPlan extends Field
         array $data = []
     )
     {
-        $this->_configData = $configData;
-        $this->_adminStoreResolver = $adminStoreResolver;
         parent::__construct($context, $data);
+        $this->configData = $configData;
+        $this->adminStoreResolver = $adminStoreResolver;
     }
 
     public function render(AbstractElement $element)
@@ -45,12 +45,12 @@ class PaymentPlan extends Field
     public function getPaymentPlan()
     {
         try {
-            $storeId = $this->_adminStoreResolver->resolveAdminStoreId();
-            $paymentPlans = $this->_configData->getPaymentPlan($storeId, true);
+            $storeId = $this->adminStoreResolver->resolveAdminStoreId();
+            $paymentPlans = $this->configData->getPaymentPlan($storeId, true);
 
             return $paymentPlans;
         } catch (\Exception $e) {
-            return;
+            return $e->getMessage();
         }
     }
 }

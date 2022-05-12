@@ -139,7 +139,7 @@ class ConfigData extends AbstractHelper
         $env = $this->getApiEnvironment($storeId);
         $paymentPlans = $this->getConfigValue(self::CONFIG_PAYMENT_PLANS, $storeId, $env);
 
-        if (!empty($paymentPlans)) {
+        if (empty($paymentPlans)) {
             throw new Exception("Payment plans is not found!");
         }
 
