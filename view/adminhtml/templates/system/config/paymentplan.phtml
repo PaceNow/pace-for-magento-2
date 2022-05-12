@@ -1,59 +1,31 @@
-<script>
-    require([
-        'jquery',
-        'prototype'
-    ], function(jQuery) {
-        jQuery('#payment-plan_refresh-button').click(function() {
-            params = {
-                form_key: '<?php echo $block->getFormKey() ?>',
-                isAjax: true
-            };
-            // Make the ajax call and handel data.
-            jQuery.ajax({
-                showLoader: true,
-                url: "<? echo $block->getAjaxUrl() ?>",
-                data: params,
-                dataType: 'json'
-            }).done(function(data) {
-                var paymentPlan = data.paymentPlans;
-                var id = paymentPlan.id;
-                var currencyCode = paymentPlan.currencyCode;
-                var maxAmount = paymentPlan.maxAmount.actualValue;
-                var minAmount = paymentPlan.minAmount.actualValue;
+<?php
+    $paymentPlan = $block->getPaymentPlan();
 
-                jQuery('#payment-plan_id').text(id);
-                jQuery('#payment-plan_currency').text(currencyCode);
-                jQuery('#payment-plan_min-amount').text(minAmount);
-                jQuery('#payment-plan_max-amount').text(maxAmount);
-            });
-        });
-    });
-</script>
+    if (isset($paymentPlan['paymentPlans']) && !empty($paymentPlan['paymentPlans'])) {
+        $paymentPlan = $paymentPlan['paymentPlans'];
 
-<?php $paymentPlan = $block->getPaymentPlan(); ?>
-
-<?php if (isset($paymentPlan['paymentPlans'])) : ?>
-    <?php $paymentPlan = $paymentPlan['paymentPlans']; ?>
-    <table style="margin-bottom: 16px;">
-        <tr>
-            <td>ID</td>
-            <td id="payment-plan_id"><?php echo $paymentPlan->id; ?></td>
-        </tr>
-        <tr>
-            <td>Currency</td>
-            <td id="payment-plan_currency"><?php echo $paymentPlan->currencyCode; ?></td>
-        </tr>
-        <tr>
-            <td>Min Amount</td>
-            <td id="payment-plan_min-amount"><?php echo $paymentPlan->displayMinAmount; ?></td>
-        </tr>
-        <tr>
-            <td>Max Amount</td>
-            <td id="payment-plan_max-amount"><?php echo $paymentPlan->displayMaxAmount; ?></td>
-        </tr>
-    </table>
-<?php else : ?>
-    <div>
-        <p>No available payment plan.</p>
-    </div>
-<?php endif; ?>
+        echo "
+            <table style=\"margin-bottom: 16px;\">
+                <tr>
+                    <td>ID</td>
+                    <td>{$paymentPlan->id}</td>
+                </tr>
+                <tr>
+                    <td>Currency</td>
+                    <td>{$paymentPlan->currencyCode}</td>
+                </tr>
+                <tr>
+                    <td>Min Amount</td>
+                    <td>{$paymentPlan->displayMinAmount}</td>
+                </tr>
+                <tr>
+                    <td>Max Amount</td>
+                    <td>{$paymentPlan->displayMaxAmount}</td>
+                </tr>
+            </table>
+        ";
+    } else {
+        echo "
+            <div><p>No available payment plan.</p></div>
+        ";
+    }

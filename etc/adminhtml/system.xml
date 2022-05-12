@@ -18,13 +18,8 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/pace_pay/active</config_path>
                 </field>
-                <!-- <field id="debug" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Debug</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>payment/pace_pay/debug</config_path>
-                </field> -->
                 <field id="pay_with_pace_mode" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pay with Pace Mode</label>
+                    <label>Payment Mode</label>
                     <source_model>Pace\Pay\Model\Adminhtml\Source\PayWithPaceMode</source_model>
                     <config_path>payment/pace_pay/pay_with_pace_mode</config_path>
                 </field>
@@ -40,12 +35,6 @@
                     <frontend_class>validate-number</frontend_class>
                     <config_path>payment/pace_pay/sort_order</config_path>
                 </field>
-                <!--                <field id="payment_action" translate="label" type="select" sortOrder="110"-->
-                <!-- showInDefault="1" showInWebsite="1" showInStore="1">-->
-                <!--                    <label>Payment Action</label>-->
-                <!--                    <source_model>Pace\Pay\Model\Adminhtml\Source\PaymentAction</source_model>-->
-                <!--                    <config_path>payment/pace_pay/payment_action</config_path>-->
-                <!--                </field>-->
                 <group id="api" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API</label>
                     <comment><![CDATA[Configuration in this section is restricted to only the <b>store</b> scope.]]></comment>
@@ -143,9 +132,10 @@
                         <config_path>payment/pace_pay/fallback_widget</config_path>
                     </field>
                     <field id="text_secondary_font_size" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Font Family</label>
-                        <config_path>payment/pace_pay/base_font_family</config_path>
-                        <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-family" target="_blank">font-family</a>]]></comment>
+                        <label>Font Size</label>
+                        <config_path>payment/pace_pay/base_font_size</config_path>
+                        <validate>integer</validate>
+                        <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a>]]></comment>
                     </field>
                     <field id="text_primry_color" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Default Text Primary Color</label>
@@ -188,6 +178,7 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/single_product_font_size</config_path>
+                            <validate>integer</validate>
                             <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
                         <field id="container_style" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -217,6 +208,7 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/multi_products_font_size</config_path>
+                            <validate>integer</validate>
                             <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
                     </group>
@@ -256,6 +248,7 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/checkout_font_size</config_path>
+                            <validate>integer</validate>
                             <comment><![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]></comment>
                         </field>
                     </group>

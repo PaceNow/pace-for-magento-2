@@ -5,8 +5,7 @@
     <!-- Payment Method Facade configuration -->
     <virtualType name="PayFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">\Pace\Pay\Model\Ui\ConfigProvider::CODE
-            </argument>
+            <argument name="code" xsi:type="const">Pace\Pay\Model\Ui\ConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Pace\Pay\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">PayValueHandlerPool</argument>
@@ -176,22 +175,20 @@
         </arguments>
     </type>
 
-    <type name="\Magento\Sales\Model\Order\Email\Sender\OrderSender">
-        <plugin name="PacePayOrderSenderPlugin" type="Pace\Pay\Plugins\OrderSenderPlugin"/>
-    </type>
+    <!-- plugin -->
+        <!-- <type name="\Magento\Sales\Model\Order\Email\Sender\OrderSender">
+            <plugin name="PacePayOrderSenderPlugin" type="Pace\Pay\Plugins\OrderSenderPlugin"/>
+        </type>
 
-    <type name="Magento\Sales\Api\OrderRepositoryInterface">
-        <plugin name="PacePayOrderStatePlugin" type="Pace\Pay\Plugins\OrderSavePlugin"/>
-    </type>
+        <type name="Magento\Sales\Api\OrderRepositoryInterface">
+            <plugin name="PacePayOrderStatePlugin" type="Pace\Pay\Plugins\OrderSavePlugin"/>
+        </type> -->
 
-    <!-- Pace Multiple Widgets -->
-    <type name="Magento\Catalog\Block\Product\ListProduct">
-        <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\PaceProductPlugin"/>
-    </type>
+        <type name="Magento\Catalog\Block\Product\ListProduct">
+            <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\PaceProductPlugin"/>
+        </type>
 
-    <type name="Magento\Framework\View\Asset\Minification">
-        <plugin name="PaceExcludeMinifyScript" type="Pace\Pay\Plugins\ExcludeFilesFromMinification"/>
-    </type>
-
-    <preference for="Pace\Pay\Api\WebhookManagementInterface" type="Pace\Pay\Model\Webhooks"/>
+        <!-- <type name="Magento\Framework\View\Asset\Minification">
+            <plugin name="PaceExcludeMinifyScript" type="Pace\Pay\Plugins\ExcludeFilesFromMinification"/>
+        </type> -->
 </config>

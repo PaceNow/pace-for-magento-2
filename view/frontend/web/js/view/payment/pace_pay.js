@@ -8,10 +8,15 @@ define([
   "Magento_Checkout/js/model/payment/renderer-list",
 ], function (Component, rendererList) {
   "use strict";
-  rendererList.push({
-    type: "pace_pay",
-    component: "Pace_Pay/js/view/payment/method-renderer/pace_pay",
-  });
+  !(function (e) {
+    if (void 0 != e.isEnable) {
+      e.isEnable.isAvailable &&
+        rendererList.push({
+          type: "pace_pay",
+          component: "Pace_Pay/js/view/payment/method-renderer/pace_pay",
+        });
+    }
+  })(window.pace);
   /** Add view logic here if needed */
   return Component.extend({});
 });

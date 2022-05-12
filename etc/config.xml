@@ -4,28 +4,29 @@
     <default>
         <payment>
             <pace_pay>
-                <active>0</active>
-                <title>Pace</title>
-                <environment>playground</environment>
-                <pay_with_pace_mode>redirect</pay_with_pace_mode>
-                <generate_invoice>1</generate_invoice>
-                <widgets_active>0</widgets_active>
-                <single_product_active>1</single_product_active>
-                <multi_products_active>0</multi_products_active>
-                <sort_order>1</sort_order>
+                <!-- preference -->
                 <debug>0</debug>
                 <model>PayFacade</model>
-                <payment_action>initialize</payment_action>
+                <active>0</active>
+                <title>Pay with Pace</title>
                 <currency>SGD</currency>
-                <can_initialize>1</can_initialize>
-                <can_authorize>1</can_authorize>
-                <can_capture>1</can_capture>
-                <can_void>1</can_void>
-                <can_use_checkout>1</can_use_checkout>
+                <sort_order>1</sort_order>
                 <is_gateway>1</is_gateway>
-                <debugReplaceKeys>MERCHANT_KEY</debugReplaceKeys>
-                <paymentInfoKeys>FRAUD_MSG_LIST</paymentInfoKeys>
-                <privateInfoKeys>FRAUD_MSG_LIST</privateInfoKeys>
+                <payment_action>initialize</payment_action>
+
+                <can_void>1</can_void>
+                <can_capture>1</can_capture>
+                <can_authorize>1</can_authorize>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+
+                <!-- custom -->
+                <environment>playground</environment>
+                <widgets_active>0</widgets_active>
+                <generate_invoice>1</generate_invoice>
+                <pay_with_pace_mode>redirect</pay_with_pace_mode>
+                <single_product_active>1</single_product_active>
+                <multi_products_active>0</multi_products_active>
             </pace_pay>
         </payment>
     </default>

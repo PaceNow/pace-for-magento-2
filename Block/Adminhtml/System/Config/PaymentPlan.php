@@ -11,7 +11,13 @@ use Pace\Pay\Helper\ConfigData;
 class PaymentPlan extends Field
 {
     protected $_template = 'Pace_Pay::system/config/paymentplan.phtml';
-    public function __construct(Context $context, ConfigData $configData, AdminStoreResolver $adminStoreResolver, array $data = [])
+
+    public function __construct(
+        Context $context, 
+        ConfigData $configData, 
+        AdminStoreResolver $adminStoreResolver, 
+        array $data = []
+    )
     {
         $this->_configData = $configData;
         $this->_adminStoreResolver = $adminStoreResolver;
@@ -21,6 +27,7 @@ class PaymentPlan extends Field
     public function render(AbstractElement $element)
     {
         $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
+
         return parent::render($element);
     }
 
@@ -29,20 +36,21 @@ class PaymentPlan extends Field
         return $this->_toHtml();
     }
 
-    public function getAjaxUrl()
-    {
-        return $this->getUrl('pace_pay/system_config/refreshpaymentplans');
-    }
-
-    public function getButtonHtml()
-    {
-        $button = $this->getLayout()->createBlock('Magento\Backend\Block\Widget\Button')->setData(['id' => 'payment-plan_refresh-button', 'label' => __('Refresh')]);
-        return $button->toHtml();
-    }
-
+    /**
+     * getPaymentPlan...
+     * Get & display payment plans in admin dashboard
+     * 
+     * @return mixed
+     */
     public function getPaymentPlan()
     {
-        $storeId = $this->_adminStoreResolver->resolveAdminStoreId();
-        return $this->_configData->getPaymentPlan($storeId);
+        try {
+            $storeId = $this->_adminStoreResolver->resolveAdminStoreId();
+            $paymentPlans = $this->_configData->getPaymentPlan($storeId, true);
+
+            return $paymentPlans;
+        } catch (\Exception $e) {
+            return;
+        }
     }
 }

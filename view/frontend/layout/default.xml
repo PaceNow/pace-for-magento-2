@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceBlock name="head.additional">
-            <block before="-" class='Pace\Pay\Block\PaceJS' name="pace.pacejs" template="Pace_Pay::pacejs.phtml"/>
+        <!-- Insert Pace SDK -->
+        <referenceBlock name="before.body.end">
+            <block before="-" class='Pace\Pay\Block\PaceJS' name="pace.js" template="Pace_Pay::pacejs.phtml"/>
         </referenceBlock>
-        <referenceContainer name="before.body.end">
-        	<block class="Pace\Pay\Block\PaceSDK" name="pace.sdkjs" template="Pace_Pay::pacesdk.phtml"/>
-        </referenceContainer>
     </body>
 </page>

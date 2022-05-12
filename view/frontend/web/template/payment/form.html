@@ -84,11 +84,7 @@
           class="action primary checkout"
           type="submit"
           disabled
-          data-bind="
-                        click: placeOrder,
-                        css: {disabled: !isPlaceOrderActionAllowed()},
-                        attr: {title: $t('Place Order')}
-                        "
+          data-bind="click: placeOrder, css: {disabled: !isPlaceOrderActionAllowed()}, attr: {title: $t('Place Order')}"
         >
           <span data-bind="i18n: 'Pay with PACE'"></span>
         </button>

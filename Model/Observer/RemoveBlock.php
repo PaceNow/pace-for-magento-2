@@ -20,9 +20,9 @@ class RemoveBlock implements ObserverInterface
     {
         /** @var \Magento\Framework\View\Layout $layout */
         $layout = $observer->getLayout();
-        $isPacePayActive = $this->_configData->getConfigValue(ConfigData::CONFIG_ACTIVE);
-        $isPacePayWidgetsActive = $this->_configData->getConfigValue(ConfigData::CONFIG_WIDGETS_ACTIVE);
-        $isPacePaySingleProductWidgetActive = $this->_configData->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_ACTIVE);
+        // $isPacePayActive = $this->_configData->getConfigValue(ConfigData::CONFIG_ACTIVE);
+        // $isPacePayWidgetsActive = $this->_configData->getConfigValue(ConfigData::CONFIG_WIDGETS_ACTIVE);
+        // $isPacePaySingleProductWidgetActive = $this->_configData->getConfigValue(ConfigData::CONFIG_SINGLE_PRODUCT_ACTIVE);
 
         // if ($layout->getBlock('pace.pacejs')) {
         //     if (!$isPacePayActive || !$isPacePayWidgetsActive) {

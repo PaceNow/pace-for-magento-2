@@ -1,202 +1,181 @@
 <?php
-
-
 namespace Pace\Pay\Controller\Pace;
 
-use Zend_Http_Client;
+use Exception;
 
 class CreateTransaction extends Transaction
 {
     /**
-     * Create Pace transaction
+     * getSource...
      * 
-     * @since 1.0.0
-     * @return Json
+     * return list items as source for transaction
+     * 
+     * @return array
+     */
+    protected function getSource($order)
+    {
+        $mediaPath = $this->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+        $categoryFactory = \Magento\Framework\App\ObjectManager::getInstance()
+            ->create(\Magento\Catalog\Model\CategoryRepository::class);
+
+        $lines = $order->getAllVisibleItems();
+        $lineItems = array_map(function($product) 
+            use (
+                $order,
+                $mediaPath, 
+                $categoryFactory
+            ) {
+            $image = $product->getProduct()->getImage();
+            $image = $image ? "{$mediaPath}catalog/product{$image}" : '';
+
+            $categories = $product->getProduct()->getCategoryIds();
+            $tags = $categories
+                ? array_map(function($cate) 
+                    use (
+                        $categoryFactory
+                    ) {
+                    return $categoryFactory->get($cate)->getName();
+                }, $categories)
+                : [];
+
+            return [
+                'name' => $product->getName(),
+                'tags' => $tags,
+                'brand' => '',
+                'itemId' => $product->getId(),
+                'itemType' => $product->getProductType(),
+                'imageUrl' => $image,
+                'quantity' => (int) $product->getQtyOrdered(),
+                'unitPrice' => $this->configData->convertPricebyCountry($product->getPrice(), $order->getOrderCurrencyCode()),
+                'productUrl' => $product->getProduct()->getProductUrl(),
+            ];
+        }, $lines);
+
+        return $lineItems;
+    }
+
+    /**
+     * getExpiredTime...
+     * 
+     * @return string
+     */
+    protected function getExpiredTime($storeId = null)
+    {
+        $expiredTime = $this->configData->getConfigValue('expired_time', $storeId);
+
+        if (empty($expiredTime)) {
+            return '';
+        }
+
+        $now = new \DateTime();
+        $expiredTime = $now->modify(sprintf('+%s minutes', $expiredTime));
+            
+        return $expiredTime->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * getWebhookUrl...
+     * 
+     * @return string
+     */
+    protected function getWebhookUrl($order)
+    {   
+        $securityCode = $this->configData->encrypt($order->getRealOrderId());
+
+        return "{$this->getBaseUrl()}pace_pay/pace/webhookcallback?securityCode={$securityCode}";
+    }
+
+    /**
+     * getTransactionResource...
+     * 
+     * @return array
+     */
+    protected function getTransactionResource($order)
+    {
+        $storeId = $order->getStoreId();
+        $verifyUrl = "{$this->getBaseUrl()}pace_pay/pace/verifytransaction";
+        $getBillingAddress = $order->getBillingAddress()->getData();
+        $getShippingAddress = $order->getShippingAddress()->getData();
+
+        return [
+            'items' => $this->getSource($order),
+            'currency' => $order->getOrderCurrencyCode(),
+            'expiringAt' => $this->getExpiredTime($storeId),
+            'webhookUrl' => $this->getWebhookUrl($order),
+            'referenceID' => $order->getRealOrderId(),
+            'amountFloat' => $order->getTotalDue(),
+            'redirectUrls' => [
+                'success' => $verifyUrl,
+                'failed' => $verifyUrl
+            ],
+            'billingAddress' => [
+                'city' => $getBillingAddress['city'],
+                'addr1' => $getBillingAddress['street'],
+                'addr2' => '',
+                'email' => $getBillingAddress['email'],
+                'state' => $getBillingAddress['region'],
+                'phone' => $getBillingAddress['telephone'],
+                'region' => $getBillingAddress['region'],
+                'lastName' => $getBillingAddress['lastname'],
+                'firstName' => $getBillingAddress['firstname'],
+                'postalCode' => $getBillingAddress['postcode'],
+                'countryIsoCode' => $getBillingAddress['country_id'],
+            ],
+            'shippingAddress' => [
+                'city' => $getShippingAddress['city'],
+                'addr1' => $getShippingAddress['street'],
+                'addr2' => '',
+                'email' => $getShippingAddress['email'],
+                'state' => $getShippingAddress['region'],
+                'phone' => $getShippingAddress['telephone'],
+                'region' => $getShippingAddress['region'],
+                'lastName' => $getShippingAddress['lastname'],
+                'firstName' => $getShippingAddress['firstname'],
+                'postalCode' => $getShippingAddress['postcode'],
+                'countryIsoCode' => $getShippingAddress['country_id'],
+            ]
+        ];
+    }
+
+    /**
+     * execute...
+     * 
+     * create a new transction
+     * 
+     * @return mixed
      */
     public function execute()
     {
-        $order = $this->_checkoutSession->getLastRealOrder();
-        $pacePayload = $this->_getBasePayload();
-        $pacePayload['body'] = [
-            'items' => $this->getSourceItems($order),
-            'country' => $order->getBillingAddress()->getCountryId(),
-            'currency' => $order->getOrderCurrencyCode(),
-            'expiringAt' => $this->_configData->getExpiredTime(),
-            'webhookUrl' => $this->_getBaseUrl() . 'rest/V1/pace/webhooks',
-            'referenceId' => $order->getRealOrderId(),
-            'amountFloat' => $order->getTotalDue(),
-            'redirectUrls' => $this->getPaceRedirectURI($order)
-        ];
-        $this->getPaceBilling($order, $pacePayload);
-        $this->getPaceShipping($order, $pacePayload);
-      
-        $this->_client->resetParameters();
         try {
-            $endpoint = $this->_configData->getApiEndpoint() . '/v1/checkouts';
-
-            $this->_client->setUri( $endpoint );
-            $this->_client->setMethod( Zend_Http_Client::POST );
-            $this->_client->setHeaders( $pacePayload['headers'] );
-            $this->_client->setRawData( json_encode( $pacePayload['body'] ) );
-            $response = $this->_client->request();
-            $responseJson = json_decode( $response->getBody() );
-            $tnxId = $responseJson->{'transactionID'};
-
-            if ( !isset( $tnxId ) ) {
-                throw new \Exception('Fail to create Pace transaction');
+            if (!$this->checkoutSession->getLastRealOrderId()) {
+                return $this->resultFactory(['message' => 'Checkout session expired!'], 404);
             }
 
-            $payment = $order->getPayment();
-            $payment->setTransactionId( $tnxId );
-            $payment->setAdditionalData( $tnxId );
-            $this->_paymentRepository->save( $payment );
+            $order = $this->checkoutSession->getLastRealOrder();
+            $transactionResource = $this->getTransactionResource($order);
+            
+            $getBasePayload = $this->configData->getBasePayload($order->getStoreId());
 
-            $order->addCommentToStatusHistory( __( 'Pace transaction is created (Reference ID: %1)', $tnxId ) );
-            $this->_orderRepository->save( $order );
-
-            return $this->_jsonResponse( $responseJson, $response->getStatus() );
-        } catch (\Exception $exception) {
-            $this->handleCancel( null, true );
-            return $this->_jsonResponse( [], 500 );
-        }
-    }
-
-    /**
-     * Prepare source items for transaction
-     *
-     * @param Magento\Sales\Model\Order $order
-     * @since 1.0.3 
-     * @return array 
-     */
-    private function getSourceItems( $order )
-    {
-        $orderItems = $order->getAllVisibleItems();
-
-        if (!$orderItems) {
-            return array();
-        }
-
-        $items = array_map(function ($item) {
-            return [
-                'itemId' => $item->getItemId(),
-                'itemType' => $item->getProductType(),
-                'reference' => $item->getSku(),
-                'name' => $item->getName(),
-                'quantity' => $item->getQuantityOrdered(),
-                'unitPriceCents' => $item->getPrice(),
-                'productUrl' => $item->getProduct()->getProductUrl(),
-                'brand' => '',
-                'tags' => array_map(
-                    [$this, '_getCategoryName'], 
-                    $item->getProduct()->getCategoryIds()
-                ),
-            ];
-        }, $orderItems);
-
-        return $items;
-    }
-
-    /**
-     * Prepare Pace transaction billing
-     * 
-     * @param Magento\Sales\Model\Order $order
-     * @param array $pacePayload 
-     * @since 0.0.26
-     */
-    private function getPaceBilling($order, &$pacePayload)
-    {
-        $getBillingAddress = $order->getBillingAddress();
-
-        if (!$getBillingAddress) {
-            return;
-        }
-
-        $billingDetails = $getBillingAddress->getData();
-
-        if (empty($billingDetails)) {
-            return;
-        }
-
-        $pacePayload['body']['billingAddress'] = [
-            'firstName' => $billingDetails['firstname'],
-            'lastName' => $billingDetails['lastname'],
-            'addr1' => $billingDetails['street'],
-            'addr2' => '',
-            'city' => $billingDetails['city'],
-            'state' => $billingDetails['region'],
-            'region' => $billingDetails['region'],
-            'postalCode' => $billingDetails['postcode'],
-            'countryIsoCode' => $billingDetails['country_id'],
-            'phone' => $billingDetails['telephone'],
-            'email' => $billingDetails['email'],
-        ];
-    }
-
-    /**
-     * Prepare Pace transaction shipping
-     *
-     * @param Magento\Sales\Model\Order $order
-     * @param array $pacePayload 
-     * @since 0.0.26
-     * @return void
-     */
-    private function getPaceShipping($order, &$pacePayload)
-    {   
-        $getShippingAddress = $order->getShippingAddress();
-
-        if (!$getShippingAddress) {
-            return;
-        }
-
-        $shippingDetails = $getShippingAddress->getData();
-
-        if (empty($shippingDetails)) {
-            return;
-        }
-
-        $pacePayload['body']['shippingAddress'] = [
-            'firstName' => $shippingDetails['firstname'],
-            'lastName' => $shippingDetails['lastname'],
-            'addr1' => $shippingDetails['street'],
-            'addr2' => '',
-            'city' => $shippingDetails['city'],
-            'state' => $shippingDetails['region'],
-            'region' => $shippingDetails['region'],
-            'postalCode' => $shippingDetails['postcode'],
-            'countryIsoCode' => $shippingDetails['country_id'],
-            'phone' => $shippingDetails['telephone'],
-            'email' => $shippingDetails['email'],
-        ];
-    }
-
-    /**
-     * Prepare Pace redirect urls
-     *
-     * @param Magento\Sales\Model\Order $order
-     * @since 1.0.5
-     * @return array
-     */
-    private function getPaceRedirectURI($order)
-    {
-        $baseURL = $this->_getBaseUrl();
-
-        return array(
-            'success' => $baseURL . 'pace_pay/pace/verifytransaction',
-            'failed' => $baseURL . 'pace_pay/pace/verifytransaction'
-        );    
-    }
-
-    /**
-     * @param $categoryId
-     * @return string|null
-     */
-    private function _getCategoryName($categoryId)
-    {
-        try {
-            $category = $this->_categoryRepository->get($categoryId);
-            return $category->getName();
-        } catch (\Exception $exception) {
-            return null;
+            $cURL = \Magento\Framework\App\ObjectManager::getInstance()
+                ->create(\Magento\Framework\HTTP\Client\Curl::class);
+                
+            $cURL->setHeaders($getBasePayload['headers']);
+            $cURL->setOptions([
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 30
+            ]);
+            $cURL->post("{$getBasePayload['apiEndpoint']}/v1/checkouts", json_encode($transactionResource));
+            @$response = json_decode($cURL->getBody());
+            
+            if (isset($response->error)) {
+                throw new Exception("Create Pace transaction failed. Reason: {$result->error->message}");
+            }
+            
+            $this->doAssignTransactionToOrder($response, $order);
+            return $this->resultFactory($response, 200);
+        } catch (Exception $e) {
+            $this->doCancelOrder($order);
+            return $this->resultFactory(['message' => $e->getMessage()]);
         }
     }
 }

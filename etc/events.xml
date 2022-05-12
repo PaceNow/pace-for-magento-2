@@ -15,15 +15,12 @@
     </event>
 
     <event name="admin_system_config_changed_section_payment">
-        <observer 
-            name="custom_admin_system_config_changed_section_payment"
-            instance="Pace\Pay\Observer\ConfigPaymentObserver" />
+        <observer name="custom_admin_system_config_changed_section_payment" instance="Pace\Pay\Observer\ConfigPaymentObserver" />
     </event>
 
+    <!-- Provides Pace as a payment method -->
     <event name="payment_method_is_active">
-        <observer 
-            name="custom_payment" 
-            instance="Pace\Pay\Observer\PaymentMethodAvailable" />
+        <observer name="custom_payment" instance="Pace\Pay\Observer\PaymentMethodAvailable" />
     </event>
 
     <event name="layout_generate_blocks_after">

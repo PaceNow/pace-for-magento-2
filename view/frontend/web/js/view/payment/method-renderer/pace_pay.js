@@ -1,17 +1,18 @@
 define([
-    "jquery",
-    "Magento_Checkout/js/view/payment/default",
-    "Magento_Checkout/js/model/payment/additional-validators",
-    "Magento_Checkout/js/model/quote",
-    "Magento_Checkout/js/model/resource-url-manager",
-    "Magento_Checkout/js/model/error-processor",
-    "mage/storage",
-    "mage/url",
-], function (e, a, t, o, n, c, i, r) {
-    "use strict";
-    return a.extend({
+    'jquery',
+    'Magento_Checkout/js/view/payment/default',
+    'Magento_Checkout/js/model/quote',
+    'mage/url',
+], function (
+    $,
+    Default, 
+    Quote, 
+    Url
+) {
+    'use strict';
+    return Default.extend({
         redirectAfterPlaceOrder: !1,
-        defaults: { template: "Pace_Pay/payment/form" },
+        defaults: { template: 'Pace_Pay/payment/form' },
         initialize: function () {
             this._super(), (this.defaultPlaceOrder = this.placeOrder);
         },
@@ -19,72 +20,67 @@ define([
             return this._super(), this;
         },
         getCode: function () {
-            return "pace_pay";
+            return this.item.method;
         },
         getData: function () {
             return { method: this.item.method, additional_data: {} };
         },
         loadPacePayJS: function () {
-            var a = {};
-            try {
-                a = JSON.parse(window.checkoutConfig.payment.pace_pay.baseWidgetConfig);
-            } catch (e) {
-                a = {};
-            }
-            a && a.styles && a.styles;
-            var t = "playground" === window.checkoutConfig.payment.pace_pay.apiEnvironment;
-            require([t ? "pacePayPlayground" : "pacePay"], function (a) {
-                function t(a) {
-                    if ((e("#pace-pay-submit-button").attr("disabled", !1), a.totals().base_grand_total)) {
-                        var t = a.totals().base_grand_total,
-                            o = {};
-                        try {
-                            o = JSON.parse(window.checkoutConfig.payment.pace_pay.checkoutWidgetConfig);
-                        } catch (e) {
-                            o = {};
-                        }
-                        a = {};
-                        o && (a = o.styles ? o.styles : {}),
-                            e("#pace-pay-container").attr("data-price", t),
-                            window.pacePayBaseWidgetConfig.baseActive && 1 == window.pacePayCheckoutWidgetConfig.isActive && window.pacePay.loadWidgets({ containerSelector: "#pace-pay-container", type: "checkout", styles: a });
+            var mode = /playground/.test(window.pace.mode)
+                ? 'pacePayPlayground'
+                : 'pacePay';
+
+            require([mode], m => {
+                const t = a => {
+                    var price = a.totals().base_grand_total;
+
+                    if (price && parseFloat(price) > 0 && (window.activeCheckout || (window.activeCheckout = window.pace.checkoutSetting.isActive))) {
+                        var c = document.getElementById('pace-pay-container');
+                        c && c.setAttribute('data-price', price), window.pacePay.loadWidgets({ containerSelector: "#" + c.id, styles: window.pace.checkoutSetting.styles, type: 'checkout' });
                     }
-                }
-                o.paymentMethod.subscribe(function (e) {
-                    "pace_pay" == e.method && t(o);
+
+                    document.getElementById('pace-pay-submit-button').removeAttribute('disabled');
+                };
+                Quote.paymentMethod.subscribe(e => {
+                    this.getCode() == e.method && t(Quote);
                 }),
-                    o.paymentMethod() && "pace_pay" == o.paymentMethod().method && t(o);
+                    Quote.paymentMethod() && this.getCode() == Quote.paymentMethod().method && t(Quote);
             });
         },
         afterPlaceOrder: function (a) {
-            window.pacePay.showProgressModal(), e("#pace-pay-submit-button").attr("disabled", !0), this.isPlaceOrderActionAllowed(!0), a && a.preventDefault();
-            var t = r.build("pace_pay/pace/createtransaction"),
-                o = r.build("pace_pay/pace/verifytransaction"),
-                n = r.build("/checkout/cart");
-            function c() {
-                window.location.replace(o);
+            window.pacePay.showProgressModal(), 
+            document.getElementById('pace-pay-submit-button').setAttribute('disabled', !0), 
+            this.isPlaceOrderActionAllowed(!0), 
+            a && a.preventDefault();
+
+            var o = Url.build('pace_pay/pace/verifytransaction'),
+                n = Url.build('checkout/cart');
+
+            const c = e => {
+                window.location.replace(e);
             }
-            e.post(t, "json")
+
+            $.post(Url.build('pace_pay/pace/createtransaction'), 'json')
                 .done(function (e) {
-                    void 0 === e.token && window.location.replace(n);
-                    var a = window.checkoutConfig.payment.pace_pay.payWithPaceMode,
-                        t = e.token;
-                    "popup" === a
+                    var t;
+                    void 0 === (t || (t = e.token)) && c(n);
+                    /popup/.test(window.pace.paymentMode)
                         ? window.pacePay.popup({
-                              txnToken: t,
-                              onSuccess: function () {
-                                  c();
-                              },
-                              onCancel: () => {
-                                  c();
-                              },
-                              onLoad: () => {
-                                  window.pacePay.hideProgressModal();
-                              },
+                            txnToken: t,
+                                onSuccess: () => {
+                                    c(o);
+                                },
+                                onCancel: () => {
+                                    c(o);
+                                },
+                                onLoad: () => {
+                                    window.pacePay.hideProgressModal();
+                                },
                           })
                         : window.pacePay.redirect(t);
                 })
                 .fail(function () {
-                    window.location.replace(n);
+                    c(n);
                 });
         },
     });
