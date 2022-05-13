@@ -3,10 +3,7 @@
 namespace Pace\Pay\Model\Adminhtml\Source;
 
 use Magento\Store\Model\StoreManagerInterface;
-
-use Magento\Framework\App\ObjectManager;
-
-use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory;
+use ;
 
 /**
  * Source Model get product categories
@@ -14,26 +11,30 @@ use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory;
 class Categories
 {	
 	/**
-	 * var $_storeManager;
-	 * Magento\Store\Model\StoreManagerInterface
+	 * @var StoreManagerInterface
 	 */
-	protected $_storeManager;
+	protected $storeManager;
 	
 	public function __construct(
 		StoreManagerInterface $storeManager
 	)
 	{
-		$this->_storeManager = $storeManager;
+		$this->storeManager = $storeManager;
 	}
 
+	/**
+	 * getCategories...
+	 * 
+	 * @return array
+	 */
 	public function getCategories()
 	{
-		$objectManager = ObjectManager::getInstance();
-		$categoryFactory = $objectManager->create(CollectionFactory::class);
-
+		$categoryFactory = \Magento\Framework\App\ObjectManager::getInstance()
+			->create(\Magento\Catalog\Model\ResourceModel\Category\CollectionFactory::class);
+			
 		$categories = $categoryFactory->create()
 			->addAttributeToSelect('*')
-			->setStore($this->_storeManager->getStore());
+			->setStore($this->storeManager->getStore());
 
 		return $categories;
 	}

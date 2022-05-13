@@ -30,11 +30,4 @@
             name="remove_block" 
             instance="Pace\Pay\Model\Observer\RemoveBlock" />
     </event>
-
-    <!-- Pace Pay: modified before placing order -->
-    <event name="sales_order_place_before">
-        <observer 
-            name="pace_pay_sales_order_place_before" 
-            instance="Pace\Pay\Model\Observer\PaceSalesOrderPlaceBefore" />
-    </event>
 </config>

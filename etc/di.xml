@@ -175,7 +175,7 @@
         </arguments>
     </type>
 
-    <!-- plugin -->
+    <!-- plugins -->
         <!-- <type name="\Magento\Sales\Model\Order\Email\Sender\OrderSender">
             <plugin name="PacePayOrderSenderPlugin" type="Pace\Pay\Plugins\OrderSenderPlugin"/>
         </type>
@@ -185,7 +185,11 @@
         </type> -->
 
         <type name="Magento\Catalog\Block\Product\ListProduct">
-            <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\PaceProductPlugin"/>
+            <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\InsertSingleWidgetContainer" />
+        </type>
+
+        <type name="Magento\Framework\App\Request\CsrfValidator">
+            <plugin name="ignorePaceCsrfValidate" type="Pace\Pay\Plugins\IgnoreCsrfValidate" />
         </type>
 
         <!-- <type name="Magento\Framework\View\Asset\Minification">

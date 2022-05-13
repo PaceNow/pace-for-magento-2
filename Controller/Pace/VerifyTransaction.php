@@ -86,8 +86,6 @@ class VerifyTransaction extends Transaction
             // Factory: transaction statuses
             $verifyResult = $this->transactionResultFactory($order, $response);
 
-            // $this->_eventManager->dispatch('pace_pay_verifytransaction_before_redirect'); TODO: remove
-
             return $redirect->setUrl($verifyResult);
         } catch (Exception $e) {
             die($e->getMessage());

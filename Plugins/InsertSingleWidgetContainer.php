@@ -4,38 +4,30 @@ namespace Pace\Pay\Plugins;
 
 use Magento\Catalog\Model\Product;
 
-use Psr\Log\LoggerInterface;
-
 use Pace\Pay\Helper\ConfigData;
 
-/**
- * Class modidfy Product price view
- */
-class PaceProductPlugin
+class InsertSingleWidgetContainer
 {
     /**
-     * var $_config
-     * Pace\Pay\Helper\ConfigData
+     * @var Pace\Pay\Helper\ConfigData
      */
-    protected $_config;
-
-    /**
-     * @var LoggerInterface
-     */
-    protected $_logger;
+    protected $config;
 
     public function __construct(
-        ConfigData $config,
-        LoggerInterface $logger
+        ConfigData $config
     ) {
-        $this->_config = $config;
-        $this->_logger = $logger;
+        $this->config = $config;
     }
 
+    /**
+     * isProductInBlacklisted...
+     * 
+     * @return bool
+     */
     protected function isProductInBlacklisted($product)
     {
         $categories = $product->getCategoryIds();
-        $blacklisted = $this->_config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
+        $blacklisted = $this->config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
 
         if (empty($categories) || empty($blacklisted)) {
             return 0;
@@ -44,6 +36,11 @@ class PaceProductPlugin
         return count(array_intersect($categories, explode(',', $blacklisted)));
     }
 
+    /**
+     * afterGetProductPrice...
+     * 
+     * @return string
+     */
     public function afterGetProductPrice(
         \Magento\Catalog\Block\Product\ListProduct $subject,
         $result,
@@ -53,9 +50,8 @@ class PaceProductPlugin
             return $result;
         }
 
-        $result = $result .
-        sprintf('<div class="pace-pay_multi-products-widget-container" data-price="%f"></div>', $product->getFinalPrice());
-
+        $result .= "<div class=\"pace-pay_multi-products-widget-container\" data-price=\"{$product->getFinalPrice()}\"></div>";
+        
         return $result;
     }
 }
