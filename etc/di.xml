@@ -188,10 +188,6 @@
             <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\InsertSingleWidgetContainer" />
         </type>
 
-        <type name="Magento\Framework\App\Request\CsrfValidator">
-            <plugin name="ignorePaceCsrfValidate" type="Pace\Pay\Plugins\IgnoreCsrfValidate" />
-        </type>
-
         <!-- <type name="Magento\Framework\View\Asset\Minification">
             <plugin name="PaceExcludeMinifyScript" type="Pace\Pay\Plugins\ExcludeFilesFromMinification"/>
         </type> -->
