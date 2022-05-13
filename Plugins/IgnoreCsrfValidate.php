@@ -2,7 +2,7 @@
 
 namespace Pace\Pay\Plugins;
 
-use namespace Pace\Pay\Model\Ui\ConfigProvider;
+use Pace\Pay\Model\Ui\ConfigProvider;
 
 /**
  * Ignore Csrf validate when Pace callbacks

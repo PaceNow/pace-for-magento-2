@@ -3,7 +3,6 @@
 namespace Pace\Pay\Model\Adminhtml\Source;
 
 use Magento\Store\Model\StoreManagerInterface;
-use ;
 
 /**
  * Source Model get product categories

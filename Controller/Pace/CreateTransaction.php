@@ -1,10 +1,18 @@
 <?php
 namespace Pace\Pay\Controller\Pace;
 
+use Pace\Pay\Model\Transaction;
+use Pace\Pay\Helper\ResponseRespository;
+
 use Exception;
 
 class CreateTransaction extends Transaction
 {
+    public function __construct(ResponseRespository $response)
+    {
+        $this->response = $response;
+    }
+
     /**
      * getSource...
      * 
@@ -82,7 +90,7 @@ class CreateTransaction extends Transaction
     {   
         $securityCode = $this->configData->encrypt($order->getRealOrderId());
 
-        return "{$this->getBaseUrl()}pace_pay/pace/webhookcallback?securityCode={$securityCode}";
+        return "{$this->getBaseUrl()}/V1/pace/webhookcallback/{$securityCode}";
     }
 
     /**
@@ -172,10 +180,10 @@ class CreateTransaction extends Transaction
             }
             
             $this->doAssignTransactionToOrder($response, $order);
-            return $this->resultFactory($response, 200);
+            return $this->response->jsonRespone($response);
         } catch (Exception $e) {
             $this->doCancelOrder($order);
-            return $this->resultFactory(['message' => $e->getMessage()]);
+            return $this->response->jsonRespone(['message' => $e->getMessage()]);
         }
     }
 }

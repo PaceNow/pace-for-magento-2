@@ -2,14 +2,12 @@
 
 namespace Pace\Pay\Controller\Adminhtml\System\Config;
 
-use Magento\Backend\App\Action;
-
-use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
-
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Backend\App\Action;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 
 use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Helper\ResponseRespository;
 
 use Exception;
 
@@ -23,25 +21,15 @@ class RefreshPaymentPlans extends Action
     public function __construct(
         Action\Context $context,
         ConfigData $configData,
-        JsonFactory $resultJsonFactory,
+        ResponseRespository $response,
         StoreManagerInterface $storeManager,
         MessageManagerInterface $messageManager
     ) {
         parent::__construct($context);
+        $this->response = $response;
         $this->configData = $configData;
         $this->storeManager = $storeManager;
         $this->messageManager = $messageManager;
-        $this->resultJsonFactory = $resultJsonFactory;
-    }
-
-    protected function response($data, $statusCode = 200)
-    {
-        $result = $this->resultJsonFactory->create();
-        $result->setData($data);
-        $result->setStatusHeader($statusCode);
-        $result->setHttpResponseCode($statusCode);
-
-        return $result;
     }
 
     /**
@@ -85,13 +73,13 @@ class RefreshPaymentPlans extends Action
             $env = $this->configData->getApiEnvironment($storeId);
             $this->updatePaymentPlans($storeId, $env, $response);
 
-            return $this->response([
+            return $this->response->jsonRespone([
                 'success' => true
             ], 200);
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             
-            return $this->response([
+            return $this->response->jsonRespone([
                 'success' => true
             ], 200);
         }

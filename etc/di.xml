@@ -195,4 +195,7 @@
         <!-- <type name="Magento\Framework\View\Asset\Minification">
             <plugin name="PaceExcludeMinifyScript" type="Pace\Pay\Plugins\ExcludeFilesFromMinification"/>
         </type> -->
+
+    <!-- Api -->
+        <preference for="Pace\Pay\Api\WebhookManagementInterface" type="Pace\Pay\Model\WebhookManagement" />
 </config>

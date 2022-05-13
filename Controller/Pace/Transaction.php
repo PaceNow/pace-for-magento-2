@@ -10,7 +10,6 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\DB\Transaction as DBTransaction;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\Request\Http;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 
@@ -24,8 +23,6 @@ use Magento\Sales\Model\Service\InvoiceService;
 
 use Magento\Store\Model\StoreManagerInterface;
 
-use Psr\Log\LoggerInterface;
-
 abstract class Transaction extends \Magento\Framework\App\Action\Action implements \Magento\Framework\App\ActionInterface 
 {
     /**
@@ -37,16 +34,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
      * @var Session
      */
     protected $checkoutSession;
-
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-
-    /**
-     * @var Http
-     */
-    protected $request;
 
     /**
      * @var ConfigData;
@@ -98,7 +85,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
      * @param Session $checkoutSession
      * @param ProductMetadataInterface $productMetadata
      * @param ConfigData $configData
-     * @param Http $request
      * @param OrderRepositoryInterface $orderRepository
      * @param StoreManagerInterface $storeManager
      * @param TransactionBuilder $transactionBuilder
@@ -106,10 +92,8 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
      * @param InvoiceService $invoiceService
      * @param InvoiceSender $invoiceSender
      * @param DBTransaction $dbTransaction
-     * @param LoggerInterface $logger
      */
     public function __construct(
-        Http $request,
         Context $context,
         Session $checkoutSession,
         ConfigData $configData,
@@ -117,7 +101,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
         DBTransaction $dbTransaction,
         InvoiceSender $invoiceSender,
         InvoiceService $invoiceService,
-        LoggerInterface $logger,
         TransactionBuilder $transactionBuilder,
         StoreManagerInterface $storeManager,
         MessageManagerInterface $messageManager,
@@ -126,8 +109,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
     )
     {
         parent::__construct($context);
-        $this->logger = $logger;
-        $this->request = $request;
         $this->configData = $configData;
         $this->storeManager = $storeManager;
         $this->_invoiceSender = $invoiceSender;
@@ -339,39 +320,6 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
 
             $payment->setParentTransactionId(null);
             $payment->save();
-        }
-    }
-
-
-    /**
-     * createInvoiceAttachedOrder...
-     * 
-     * Create invoice during the complete orders
-     * 
-     * @return Void
-     */
-    protected function createInvoiceAttachedOrder($order)
-    {
-        if ($order->canInvoice()) {
-            try {
-                $invoice = $this->invoiceService->prepareInvoice($order);
-                $invoice->setTransactionId($order->getPayment()->getLastTransId());
-                $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_OFFLINE);
-                $invoice->register();
-                $invoice->save();
-                
-                $dbTransactionSave = $this->dbTransaction
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder());
-                $dbTransactionSave->save();
-
-                $order->addCommentToStatusHistory( __('Notified customer about invoice creation #%1', $invoice->getId()) )
-                      ->setIsCustomerNotified(true);
-            } catch (\Exception $exception) {
-                $order->addCommentToStatusHistory( __('Failed to generate invoice automatically') );
-            }
-
-            $this->orderRepository->save($order);
         }
     }
 }
