@@ -51,7 +51,7 @@ class RefreshPaymentPlans extends Action
      */
     protected function updatePaymentPlans($storeId, $env, $response)
     {
-        $this->configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLANS, $response->list, $storeId, $env);
+        $this->configData->writeToConfig(ConfigData::CONFIG_PAYMENT_PLANS, json_encode($response->list), $storeId, $env);
     }
 
     /**
@@ -63,7 +63,7 @@ class RefreshPaymentPlans extends Action
      */
     public function execute()
     {
-        $storeId = $this->storeManager->->getStore()->getId();
+        $storeId = $this->storeManager->getStore()->getId();
         $basePayload = $this->configData->getBasePayload($storeId);
 
         $cURL = \Magento\Framework\App\ObjectManager::getInstance()

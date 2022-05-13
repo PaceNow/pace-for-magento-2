@@ -52,28 +52,34 @@
 	                    }
 	                });
 	        });
-	        (window.p || window.p.isAvailable || (window.p = e.isEnable)) &&
-	        	new PacePayment(
-	        		t.init({
-		                debug: "playground" === e.mode,
-		                currency: p.currencyCode,
-		                minAmount: p.minAmount.actualValue,
-		                maxAmount: p.maxAmount.actualValue,
-		                fallbackWidget: e.baseWidgetConfig.fallbackWidget,
-		                onEvent: function (e) {
-		                    var t = e.type,
-		                        a = e.payload;
-		                    switch (t) {
-		                        case "INIT_FAILURE":
-		                            a.error;
-		                            break;
-		                        case "WIDGET_CLICK_EVENT":
-		                            "SINGLE_PRODUCT_MORE_INFO_OPEN" === a.widgetEventType && ga("send", { hitType: "event", eventCategory: "PaceWidget", eventAction: "click", eventLabel: "Single Product Click" });
-		                    }
-		                },
-		                styles: { fontFamily: "inherit", primaryTextColor: "red", secondaryTextColor: "#FFFFFF", secondaryColor: "green" },
-		            })
-	        	).invoke();
+
+	        if (void 0 !== e.isEnable) {
+	        	var p = e.isEnable;
+
+	        	if (p.isAvailable) {
+	        		new PacePayment(
+		        		t.init({
+			                debug: "playground" === e.mode,
+			                currency: p.currencyCode,
+			                minAmount: p.minAmount.actualValue,
+			                maxAmount: p.maxAmount.actualValue,
+			                fallbackWidget: e.baseWidgetConfig.fallbackWidget,
+			                onEvent: function (e) {
+			                    var t = e.type,
+			                        a = e.payload;
+			                    switch (t) {
+			                        case "INIT_FAILURE":
+			                            a.error;
+			                            break;
+			                        case "WIDGET_CLICK_EVENT":
+			                            "SINGLE_PRODUCT_MORE_INFO_OPEN" === a.widgetEventType && ga("send", { hitType: "event", eventCategory: "PaceWidget", eventAction: "click", eventLabel: "Single Product Click" });
+			                    }
+			                },
+			                styles: { fontFamily: "inherit", primaryTextColor: "red", secondaryTextColor: "#FFFFFF", secondaryColor: "green" },
+			            })
+		        	).invoke();
+	        	}
+	        }
 		})(window.pace);
 	});
 </script>

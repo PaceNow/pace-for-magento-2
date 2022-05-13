@@ -3,7 +3,6 @@
 namespace Pace\Pay\Notification;
 
 use Pace\Pay\Helper\ConfigData;
-use Psr\Log\LoggerInterface;
 
 /**
  * Pace show notify UPDATE VERSION message box
@@ -14,28 +13,14 @@ class Version implements \Magento\Framework\Notification\MessageInterface
     const MESSAGE_IDENTITY = 'pace_version_notification';
 
     /**
-     * @var \Magento\Framework\Module\ResourceInterface
-     */
-    protected $_moduleResource;
-
-    /**
      * @var Pace\Pay\Helper\ConfigData
      */
-    protected $_configData;
-
-    /**
-     * @var Psr\Log\LoggerInterface
-     */
-    protected $_logger;
+    protected $configData;
 
     public function __construct(
-        ConfigData $configData,
-        LoggerInterface $logger,
-        \Magento\Framework\Module\ResourceInterface $moduleResource
+        ConfigData $configData
     ) {
-        $this->_logger = $logger;
-        $this->_configData = $configData;
-        $this->_moduleResource = $moduleResource;
+        $this->configData = $configData;
     }
 
     public function getIdentity()
@@ -47,7 +32,7 @@ class Version implements \Magento\Framework\Notification\MessageInterface
     public function isDisplayed()
     {
         // Return true to show your message, false to hide it
-        return $this->checkPaceVersion();
+        return $this->checkVersion();
     }
 
     public function getText()
@@ -72,22 +57,22 @@ class Version implements \Magento\Framework\Notification\MessageInterface
         return self::SEVERITY_NOTICE;
     }
 
-    private function checkPaceVersion()
+    /**
+     * checkPaceVersion...
+     * 
+     * @return boolean
+     */
+    protected function checkVersion()
     {
-        try {
-            // get Pace version on default store
-            $paceVersion = $this->_configData->getConfigValue(ConfigData::CONFIG_PACE_SYNC_VERSION, $storeID = 0);
-            if (empty($paceVersion)) {
-                throw new \Exception("Pace version not found");
-            }
+        $version = $this->configData->getConfigValue(ConfigData::CONFIG_PACE_SYNC_VERSION);
 
-            $paceVersion = json_decode($paceVersion);
-            $paceVersion = $paceVersion->plugins->magento2;
-            $moduleVersion = $this->_moduleResource->getDbVersion('Pace_Pay');
-            return version_compare($paceVersion, $moduleVersion) == 1;
-        } catch (\Exception $e) {
-            $this->_logger->debug($e->getMessage());
+        if (empty($version)) {
             return;
         }
+
+        $version = json_decode($version)->magento2;
+        $moduleVersion = $this->configData->getSetupVersion();
+
+        return @version_compare($version, $moduleVersion) == 1;
     }
 }

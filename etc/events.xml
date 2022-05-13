@@ -15,7 +15,9 @@
     </event>
 
     <event name="admin_system_config_changed_section_payment">
-        <observer name="custom_admin_system_config_changed_section_payment" instance="Pace\Pay\Observer\ConfigPaymentObserver" />
+        <observer 
+            name="custom_admin_system_config_changed_section_payment" 
+            instance="Pace\Pay\Observer\ConfigPaymentObserver" />
     </event>
 
     <!-- Provides Pace as a payment method -->
@@ -27,13 +29,6 @@
         <observer 
             name="remove_block" 
             instance="Pace\Pay\Model\Observer\RemoveBlock" />
-    </event>
-
-    <!-- Pace Pay: verify transaction before redirect -->
-    <event name="pace_pay_verifytransaction_before_redirect">
-        <observer 
-            name="pace_pay_verifytransaction_before_redirect"
-            instance="Pace\Pay\Model\Observer\PaceVerifyTransactionBeforeRedirect" />
     </event>
 
     <!-- Pace Pay: modified before placing order -->

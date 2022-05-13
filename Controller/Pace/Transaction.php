@@ -313,14 +313,16 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
      */
     protected function createTransactionAttachedOrder($order)
     {
-        @$response = json_decode($this->getTransactionDetail($order));
+        @$response = $this->getTransactionDetail($order);
+        $responseJson = json_decode($response);
 
-        if (!isset($response->error)) {
+        if (!isset($responseJson->error)) {
+            $tnxId = $responseJson->transactionID;
             $payment = $order->getPayment();
             $payment->setLastTransId($tnxId);
             $payment->setTransactionId($tnxId);
             $payment->setAdditionalInformation([
-                PaymentTransaction::RAW_DETAILS => $cURL->getBody()
+                PaymentTransaction::RAW_DETAILS => $response
             ]);
 
             // create prepare transaction
@@ -329,7 +331,7 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action implemen
                 ->setOrder($order)
                 ->setTransactionId($tnxId)
                 ->setAdditionalInformation([
-                    PaymentTransaction::RAW_DETAILS => $cURL->getBody()
+                    PaymentTransaction::RAW_DETAILS => $response
                 ])
                 ->setFailSafe(true)
                 ->build(PaymentTransaction::TYPE_CAPTURE);

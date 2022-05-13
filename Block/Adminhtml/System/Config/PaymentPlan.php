@@ -38,6 +38,7 @@ class PaymentPlan extends Field
 
     /**
      * getPaymentPlan...
+     * 
      * Get & display payment plans in admin dashboard
      * 
      * @return mixed

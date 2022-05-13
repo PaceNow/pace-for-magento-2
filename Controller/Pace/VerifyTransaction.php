@@ -2,12 +2,15 @@
 
 namespace Pace\Pay\Controller\Pace;
 
+use Pace\Pay\Model\Ui\ConfigProvider;
+
 use Exception;
 
 class VerifyTransaction extends Transaction
 {
     const ERROR_REDIRECT_URL = '/checkout/cart';
     const SUCCESS_REDIRECT_URL = '/checkout/onepage/success';
+
     const VERIFY_SUCCESS = 'verify_success';
     const VERIFY_UNKNOWN = 'verify_unknown';
     const VERIFY_FAILED = 'verify_failed';
@@ -33,23 +36,23 @@ class VerifyTransaction extends Transaction
             }
         };
 
-        $redirect = function($result) {
+        $redirect = function($result, $order) {
             switch ($result) {
-                case VERIFY_UNKNOWN:
+                case self::VERIFY_UNKNOWN:
                     return self::ERROR_REDIRECT_URL;
                     break;
-                case VERIFY_SUCCESS:
+                case self::VERIFY_SUCCESS:
                     $this->doCompleteOrder($order);
                     return self::SUCCESS_REDIRECT_URL;
                     break;
-                case VERIFY_FAILED:
+                case self::VERIFY_FAILED:
                     $this->doCancelOrder($order);
                     return self::ERROR_REDIRECT_URL;
                     break;
             }
         };
 
-        return $redirect;
+        return $redirect($result($transaction), $order);
     }
 
     /**
@@ -87,6 +90,7 @@ class VerifyTransaction extends Transaction
 
             return $redirect->setUrl($verifyResult);
         } catch (Exception $e) {
+            die($e->getMessage());
             return $redirect->setUrl(self::ERROR_REDIRECT_URL);
         }
     }

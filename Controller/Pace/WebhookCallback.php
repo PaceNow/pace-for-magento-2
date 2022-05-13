@@ -57,7 +57,6 @@ class WebhookCallback extends Transaction
 			$rawData = json_encode($payload);
 			$message = "Webhook callback processing \nPayload: {$rawData} \nError: {$e->getMessage()}";
 			$this->logger->info($message);
-			die($message);
 		}
 	}
 }
