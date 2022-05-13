@@ -2,15 +2,34 @@
 namespace Pace\Pay\Controller\Pace;
 
 use Pace\Pay\Model\Transaction;
+use Pace\Pay\Helper\AdminStoreResolver;
 use Pace\Pay\Helper\ResponseRespository;
+
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\Action;
+
+use Psr\Log\LoggerInterface;
 
 use Exception;
 
-class CreateTransaction extends Transaction
+class CreateTransaction extends Action\Action implements ActionInterface
 {
-    public function __construct(ResponseRespository $response)
+    public function __construct(
+        Session $session,
+        Action\Context $context, 
+        Transaction $transaction, 
+        LoggerInterface $logger,
+        AdminStoreResolver $adminResolver,
+        ResponseRespository $response
+    )
     {
+        parent::__construct($context);
+        $this->logger = $logger;
+        $this->session = $session;
         $this->response = $response;
+        $this->transaction = $transaction;
+        $this->adminResolver = $adminResolver;
     }
 
     /**
@@ -22,7 +41,7 @@ class CreateTransaction extends Transaction
      */
     protected function getSource($order)
     {
-        $mediaPath = $this->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+        $mediaPath = $this->adminResolver->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
         $categoryFactory = \Magento\Framework\App\ObjectManager::getInstance()
             ->create(\Magento\Catalog\Model\CategoryRepository::class);
 
@@ -54,43 +73,12 @@ class CreateTransaction extends Transaction
                 'itemType' => $product->getProductType(),
                 'imageUrl' => $image,
                 'quantity' => (int) $product->getQtyOrdered(),
-                'unitPrice' => $this->configData->convertPricebyCountry($product->getPrice(), $order->getOrderCurrencyCode()),
+                'unitPrice' => $this->transaction->convertPricebyCountry($product->getPrice(), $order->getOrderCurrencyCode()),
                 'productUrl' => $product->getProduct()->getProductUrl(),
             ];
         }, $lines);
 
         return $lineItems;
-    }
-
-    /**
-     * getExpiredTime...
-     * 
-     * @return string
-     */
-    protected function getExpiredTime($storeId = null)
-    {
-        $expiredTime = $this->configData->getConfigValue('expired_time', $storeId);
-
-        if (empty($expiredTime)) {
-            return '';
-        }
-
-        $now = new \DateTime();
-        $expiredTime = $now->modify(sprintf('+%s minutes', $expiredTime));
-            
-        return $expiredTime->format('Y-m-d H:i:s');
-    }
-
-    /**
-     * getWebhookUrl...
-     * 
-     * @return string
-     */
-    protected function getWebhookUrl($order)
-    {   
-        $securityCode = $this->configData->encrypt($order->getRealOrderId());
-
-        return "{$this->getBaseUrl()}/V1/pace/webhookcallback/{$securityCode}";
     }
 
     /**
@@ -101,15 +89,15 @@ class CreateTransaction extends Transaction
     protected function getTransactionResource($order)
     {
         $storeId = $order->getStoreId();
-        $verifyUrl = "{$this->getBaseUrl()}pace_pay/pace/verifytransaction";
+        $verifyUrl ="{$this->adminResolver->getBaseUrl()}pace_pay/pace/verifytransaction";
         $getBillingAddress = $order->getBillingAddress()->getData();
         $getShippingAddress = $order->getShippingAddress()->getData();
 
         return [
             'items' => $this->getSource($order),
             'currency' => $order->getOrderCurrencyCode(),
-            'expiringAt' => $this->getExpiredTime($storeId),
-            'webhookUrl' => $this->getWebhookUrl($order),
+            'expiringAt' => $this->transaction->getExpiredTime($storeId),
+            'webhookUrl' => $this->transaction->getWebhookUrl($this->adminResolver->getBaseUrl(), $order),
             'referenceID' => $order->getRealOrderId(),
             'amountFloat' => $order->getTotalDue(),
             'redirectUrls' => [
@@ -155,14 +143,13 @@ class CreateTransaction extends Transaction
     public function execute()
     {
         try {
-            if (!$this->checkoutSession->getLastRealOrderId()) {
-                return $this->resultFactory(['message' => 'Checkout session expired!'], 404);
+            if (!$this->session->getLastRealOrderId()) {
+                return $this->response->jsonRespone(['message' => 'Checkout session expired!'], 404);
             }
 
-            $order = $this->checkoutSession->getLastRealOrder();
+            $order = $this->session->getLastRealOrder();
+            $getBasePayload = $this->transaction->getBasePayload($order->getStoreId());
             $transactionResource = $this->getTransactionResource($order);
-            
-            $getBasePayload = $this->configData->getBasePayload($order->getStoreId());
 
             $cURL = \Magento\Framework\App\ObjectManager::getInstance()
                 ->create(\Magento\Framework\HTTP\Client\Curl::class);
@@ -176,13 +163,14 @@ class CreateTransaction extends Transaction
             @$response = json_decode($cURL->getBody());
             
             if (isset($response->error)) {
-                throw new Exception("Create Pace transaction failed. Reason: {$response->error->message}");
+                throw new Exception($response->error->message);
             }
             
-            $this->doAssignTransactionToOrder($response, $order);
+            $this->transaction->doAssignTransactionToOrder($response, $order);
             return $this->response->jsonRespone($response);
         } catch (Exception $e) {
-            $this->doCancelOrder($order);
+            $this->logger->info("Create Pace transaction failed. Reason: {$e->getMessage()}");
+            $this->transaction->doCancelOrder($order);
             return $this->response->jsonRespone(['message' => $e->getMessage()]);
         }
     }

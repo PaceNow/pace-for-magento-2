@@ -10,7 +10,7 @@ use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Framework\DB\Transaction as DBTransaction;
 use Magento\Framework\Message\ManagerInterface;
 
-use Exception;
+use Exception, DateTime;
 /**
  * Transaction resource model
  */
@@ -36,12 +36,63 @@ class Transaction
 		$this->transactionBuilder = $transactionBuilder;
 	}
 
+    /**
+     * convertPricebyCountry...
+     * 
+     * @return Number
+     */
+    public function convertPricebyCountry($basePrice, $country)
+    {
+        return $this->configData->convertPricebyCountry($basePrice, $country);
+    }
+
+    /**
+     * getWebhookUrl...
+     * 
+     * @return string
+     */
+    public function getWebhookUrl($baseUrl, $order)
+    {   
+        $securityCode = $this->configData->encrypt($order->getRealOrderId());
+
+        return "{$baseUrl}/V1/pace/webhookcallback/{$securityCode}";
+    }
+
+    /**
+     * getExpiredTime...
+     * 
+     * @return string
+     */
+    public function getExpiredTime($storeId = null)
+    {
+        $expiredTime = $this->configData->getConfigValue('expired_time', $storeId);
+
+        if (empty($expiredTime)) {
+            return '';
+        }
+
+        $now = new DateTime();
+        $expiredTime = $now->modify(sprintf('+%s minutes', $expiredTime));
+            
+        return $expiredTime->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * getBasePayload...
+     * 
+     * @return array
+     */
+    public function getBasePayload($storeId = null)
+    {
+        return $this->configData->getBasePayload($storeId);
+    }
+
 	/**
      * getTransactionDetail...
      * 
      * @return Object
      */
-    protected function getTransactionDetail($order)
+    public function getTransactionDetail($order)
     {
         $tnxId = $order->getPayment()->getLastTransId();
         $getBasePayload = $this->configData->getBasePayload($order->getStoreId());
@@ -174,7 +225,7 @@ class Transaction
      * 
      * @return Void
      */
-    protected function doCloseOrder($order)
+    public function doCloseOrder($order)
     {
         $state = $this->configData->getConfigValue('pace_expired', $order->getStoreId()) ?? Order::STATE_CLOSED;
         $status = $order->getConfig()->getStateDefaultStatus($state);

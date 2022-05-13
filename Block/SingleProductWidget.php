@@ -11,21 +11,9 @@ use Pace\Pay\Helper\ConfigData;
 class SingleProductWidget extends Template
 {
     /**
-     * var $_config
-     * Pace\Pay\Helper\ConfigData
+     * @var ConfigData
      */
-    protected $_config;
-
-    /**
-     * var $_objectManager
-     * Magento\Framework\App\ObjectManager
-     */
-    protected $_registry;
-
-    /**
-     * var $_product;
-     */
-    protected $_product;
+    protected $config;
 
     public function __construct(
         Context $context,
@@ -34,14 +22,13 @@ class SingleProductWidget extends Template
     ) {
         parent::__construct($context);
 
-        $this->_config = $configData;
-        $this->_registry = $registry;
-        $this->_product = $this->_registry->registry('current_product');
+        $this->config = $configData;
+        $this->product = $registry->registry('current_product');
     }
 
     public function getProductPrice()
     {
-        return $this->_product->getFinalPrice();
+        return $this->product->getFinalPrice();
     }
 
 
@@ -52,8 +39,8 @@ class SingleProductWidget extends Template
      */
     public function isBlacklisted()
     {
-        $categories = $this->_product->getCategoryIds();
-        $blacklisted = $this->_config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
+        $categories = $this->product->getCategoryIds();
+        $blacklisted = $this->config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
 
         if (empty($categories) || empty($blacklisted)) {
             return 0;
