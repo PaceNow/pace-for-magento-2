@@ -8,6 +8,8 @@ class WebhookManagement implements WebhookManagementInterface
 	/**
 	 * doWebhookCallbacks...
 	 * 
+	 * @api
+	 * @param string @code
 	 * @return void
 	 */
 	public function doWebhookCallbacks($code)

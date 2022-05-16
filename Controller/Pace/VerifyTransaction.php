@@ -2,11 +2,17 @@
 
 namespace Pace\Pay\Controller\Pace;
 
+use Pace\Pay\Model\Transaction;
 use Pace\Pay\Model\Ui\ConfigProvider;
+use Pace\Pay\Helper\ResponseRespository;
+
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Action;
+use Magento\Framework\App\ActionInterface;
 
 use Exception;
 
-class VerifyTransaction extends Transaction
+class VerifyTransaction extends Action\Action implements ActionInterface
 {
     const ERROR_REDIRECT_URL = '/checkout/cart';
     const SUCCESS_REDIRECT_URL = '/checkout/onepage/success';
@@ -14,6 +20,19 @@ class VerifyTransaction extends Transaction
     const VERIFY_SUCCESS = 'verify_success';
     const VERIFY_UNKNOWN = 'verify_unknown';
     const VERIFY_FAILED = 'verify_failed';
+
+    public function __construct(
+        Session $session,
+        Action\Context $context,
+        Transaction $transaction,
+        ResponseRespository $response
+    )
+    {
+        parent::__construct($context);
+        $this->session = $session;
+        $this->response = $response;
+        $this->transaction = $transaction;
+    }
 
     /**
      * transactionResultFactory...
@@ -42,11 +61,11 @@ class VerifyTransaction extends Transaction
                     return self::ERROR_REDIRECT_URL;
                     break;
                 case self::VERIFY_SUCCESS:
-                    $this->doCompleteOrder($order);
+                    $this->transaction->doCompleteOrder($order);
                     return self::SUCCESS_REDIRECT_URL;
                     break;
                 case self::VERIFY_FAILED:
-                    $this->doCancelOrder($order);
+                    $this->transaction->doCancelOrder($order);
                     return self::ERROR_REDIRECT_URL;
                     break;
             }
@@ -64,13 +83,12 @@ class VerifyTransaction extends Transaction
      */
     public function execute()
     {
-        $redirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
         try {
-            if (!$this->checkoutSession->getLastRealOrderId()) {
+            if (!$this->session->getLastRealOrderId()) {
                 throw new Exception('Checkout session expired!');
             }
 
-            $order = $this->checkoutSession->getLastRealOrder();
+            $order = $this->session->getLastRealOrder();
             
             if (ConfigProvider::CODE != $order->getPayment()->getMethodInstance()->getCode()) {
                 throw new Exception('The last order not paid with Pace!');
@@ -82,14 +100,13 @@ class VerifyTransaction extends Transaction
                 throw new Exception('Empty transaction ID!');
             }
 
-            @$response = json_decode($this->getTransactionDetail($order));
+            @$response = json_decode($this->transaction->getTransactionDetail($order));
             // Factory: transaction statuses
             $verifyResult = $this->transactionResultFactory($order, $response);
 
-            return $redirect->setUrl($verifyResult);
+            return $this->response->redirectResponse($verifyResult)
         } catch (Exception $e) {
-            die($e->getMessage());
-            return $redirect->setUrl(self::ERROR_REDIRECT_URL);
+            return $this->response->redirectResponse(self::ERROR_REDIRECT_URL)
         }
     }
 }

@@ -144,7 +144,7 @@ class CreateTransaction extends Action\Action implements ActionInterface
     {
         try {
             if (!$this->session->getLastRealOrderId()) {
-                return $this->response->jsonRespone(['message' => 'Checkout session expired!'], 404);
+                return $this->response->jsonResponse(['message' => 'Checkout session expired!'], 404);
             }
 
             $order = $this->session->getLastRealOrder();
@@ -167,11 +167,11 @@ class CreateTransaction extends Action\Action implements ActionInterface
             }
             
             $this->transaction->doAssignTransactionToOrder($response, $order);
-            return $this->response->jsonRespone($response);
+            return $this->response->jsonResponse($response);
         } catch (Exception $e) {
             $this->logger->info("Create Pace transaction failed. Reason: {$e->getMessage()}");
             $this->transaction->doCancelOrder($order);
-            return $this->response->jsonRespone(['message' => $e->getMessage()]);
+            return $this->response->jsonResponse(['message' => $e->getMessage()]);
         }
     }
 }
