@@ -34,7 +34,7 @@ class ConfigData extends AbstractHelper
 
     // Hashing
     const KEY = 'PM';
-    const ALGO = 'DH0EjlYKmEgoJzSR'
+    const ALGO = 'DH0EjlYKmEgoJzSR';
     const METHOD = 'AES-256-CBC';
 
     /**

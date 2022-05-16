@@ -20,12 +20,12 @@ class Transaction
 	/**
 	 * @var ConfigData
 	 */
-	protected $configData;
+	public $configData;
 
     /**
      * @var OrderRepositoryInterface
      */
-    protected $orderRepository;
+    public $orderRepository;
 	
 	function __construct(
 		ConfigData $configData,

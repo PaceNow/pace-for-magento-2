@@ -2,7 +2,6 @@
 namespace Pace\Pay\Model;
 
 use Pace\Pay\Model\Transaction;
-use Pace\Pay\Helper\ConfigData;
 
 use Psr\Log\LoggerInterface;
 
@@ -12,13 +11,11 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface
 {
 
 	public function __construct(
-		ConfigData $configData,
 		Transaction $transaction,
 		LoggerInterface $logger
 	)
 	{
 		$this->logger = $logger;
-		$this->config = $configData;
 		$this->transaction = $transaction;
 	}
 
@@ -32,7 +29,7 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface
 	{
 		try {
 			// decrypt
-			$code = $this->config->decrypt($code);
+			$code = $this->transaction->configData->decrypt($code);
 			$order = !empty($code)
 				? $this->transaction->orderRepository->get($code)
 				: '';
