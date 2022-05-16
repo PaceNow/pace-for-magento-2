@@ -7,7 +7,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
-
+use Magento\Checkout\Model\Session;
 use Magento\Framework\DB\Transaction as DBTransaction;
 use Magento\Framework\Message\ManagerInterface;
 
@@ -16,7 +16,12 @@ use Exception, DateTime;
  * Transaction resource model
  */
 class Transaction
-{
+{   
+    /**
+     * @var Session
+     */
+    public $session;
+
 	/**
 	 * @var ConfigData
 	 */
@@ -28,6 +33,7 @@ class Transaction
     public $orderRepository;
 	
 	function __construct(
+        Session $session,
 		ConfigData $configData,
 		DBTransaction $dbTransaction,
 		InvoiceService $invoiceService,
@@ -36,6 +42,7 @@ class Transaction
         OrderRepositoryInterface $orderRepository
 	)
 	{
+        $this->session = $session;
 		$this->configData = $configData;
 		$this->dbTransaction = $dbTransaction;
 		$this->invoiceService = $invoiceService;
@@ -268,7 +275,7 @@ class Transaction
                 $this->messageManager->createMessage('notice', 'PACENOTICE')->setText($comment)
             );
             
-        	// $this->checkoutSession->restoreQuote();
+        	$this->session->restoreQuote();
         }
     }
 

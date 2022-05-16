@@ -6,7 +6,6 @@ use Pace\Pay\Model\Transaction;
 use Pace\Pay\Model\Ui\ConfigProvider;
 use Pace\Pay\Helper\ResponseRespository;
 
-use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action;
 use Magento\Framework\App\ActionInterface;
 
@@ -22,14 +21,12 @@ class VerifyTransaction extends Action\Action implements ActionInterface
     const VERIFY_FAILED = 'verify_failed';
 
     public function __construct(
-        Session $session,
         Action\Context $context,
         Transaction $transaction,
         ResponseRespository $response
     )
     {
         parent::__construct($context);
-        $this->session = $session;
         $this->response = $response;
         $this->transaction = $transaction;
     }
@@ -84,11 +81,11 @@ class VerifyTransaction extends Action\Action implements ActionInterface
     public function execute()
     {
         try {
-            if (!$this->session->getLastRealOrderId()) {
+            if (!$this->transaction->session->getLastRealOrderId()) {
                 throw new Exception('Checkout session expired!');
             }
 
-            $order = $this->session->getLastRealOrder();
+            $order = $this->transaction->session->getLastRealOrder();
             
             if (ConfigProvider::CODE != $order->getPayment()->getMethodInstance()->getCode()) {
                 throw new Exception('The last order not paid with Pace!');

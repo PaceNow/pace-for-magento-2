@@ -5,7 +5,6 @@ use Pace\Pay\Model\Transaction;
 use Pace\Pay\Helper\AdminStoreResolver;
 use Pace\Pay\Helper\ResponseRespository;
 
-use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Action;
 
@@ -16,7 +15,6 @@ use Exception;
 class CreateTransaction extends Action\Action implements ActionInterface
 {
     public function __construct(
-        Session $session,
         Action\Context $context, 
         Transaction $transaction, 
         LoggerInterface $logger,
@@ -26,7 +24,6 @@ class CreateTransaction extends Action\Action implements ActionInterface
     {
         parent::__construct($context);
         $this->logger = $logger;
-        $this->session = $session;
         $this->response = $response;
         $this->transaction = $transaction;
         $this->adminResolver = $adminResolver;
@@ -143,11 +140,11 @@ class CreateTransaction extends Action\Action implements ActionInterface
     public function execute()
     {
         try {
-            if (!$this->session->getLastRealOrderId()) {
+            if (!$this->transaction->session->getLastRealOrderId()) {
                 return $this->response->jsonResponse(['message' => 'Checkout session expired!'], 404);
             }
 
-            $order = $this->session->getLastRealOrder();
+            $order = $this->transaction->session->getLastRealOrder();
             $getBasePayload = $this->transaction->getBasePayload($order->getStoreId());
             $transactionResource = $this->getTransactionResource($order);
 
