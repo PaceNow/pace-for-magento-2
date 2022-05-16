@@ -3,6 +3,7 @@ namespace Pace\Pay\Model;
 
 use Pace\Pay\Helper\ConfigData;
 
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
@@ -20,19 +21,26 @@ class Transaction
 	 * @var ConfigData
 	 */
 	protected $configData;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    protected $orderRepository;
 	
 	function __construct(
 		ConfigData $configData,
 		DBTransaction $dbTransaction,
 		InvoiceService $invoiceService,
 		ManagerInterface $messageManager,
-		TransactionBuilder $transactionBuilder
+		TransactionBuilder $transactionBuilder,
+        OrderRepositoryInterface $orderRepository
 	)
 	{
 		$this->configData = $configData;
 		$this->dbTransaction = $dbTransaction;
 		$this->invoiceService = $invoiceService;
 		$this->messageManager = $messageManager;
+        $this->orderRepository = $orderRepository;
 		$this->transactionBuilder = $transactionBuilder;
 	}
 
@@ -260,7 +268,7 @@ class Transaction
                 $this->messageManager->createMessage('notice', 'PACENOTICE')->setText($comment)
             );
             
-        	$this->checkoutSession->restoreQuote(); // clean
+        	// $this->checkoutSession->restoreQuote();
         }
     }
 

@@ -100,13 +100,13 @@ class VerifyTransaction extends Action\Action implements ActionInterface
                 throw new Exception('Empty transaction ID!');
             }
 
-            @$response = json_decode($this->transaction->getTransactionDetail($order));
+            $response = json_decode($this->transaction->getTransactionDetail($order));
             // Factory: transaction statuses
             $verifyResult = $this->transactionResultFactory($order, $response);
 
-            return $this->response->redirectResponse($verifyResult)
+            return $this->response->redirectResponse($verifyResult);
         } catch (Exception $e) {
-            return $this->response->redirectResponse(self::ERROR_REDIRECT_URL)
+            return $this->response->redirectResponse(self::ERROR_REDIRECT_URL);
         }
     }
 }
