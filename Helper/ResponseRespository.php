@@ -17,9 +17,9 @@ class ResponseRespository
 	 * 
 	 * @return json
 	 */
-	public function jsonResponse($data, $code = 200, $url = '')
+	public function jsonResponse($data, $code = 200)
 	{
-		$result = $this->resultJsonFactory->create($url);
+		$result = $this->resultJsonFactory->create();
         $result->setData($data);
         $result->setStatusHeader($code);
         $result->setHttpResponseCode($code);

@@ -32,6 +32,11 @@ class ConfigData extends AbstractHelper
     const CONFIG_SORT_ORDER = "sort_order";
     const CONFIG_BLACK_LISTED = "widget_blacklisted";
 
+    // Hashing
+    const KEY = 'PM';
+    const ALGO = 'DH0EjlYKmEgoJzSR'
+    const METHOD = 'AES-256-CBC';
+
     /**
      * @var EncryptorInterface
      */
@@ -73,7 +78,11 @@ class ConfigData extends AbstractHelper
      */
     public function encrypt($message)
     {
-        return $this->encryptor->encrypt($message);
+        $key = hash('sha256', self::KEY);
+        $secret = substr(hash('sha256', self::ALGO), 0, 16);
+        $encryptString = openssl_encrypt($message, self::METHOD, $key, 0, $secret);
+
+        return base64_encode($encryptString);
     }
 
     /**
@@ -83,7 +92,11 @@ class ConfigData extends AbstractHelper
      */
     public function decrypt($hash)
     {
-        return $this->encryptor->decrypt($hash);
+        $key = hash('sha256', self::KEY);
+        $secret = substr(hash('sha256', self::ALGO), 0, 16);
+        $decryptString = base64_decode($hash);
+
+        return openssl_decrypt($decryptString, self::METHOD, $key, 0, $secret);
     }
 
     /**

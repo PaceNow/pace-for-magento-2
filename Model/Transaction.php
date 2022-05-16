@@ -63,7 +63,7 @@ class Transaction
     {   
         $securityCode = $this->configData->encrypt($order->getRealOrderId());
 
-        return "{$baseUrl}/V1/pace/webhookcallback/{$securityCode}";
+        return "{$baseUrl}rest/V1/pace/webhookcallback/{$securityCode}";
     }
 
     /**
