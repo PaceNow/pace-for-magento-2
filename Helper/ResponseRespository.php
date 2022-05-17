@@ -7,8 +7,12 @@ use Magento\Framework\Controller\Result\JsonFactory;
 class ResponseRespository
 {
 	
-	function __construct(JsonFactory $resultJsonFactory)
+	function __construct(
+		JsonFactory $resultJsonFactory,
+		ResultFactory $resultFactory
+	)
 	{
+		$this->resultFactory = $resultFactory;
 		$this->resultJsonFactory = $resultJsonFactory;
 	}
 
@@ -34,7 +38,7 @@ class ResponseRespository
 	 */
 	public function redirectResponse($url)
 	{
-		return $this->resultJsonFactory
+		return $this->resultFactory
 			->create(ResultFactory::TYPE_REDIRECT)
 			->setUrl($url);
 	}

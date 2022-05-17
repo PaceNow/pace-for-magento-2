@@ -2,6 +2,7 @@
 namespace Pace\Pay\Model;
 
 use Pace\Pay\Model\Transaction;
+use Pace\Pay\Helper\ResponseRespository;
 
 use Psr\Log\LoggerInterface;
 
@@ -12,10 +13,12 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface
 
 	public function __construct(
 		Transaction $transaction,
-		LoggerInterface $logger
+		LoggerInterface $logger,
+		ResponseRespository $response
 	)
 	{
 		$this->logger = $logger;
+		$this->response = $response;
 		$this->transaction = $transaction;
 	}
 
@@ -23,7 +26,7 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface
 	 * doWebhookCallbacks...
 	 * 
 	 * @param string @code
-	 * @return void
+	 * @return Json
 	 */
 	public function doWebhookCallbacks($code)
 	{
@@ -40,15 +43,16 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface
 
 			$payload = file_get_contents("php://input");
 			@$this->webhookFactory($order, $payload);
+
+			return $this->response->jsonResponse(['status' => true], 200);
 		} catch (Exception $e) {
 			$this->logger->info($e->getMessage());
+			return $this->response->jsonResponse(['status' => false, 'message' => $e->getMessage()], 200);
 		}
 	}
 
 	/**
 	 * webhookFactory...
-	 * 
-	 * @return void
 	 */
 	protected function webhookFactory($order, $payload = [])
 	{

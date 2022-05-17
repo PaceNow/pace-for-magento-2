@@ -6,6 +6,7 @@ use Pace\Pay\Helper\ConfigData;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\DB\Transaction as DBTransaction;
