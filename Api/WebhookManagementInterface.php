@@ -6,7 +6,7 @@ interface WebhookManagementInterface {
 	 * doWebhookCallbacks...
 	 * 
 	 * @param string $code
-	 * @return void
+	 * @return json
 	 */
 	public function doWebhookCallbacks($code);
 }
