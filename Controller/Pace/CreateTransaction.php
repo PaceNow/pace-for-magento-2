@@ -2,6 +2,7 @@
 namespace Pace\Pay\Controller\Pace;
 
 use Pace\Pay\Model\Transaction;
+use Pace\Pay\Model\Ui\ConfigProvider;
 use Pace\Pay\Helper\AdminStoreResolver;
 use Pace\Pay\Helper\ResponseRespository;
 
@@ -27,6 +28,17 @@ class CreateTransaction extends Action\Action implements ActionInterface
         $this->response = $response;
         $this->transaction = $transaction;
         $this->adminResolver = $adminResolver;
+
+        // verify order
+        if (!$this->transaction->session->getLastRealOrderId()) {
+            return $this->response->jsonResponse(['message' => 'Checkout session expired!'], 404);
+        }
+
+        $this->order = $this->transaction->session->getLastRealOrder();
+
+        if (ConfigProvider::CODE != $this->order->getPayment()->getMethodInstance()->getCode()) {
+            return $this->response->jsonResponse(['message' => 'Invalid Order!'], 404);
+        }
     }
 
     /**
@@ -140,13 +152,8 @@ class CreateTransaction extends Action\Action implements ActionInterface
     public function execute()
     {
         try {
-            if (!$this->transaction->session->getLastRealOrderId()) {
-                return $this->response->jsonResponse(['message' => 'Checkout session expired!'], 404);
-            }
-
-            $order = $this->transaction->session->getLastRealOrder();
-            $getBasePayload = $this->transaction->getBasePayload($order->getStoreId());
-            $transactionResource = $this->getTransactionResource($order);
+            $getBasePayload = $this->transaction->getBasePayload($this->order->getStoreId());
+            $transactionResource = $this->getTransactionResource($this->order);
 
             $cURL = \Magento\Framework\App\ObjectManager::getInstance()
                 ->create(\Magento\Framework\HTTP\Client\Curl::class);
@@ -163,11 +170,11 @@ class CreateTransaction extends Action\Action implements ActionInterface
                 throw new Exception($response->error->message);
             }
             
-            $this->transaction->doAssignTransactionToOrder($response, $order);
+            $this->transaction->doAssignTransactionToOrder($response, $this->order);
             return $this->response->jsonResponse($response);
         } catch (Exception $e) {
             $this->logger->info("Create Pace transaction failed. Reason: {$e->getMessage()}");
-            $this->transaction->doCancelOrder($order);
+            $this->transaction->doCancelOrder($this->order);
             return $this->response->jsonResponse(['message' => $e->getMessage()]);
         }
     }

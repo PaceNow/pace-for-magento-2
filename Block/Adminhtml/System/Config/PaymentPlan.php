@@ -8,6 +8,8 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 use Pace\Pay\Helper\AdminStoreResolver;
 use Pace\Pay\Helper\ConfigData;
 
+use Exception;
+
 class PaymentPlan extends Field
 {
     protected $_template = 'Pace_Pay::system/config/paymentplan.phtml';
@@ -50,7 +52,7 @@ class PaymentPlan extends Field
             $paymentPlans = $this->configData->getPaymentPlan($storeId, true);
 
             return $paymentPlans;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $e->getMessage();
         }
     }

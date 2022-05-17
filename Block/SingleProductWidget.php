@@ -21,21 +21,26 @@ class SingleProductWidget extends Template
         ConfigData $configData
     ) {
         parent::__construct($context);
-
         $this->config = $configData;
         $this->product = $registry->registry('current_product');
     }
 
+    /**
+     * getProductPrice...
+     * 
+     * @return float
+     */
     public function getProductPrice()
     {
         return $this->product->getFinalPrice();
     }
 
-
     /**
+     * isBlacklisted...
+     * 
      * Check whether the product category is on the blacklist
      * 
-     * @since 1.0.7
+     * @return boolean
      */
     public function isBlacklisted()
     {

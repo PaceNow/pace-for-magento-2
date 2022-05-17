@@ -41,16 +41,24 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface
 			$payload = file_get_contents("php://input");
 			@$this->webhookFactory($order, $payload);
 		} catch (Exception $e) {
-			$this->logger->info();
+			$this->logger->info($e->getMessage());
 		}
 	}
 
 	/**
 	 * webhookFactory...
+	 * 
+	 * @return void
 	 */
 	protected function webhookFactory($order, $payload = [])
 	{
-		switch ($payload['event']) {
+		$payload = $payload ? json_decode($payload) : '';
+
+		if (empty($payload)) {
+			throw new Exception('Empty callback parameters!');
+		}
+
+		switch ($payload->event) {
 			case 'approved':
 				$this->transaction->doCompleteOrder($order);
 				break;

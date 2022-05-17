@@ -20,7 +20,13 @@ class Label extends \Magento\Config\Block\System\Config\Form\Field
         $this->configData = $configData;
     }
 
-
+    /**
+     * _getElementHtml...
+     * 
+     * get module version for system.xml
+     * 
+     * @return string
+     */
     protected function _getElementHtml(AbstractElement $element)
     {
         return $this->configData->getSetupVersion();

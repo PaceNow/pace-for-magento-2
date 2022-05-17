@@ -27,6 +27,11 @@ class ResponseRespository
         return $result;
 	}
 
+	/**
+	 * redirectResponse...
+	 * 
+	 * @return redirect
+	 */
 	public function redirectResponse($url)
 	{
 		return $this->resultJsonFactory
