@@ -2,45 +2,49 @@
 
 namespace Pace\Pay\Observer;
 
+use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\ObserverInterface;
 use Pace\Pay\Helper\ConfigData;
+use Pace\Pay\Model\Ui\ConfigProvider;
 
-class PaymentMethodAvailable implements ObserverInterface
-{
-    public function __construct(
-        Session $checkoutSession,
-        ConfigData $configData,
-        \Psr\Log\LoggerInterface $logger
-    ) {
-        $this->_checkoutSession = $checkoutSession;
-        $this->_configData = $configData;
-        $this->_logger = $logger;
-    }
-    /**
-     * payment_method_is_active event handler.
-     *
-     * @param \Magento\Framework\Event\Observer $observer
-     */
-    public function execute(\Magento\Framework\Event\Observer $observer)
-    {
-        if ($observer->getEvent()->getMethodInstance()->getCode() == "pace_pay") {
-            $checkResult = $observer->getEvent()->getResult();
-            try {
-                $paymentPlan = $this->_configData->getPaymentPlan() ?? null;
-                $payment = !empty($paymentPlan)
-                    ? $paymentPlan['paymentPlans']
-                    : null;
+class PaymentMethodAvailable implements ObserverInterface {
+	public function __construct(
+		Session $checkoutSession,
+		ConfigData $configData,
+		\Psr\Log\LoggerInterface $logger
+	) {
+		$this->configData = $configData;
+		$this->logger = $logger;
+	}
+	/**
+	 * payment_method_is_active event handler.
+	 *
+	 * @param \Magento\Framework\Event\Observer $observer
+	 */
+	public function execute(\Magento\Framework\Event\Observer $observer) {
+		$method = $observer
+			->getEvent()
+			->getMethodInstance()
+			->getCode();
+		$checkResult = $observer->getEvent()->getResult();
 
-                if (empty($payment)) {
-                    throw new \Exception('Pace payment methods is invalid!');
-                }
+		if (ConfigProvider::CODE == $method) {
+			try {
+				$paymentPlans = $this->configData->getPaymentPlan() ?? null;
+				$payment = !empty($paymentPlans)
+				? $paymentPlans['paymentPlans']
+				: null;
 
-                $checkResult->setData('is_available', true);
-            } catch (\Exception $e) {
-                $this->_logger->info($e->getMessage());
-                $checkResult->setData('is_available', false);
-            }
-        }
-    }
+				if (empty($payment)) {
+					throw new Exception('Pace payment methods is invalid!');
+				}
+
+				$checkResult->setData('is_available', true);
+			} catch (Exception $e) {
+				$this->logger->info("PaymentMethodAvailable Exception: {$e->getMessage()}");
+				$checkResult->setData('is_available', false);
+			}
+		}
+	}
 }

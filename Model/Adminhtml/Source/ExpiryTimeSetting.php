@@ -4,8 +4,7 @@ namespace Pace\Pay\Model\Adminhtml\Source;
 
 use \Magento\Framework\Data\OptionSourceInterface;
 
-class ExpiryTimeSetting implements OptionSourceInterface 
-{	
+class ExpiryTimeSetting implements OptionSourceInterface {
 	/**
 	 * Return expiry time options
 	 *
@@ -17,32 +16,32 @@ class ExpiryTimeSetting implements OptionSourceInterface
 		return [
 			[
 				'value' => 0,
-				'label' => __( 'No' )
+				'label' => __('No'),
 			],
 			[
 				'value' => 10080,
-				'label' => __( '1 week' ),
-				'default' => true
+				'label' => __('1 week'),
+				'default' => true,
 			],
 			[
 				'value' => 10,
-				'label' => __( '10 mins' )
+				'label' => __('10 mins'),
 			],
 			[
 				'value' => 15,
-				'label' => __( '15 mins' )
+				'label' => __('15 mins'),
 			],
 			[
 				'value' => 20,
-				'label' => __( '20 mins' )
+				'label' => __('20 mins'),
 			],
 			[
 				'value' => 30,
-				'label' => __( '30 mins' )
+				'label' => __('30 mins'),
 			],
 			[
 				'value' => 60,
-				'label' => __( '60 mins' )
+				'label' => __('60 mins'),
 			],
 		];
 	}

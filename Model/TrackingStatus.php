@@ -1,14 +1,10 @@
 <?php
 
-
 namespace Pace\Pay\Model;
 
-class TrackingStatus extends \Magento\Framework\Model\AbstractModel
-{
+class TrackingStatus extends \Magento\Framework\Model\AbstractModel {
 
-
-    protected function _construct()
-    {
-        $this->_init('Pace\Pay\Model\ResourceModel\TrackingStatus');
-    }
+	protected function _construct() {
+		$this->_init('Pace\Pay\Model\ResourceModel\TrackingStatus');
+	}
 }

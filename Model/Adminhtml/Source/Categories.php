@@ -7,30 +7,27 @@ use Magento\Store\Model\StoreManagerInterface;
 /**
  * Source Model get product categories
  */
-class Categories
-{	
+class Categories {
 	/**
 	 * @var StoreManagerInterface
 	 */
 	protected $storeManager;
-	
+
 	public function __construct(
 		StoreManagerInterface $storeManager
-	)
-	{
+	) {
 		$this->storeManager = $storeManager;
 	}
 
 	/**
 	 * getCategories...
-	 * 
+	 *
 	 * @return array
 	 */
-	public function getCategories()
-	{
+	public function getCategories() {
 		$categoryFactory = \Magento\Framework\App\ObjectManager::getInstance()
 			->create(\Magento\Catalog\Model\ResourceModel\Category\CollectionFactory::class);
-			
+
 		$categories = $categoryFactory->create()
 			->addAttributeToSelect('*')
 			->setStore($this->storeManager->getStore());
