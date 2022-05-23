@@ -146,7 +146,7 @@ class CreateTransaction extends Action\Action implements ActionInterface {
 		try {
 			$getBasePayload = $this->transaction->getBasePayload($this->order->getStoreId());
 			$transactionResource = $this->getTransactionResource($this->order);
-
+			$this->logger->info(json_encode($transactionResource));
 			$cURL = \Magento\Framework\App\ObjectManager::getInstance()
 				->create(\Magento\Framework\HTTP\Client\Curl::class);
 

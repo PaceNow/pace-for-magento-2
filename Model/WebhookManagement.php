@@ -26,10 +26,10 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface {
 			// decrypt
 			$code = $this->transaction->configData->decrypt($code);
 			$order = !empty($code)
-			? $this->transaction->orderRepository->get($code)
+			? $this->transaction->order->loadByIncrementId($code)
 			: '';
 
-			if (empty($order) || !$order instanceof \Magento\Sales\Model\Order\Interceptor) {
+			if (empty($order)) {
 				throw new Exception('Security error or decapitated Order!');
 			}
 

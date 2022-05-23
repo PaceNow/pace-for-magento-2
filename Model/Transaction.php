@@ -18,6 +18,11 @@ use Pace\Pay\Helper\ConfigData;
  */
 class Transaction {
 	/**
+	 * @var Order
+	 */
+	public $order;
+
+	/**
 	 * @var Session
 	 */
 	public $session;
@@ -33,6 +38,7 @@ class Transaction {
 	public $orderRepository;
 
 	function __construct(
+		Order $order,
 		Session $session,
 		ConfigData $configData,
 		DBTransaction $dbTransaction,
@@ -41,6 +47,7 @@ class Transaction {
 		TransactionBuilder $transactionBuilder,
 		OrderRepositoryInterface $orderRepository
 	) {
+		$this->order = $order;
 		$this->session = $session;
 		$this->configData = $configData;
 		$this->dbTransaction = $dbTransaction;
