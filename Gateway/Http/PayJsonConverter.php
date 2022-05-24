@@ -1,5 +1,5 @@
 <?php
-
+// TODO: remove
 namespace Pace\Pay\Gateway\Http;
 
 use Magento\Payment\Gateway\Http\ConverterException;

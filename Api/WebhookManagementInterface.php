@@ -1,16 +1,12 @@
 <?php
-
 namespace Pace\Pay\Api;
 
-/**
-  * summary
-  */
-interface WebhookManagementInterface
-{	
+interface WebhookManagementInterface {
 	/**
-	 * Pace webhooks contract
-	 * @param  object $value 
-	 * @return json        
+	 * doWebhookCallbacks...
+	 *
+	 * @param string $code
+	 * @return json
 	 */
-    public function _handle();
-} 
+	public function doWebhookCallbacks($code);
+}
