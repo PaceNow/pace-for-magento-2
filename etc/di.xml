@@ -1,26 +1,21 @@
 <?xml version="1.0"?>
-
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <!-- Payment Method Facade configuration -->
     <virtualType name="PayFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">\Pace\Pay\Model\Ui\ConfigProvider::CODE
-            </argument>
+            <argument name="code" xsi:type="const">Pace\Pay\Model\Ui\ConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Pace\Pay\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">PayValueHandlerPool</argument>
             <argument name="commandPool" xsi:type="object">PayCommandPool</argument>
         </arguments>
     </virtualType>
-
     <!-- Configuration reader -->
     <virtualType name="PayConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">\Pace\Pay\Model\Ui\ConfigProvider::CODE</argument>
+            <argument name="methodCode" xsi:type="const">Pace\Pay\Model\Ui\ConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
-
     <!-- Zend Client with JSON converter -->
     <virtualType name="JsonConverterZendClient" type="Magento\Payment\Gateway\Http\Client\Zend">
         <arguments>
@@ -28,27 +23,23 @@
             <argument name="logger" xsi:type="object">PayLogger</argument>
         </arguments>
     </virtualType>
-
     <!-- Logger, initialized with PayConfig -->
     <virtualType name="PayLogger" type="Magento\Payment\Model\Method\Logger">
         <arguments>
             <argument name="config" xsi:type="object">PayConfig</argument>
         </arguments>
     </virtualType>
-
     <type name="Pace\Pay\Gateway\Http\Client\ClientMock">
         <arguments>
             <argument name="logger" xsi:type="object">PayLogger</argument>
         </arguments>
     </type>
-
     <!-- Empty Client with logger -->
     <type name="Pace\Pay\Gateway\Http\Client\EmptyClient">
         <arguments>
             <argument name="logger" xsi:type="object">PayLogger</argument>
         </arguments>
     </type>
-
     <!-- Commands infrastructure -->
     <virtualType name="PayCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
@@ -60,7 +51,6 @@
             </argument>
         </arguments>
     </virtualType>
-
     <!-- Init command -->
     <virtualType name="PayInitCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -69,7 +59,6 @@
             <argument name="client" xsi:type="object">Pace\Pay\Gateway\Http\Client\EmptyClient</argument>
         </arguments>
     </virtualType>
-
     <!-- Init Request -->
     <virtualType name="PayInitRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
@@ -83,7 +72,6 @@
             <argument name="config" xsi:type="object">PayConfig</argument>
         </arguments>
     </type>
-
     <!-- Authorize command -->
     <virtualType name="PayAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -94,7 +82,6 @@
             </argument>
         </arguments>
     </virtualType>
-
     <!-- Authorization Request -->
     <virtualType name="PayAuthorizationRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
@@ -109,7 +96,6 @@
             <argument name="config" xsi:type="object">PayConfig</argument>
         </arguments>
     </type>
-
     <!-- Capture command -->
     <virtualType name="PayCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -120,14 +106,12 @@
             <argument name="client" xsi:type="object">Pace\Pay\Gateway\Http\Client\ClientMock</argument>
         </arguments>
     </virtualType>
-
     <!-- Capture Request -->
     <type name="Pace\Pay\Gateway\Request\CaptureRequest">
         <arguments>
             <argument name="config" xsi:type="object">PayConfig</argument>
         </arguments>
     </type>
-
     <!-- Void command -->
     <virtualType name="PayVoidCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -138,14 +122,12 @@
             <argument name="client" xsi:type="object">Pace\Pay\Gateway\Http\Client\ClientMock</argument>
         </arguments>
     </virtualType>
-
     <!-- Void Request -->
     <type name="Pace\Pay\Gateway\Request\VoidRequest">
         <arguments>
             <argument name="config" xsi:type="object">PayConfig</argument>
         </arguments>
     </type>
-
     <!-- Response handlers -->
     <virtualType name="PayResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
@@ -155,7 +137,6 @@
             </argument>
         </arguments>
     </virtualType>
-
     <!-- Value handlers infrastructure -->
     <virtualType name="PayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
@@ -169,29 +150,24 @@
             <argument name="configInterface" xsi:type="object">PayConfig</argument>
         </arguments>
     </virtualType>
-
     <type name="Pace\Pay\Block\Info">
         <arguments>
             <argument name="config" xsi:type="object">PayConfig</argument>
         </arguments>
     </type>
-
-    <type name="\Magento\Sales\Model\Order\Email\Sender\OrderSender">
-        <plugin name="PacePayOrderSenderPlugin" type="Pace\Pay\Plugins\OrderSenderPlugin"/>
+    <!-- plugins -->
+    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
+        <plugin name="PacePayOrderSenderPlugin" type="Pace\Pay\Plugins\OrderSenderPlugin" />
     </type>
-
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
-        <plugin name="PacePayOrderStatePlugin" type="Pace\Pay\Plugins\OrderSavePlugin"/>
+        <plugin name="PacePayOrderStatePlugin" type="Pace\Pay\Plugins\OrderSavePlugin" />
     </type>
-
-    <!-- Pace Multiple Widgets -->
     <type name="Magento\Catalog\Block\Product\ListProduct">
-        <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\PaceProductPlugin"/>
+        <plugin name="PacePayMultipleWidget" type="Pace\Pay\Plugins\InsertCatalogWidgetContainer" />
     </type>
-
     <type name="Magento\Framework\View\Asset\Minification">
-        <plugin name="PaceExcludeMinifyScript" type="Pace\Pay\Plugins\ExcludeFilesFromMinification"/>
+        <plugin name="PaceExcludeMinifyScript" type="Pace\Pay\Plugins\ExcludeFilesFromMinification" />
     </type>
-
-    <preference for="Pace\Pay\Api\WebhookManagementInterface" type="Pace\Pay\Model\Webhooks"/>
+    <!-- Api -->
+    <preference for="Pace\Pay\Api\WebhookManagementInterface" type="Pace\Pay\Model\WebhookManagement" />
 </config>

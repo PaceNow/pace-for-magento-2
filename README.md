@@ -32,7 +32,7 @@ composer config repositories.pacenow git https://github.com/PaceNow/pace-for-mag
 - Require Pace_Pay module
 
 ```
-composer require pace/module-pay:dev-master#v1.0.8
+composer require pace/module-pay:dev-master#v1.1.0
 ```
 
 - Enable Pace_Pay module

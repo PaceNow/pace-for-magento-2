@@ -2,7 +2,7 @@
   "name": "pace/module-pay",
   "description": "Pace's magento 2 Payment Gateway Integration",
   "type": "magento2-module",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "license": [
     "OSL-3.0",
     "AFL-3.0"

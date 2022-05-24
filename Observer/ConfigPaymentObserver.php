@@ -2,40 +2,21 @@
 
 namespace Pace\Pay\Observer;
 
-use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer as EventObserver;
+use Magento\Framework\Event\ObserverInterface;
+use Pace\Pay\Controller\Adminhtml\System\Config\RefreshPaymentPlans;
 
-use Psr\Log\LoggerInterface;
+class ConfigPaymentObserver implements ObserverInterface {
+	/**
+	 * @param RefreshPaymentPlans $refreshPaymentPlans
+	 */
+	public function __construct(
+		RefreshPaymentPlans $refreshPaymentPlans
+	) {
+		$this->refreshPaymentPlans = $refreshPaymentPlans;
+	}
 
-use Pace\Pay\Cron\RefreshPaymentPlans;
-
-class ConfigPaymentObserver implements ObserverInterface
-{
-    /**
-     * @var LoggerInterface
-     */
-    protected $_logger;
-
-    /**
-     * @var RefreshPaymentPlans
-     */
-    protected $_refreshPaymentPlans;
-
-    /**
-     * @param LoggerInterface $logger
-     * @param RefreshPaymentPlans $refreshPaymentPlans
-     */
-    public function __construct(
-        LoggerInterface $logger,
-        RefreshPaymentPlans $refreshPaymentPlans
-    ) {
-        $this->_logger = $logger;
-        $this->_refreshPaymentPlans = $refreshPaymentPlans;
-    }
-
-    public function execute(EventObserver $observer)
-    {
-        $this->_logger->info('Pace config update');
-        $this->_refreshPaymentPlans->execute();
-    }
+	public function execute(EventObserver $observer) {
+		@$this->refreshPaymentPlans->execute();
+	}
 }

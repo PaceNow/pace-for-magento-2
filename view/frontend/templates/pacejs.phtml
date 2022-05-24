@@ -1,8 +1,85 @@
-<script>
-    window.pacePayEnvironment = "<?php echo $block->getApiEnvironment(); ?>";
-    window.pacePaymentPlan = <?php echo json_encode($block->getPaymentPlan()); ?>;
-    window.pacePayBaseWidgetConfig = <?php echo json_encode($block->getBaseWidgetConfig()); ?>;
-    window.pacePaySingleProductWidgetConfig = <?php echo json_encode($block->getSingleProductWidgetConfig()); ?>;
-    window.pacePayMultiProductsWidgetConfig = <?php echo json_encode($block->getMultiProductsWidgetConfig()); ?>;
-    window.pacePayCheckoutWidgetConfig = <?php echo json_encode($block->getCheckoutWidgetConfig()); ?>;
+<script type="text/javascript">
+	"use strict";
+	window.pace = <?php echo json_encode($block->getPaceConfig()); ?> || {};
+	var i = window.pace.mode == 'playground' 
+		? 'pacePayPlayground' 
+		: 'pacePay';
+	require([i, 'jquery'], (t, $) => {
+		!(function (e) {
+	        (window.PacePayment = function (Pace) {
+                (this.showWidget = (t) => {
+                    ((t, a) => {
+                        t.mountWidget(a);
+                    })(
+                        this,
+                        /product/.test(t)
+                            ? { type: "single-product", class: "pace-pay_single-product-widget-container", style: e.productWidgetConfig.styles, containerStyle: e.productWidgetConfig.containerStyles }
+                            : { type: "multi-products", class: "pace-pay_multi-products-widget-container", style: e.catalogWidgetConfig.styles }
+                    );
+                }),
+	                (this.mountWidget = (e) => {
+	                    var a = document.querySelectorAll("." + e.class);
+	                    a.length &&
+	                        e.containerStyle && 
+	                        	a.forEach((t) => {
+	                            	t.setAttribute("style", e.containerStyle);
+	                        	}),
+	                        Pace.loadWidgets({ type: e.type, styles: e.style, containerSelector: "." + e.class });
+	                }),
+	                (this.invoke = () => {
+	                    try {
+	                    	(window.r || (window.r = this)),
+	                         	e.catalogWidgetConfig.isActive &&
+	                                this.showWidget("catalog"),
+                                    window.addEventListener("scroll", () => {
+                                        clearTimeout(window.timer),
+                                            (window.timer = setTimeout(() => {
+                                                r.showWidget("catalog");
+                                            }, 1e3));
+                                    });
+
+	                            e.productWidgetConfig.isActive && this.showWidget("product"),
+								    $(document.body).on("updatePrice", (e, t) => {
+								        if (null != t && t.hasOwnProperty("prices")) {
+								            var i = document.querySelector(".pace-pay_single-product-widget-container"),
+								                r = parseFloat(t.prices.finalPrice.amount + parseFloat(document.querySelector("span[data-price-type=finalPrice]").getAttribute("data-price-amount")));
+								            i && i.setAttribute("data-price", r), this.showWidget("product");
+								        }
+								    });
+
+	                    } catch (e) {
+	                        console.log(`Pace invokes error: ${e}`);
+	                    }
+	                });
+	        });
+
+	        if (void 0 !== e.isEnable) {
+	        	var p = e.isEnable;
+
+	        	if (p.isAvailable) {
+	        		new PacePayment(
+		        		t.init({
+			                debug: "playground" === e.mode,
+			                currency: p.currencyCode,
+			                minAmount: p.minAmount.actualValue,
+			                maxAmount: p.maxAmount.actualValue,
+			                fallbackWidget: e.baseWidgetConfig.fallbackWidget,
+			                onEvent: function (e) {
+			                    var t = e.type,
+			                        a = e.payload;
+			                    switch (t) {
+			                        case "INIT_FAILURE":
+			                            a.error;
+			                            break;
+			                        case "WIDGET_CLICK_EVENT":
+			                            "SINGLE_PRODUCT_MORE_INFO_OPEN" === a.widgetEventType && ga("send", { hitType: "event", eventCategory: "PaceWidget", eventAction: "click", eventLabel: "Single Product Click" });
+			                    }
+			                },
+			                styles: { fontFamily: "inherit", primaryTextColor: "red", secondaryTextColor: "#FFFFFF", secondaryColor: "green" },
+			            })
+		        	).invoke();
+	        	}
+	        }
+		})(window.pace);
+	});
 </script>

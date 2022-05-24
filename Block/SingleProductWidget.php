@@ -5,60 +5,48 @@ namespace Pace\Pay\Block;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
-
 use Pace\Pay\Helper\ConfigData;
 
-class SingleProductWidget extends Template
-{
-    /**
-     * var $_config
-     * Pace\Pay\Helper\ConfigData
-     */
-    protected $_config;
+class SingleProductWidget extends Template {
+	/**
+	 * @var ConfigData
+	 */
+	protected $config;
 
-    /**
-     * var $_objectManager
-     * Magento\Framework\App\ObjectManager
-     */
-    protected $_registry;
+	public function __construct(
+		Context $context,
+		Registry $registry,
+		ConfigData $configData
+	) {
+		parent::__construct($context);
+		$this->config = $configData;
+		$this->product = $registry->registry('current_product');
+	}
 
-    /**
-     * var $_product;
-     */
-    protected $_product;
+	/**
+	 * getProductPrice...
+	 *
+	 * @return float
+	 */
+	public function getProductPrice() {
+		return $this->product->getFinalPrice();
+	}
 
-    public function __construct(
-        Context $context,
-        Registry $registry,
-        ConfigData $configData
-    ) {
-        parent::__construct($context);
+	/**
+	 * isBlacklisted...
+	 *
+	 * Check whether the product category is on the blacklist
+	 *
+	 * @return boolean
+	 */
+	public function isBlacklisted() {
+		$categories = $this->product->getCategoryIds();
+		$blacklisted = $this->config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
 
-        $this->_config = $configData;
-        $this->_registry = $registry;
-        $this->_product = $this->_registry->registry('current_product');
-    }
+		if (empty($categories) || empty($blacklisted)) {
+			return 0;
+		}
 
-    public function getProductPrice()
-    {
-        return $this->_product->getFinalPrice();
-    }
-
-
-    /**
-     * Check whether the product category is on the blacklist
-     * 
-     * @since 1.0.7
-     */
-    public function isBlacklisted()
-    {
-        $categories = $this->_product->getCategoryIds();
-        $blacklisted = $this->_config->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
-
-        if (empty($categories) || empty($blacklisted)) {
-            return 0;
-        }
-
-        return count(array_intersect($categories, explode(',', $blacklisted)));
-    }
+		return count(array_intersect($categories, explode(',', $blacklisted)));
+	}
 }
