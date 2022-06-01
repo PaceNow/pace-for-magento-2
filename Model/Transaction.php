@@ -299,4 +299,22 @@ class Transaction {
 
 		$this->orderRepository->save($order);
 	}
+
+	/**
+	 * completedRefunds...
+	 * Create credit memos when Pace refunds success
+	 *
+	 * @return void
+	 */
+	public function completedRefunds($order, $payload) {
+		// only create a memo if fully refunded on Pace
+		if ('full' == $payload->refundType) {
+			$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+			$creditmemoFactory = $objectManager->create(\Magento\Sales\Model\Order\CreditmemoFactory::class);
+			$creditmemoService = $objectManager->create(\Magento\Sales\Model\Service\CreditmemoService::class);
+
+			$creditmemo = $creditmemoFactory->createByOrder($order);
+			$creditmemoService->refund($creditmemo);
+		}
+	}
 }
