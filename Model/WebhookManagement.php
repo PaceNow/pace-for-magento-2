@@ -53,6 +53,7 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface {
 	 */
 	protected function webhookFactory($order, $payload = []) {
 		$payload = $payload ? json_decode($payload) : '';
+		$this->logger->info("Triggered webhooks: {$payload->event}\nPayload: {$payload}");
 
 		if (empty($payload)) {
 			throw new Exception('Empty callback parameters!');
