@@ -309,7 +309,7 @@ class Transaction {
 	public function completedRefunds($order, $payload) {
 		// only create a memo if fully refunded on Pace
 		if ('full' == $payload->refundType) {
-			$order->addCommentToStatusHistory("Refunds Completed by Pace (Reference ID: {$payload->transactionID}, Amount: {$payload->amount->actualValue})");
+			$order->addCommentToStatusHistory("Refunds Completed by Pace (Reference ID: {$payload->transactionID})");
 
 			$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 			$creditmemoFactory = $objectManager->create(\Magento\Sales\Model\Order\CreditmemoFactory::class);
