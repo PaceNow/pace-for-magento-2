@@ -319,7 +319,9 @@ class Transaction {
 			if ($creditmemo->canRefund()) {
 				$creditmemoService->refund($creditmemo);
 			} else {
-				$order->setState(Order::STATE_CLOSED);
+				$order->setState(Order::STATE_CLOSED)->setStatus(
+					$order->getConfig()->getStateDefaultStatus(Order::STATE_CLOSED)
+				);
 			}
 
 			$order->save();
