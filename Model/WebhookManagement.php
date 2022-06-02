@@ -48,9 +48,14 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface {
 
 	/**
 	 * webhookFactory...
+	 *
+	 * @return void
 	 */
 	protected function webhookFactory($order, $payload = []) {
 		$payload = $payload ? json_decode($payload) : '';
+
+		$payloadToString = json_encode($payload);
+		$this->logger->info("Triggered webhooks: {$payload->event}\nPayload: {$payloadToString}");
 
 		if (empty($payload)) {
 			throw new Exception('Empty callback parameters!');
@@ -65,6 +70,9 @@ class WebhookManagement implements \Pace\Pay\Api\WebhookManagementInterface {
 			break;
 		case 'expired':
 			$this->transaction->doCloseOrder($order);
+			break;
+		case 'refundrequest_completed':
+			$this->transaction->completedRefunds($order, $payload);
 			break;
 		default:
 			throw new Exception('Missing event payload!');
