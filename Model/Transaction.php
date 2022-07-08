@@ -134,7 +134,7 @@ class Transaction {
 	public function doAssignTransactionToOrder($transaction, $order) {
 		$tnxId = $transaction->transactionID;
 		$order->getPayment()->setLastTransId($tnxId);
-		$order->addCommentToStatusHistory("Pace transaction is created (Reference ID: {$tnxId})");
+		$this->addOrderComment($order, "Pace transaction is created (Reference ID: {$tnxId})");
 		$order->save();
 	}
 
@@ -194,10 +194,10 @@ class Transaction {
 					->addObject($invoice->getOrder());
 				$dbTransactionSave->save();
 
-				$order->addCommentToStatusHistory(__('Notified customer about invoice creation #%1', $invoice->getId()))
-					->setIsCustomerNotified(true);
+				$this->addOrderComment($order, __('Notified customer about invoice creation #%1', $invoice->getId()));
+				$order->setIsCustomerNotified(true);
 			} catch (Exception $exception) {
-				$order->addCommentToStatusHistory(__('Failed to generate invoice automatically'));
+				$this->addOrderComment($order, __('Failed to generate invoice automatically'));
 			}
 
 			$this->orderRepository->save($order);
@@ -294,7 +294,7 @@ class Transaction {
 			($state != $order->getState() && $this->configData->getConfigValue('reinstate_order', $order->getStoreId()))
 		) {
 			@$this->applyApprovedStateOrders($order, $state);
-			$order->addStatusHistoryComment("Pace payment is completed (Reference ID: {$order->getPayment()->getLastTransId()})");
+			$this->addOrderComment($order, "Pace payment is completed (Reference ID: {$order->getPayment()->getLastTransId()})");
 		}
 
 		$this->orderRepository->save($order);
@@ -309,7 +309,7 @@ class Transaction {
 	public function completedRefunds($order, $payload) {
 		// only create a memo if fully refunded on Pace
 		if ('full' == $payload->refundType) {
-			$order->addCommentToStatusHistory("Refunds Completed by Pace (Reference ID: {$payload->transactionID})");
+			$this->addOrderComment($order, "Refunds Completed by Pace (Reference ID: {$payload->transactionID})");
 
 			$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 			$creditmemoFactory = $objectManager->create(\Magento\Sales\Model\Order\CreditmemoFactory::class);
@@ -325,6 +325,21 @@ class Transaction {
 			}
 
 			$order->save();
+		}
+	}
+
+	/**
+	 * addOrderComment...
+	 *
+	 * @return Void
+	 */
+	public function addOrderComment($order, $comment) {
+		$versionRegex = '/2.2.*/';
+		$version = $this->configData->getMagentoVersion();
+		if (preg_match($versionRegex, $version)) {
+			$order->addStatusHistoryComment($comment);
+		} else {
+			$order->addCommentToStatusHistory($comment);
 		}
 	}
 }

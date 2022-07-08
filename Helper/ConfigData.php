@@ -290,4 +290,13 @@ class ConfigData extends AbstractHelper {
 
 		return $unit;
 	}
+	
+	/**
+	 * getMagentoVersion...
+	 *
+	 * @return String
+	 */
+	public function getMagentoVersion() {
+		return $this->productMetadata->getVersion();
+	}
 }
