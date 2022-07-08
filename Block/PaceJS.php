@@ -100,6 +100,24 @@ class PaceJS extends Template {
 			'isActive' => $this->getConfig('checkout_active') == '1',
 		];
 	}
+	
+	/**
+	 * getVoucherTagConfig
+	 *
+	 * @return array
+	 */
+	protected function getVoucherTagConfig() {
+		$styles = [
+			'style' => $this->getConfig('voucher_tag_style') ?: '',
+			'backgroundColor' => $this->getConfig('voucher_tag_background_color') ?: '',
+		];
+
+		return [
+			'enable' => $this->getConfig('voucher_tag_enable') == '1',
+			'country' => $this->getConfig('voucher_tag_country') ?: '',
+			'styles' => $styles,
+		];
+	}
 
 	/**
 	 * getPaceConfig...
@@ -117,6 +135,7 @@ class PaceJS extends Template {
 				'baseWidgetConfig' => $this->getBaseWidgetConfig(),
 				'productWidgetConfig' => $this->getProductWidgetConfig(),
 				'catalogWidgetConfig' => $this->getCatalogWidgetConfig(),
+				'voucherTagConfig' => $this->getVoucherTagConfig(),
 			];
 
 			return $config;
