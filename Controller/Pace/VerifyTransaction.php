@@ -37,16 +37,13 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 			if (isset($transaction->error)) {
 				return self::VERIFY_UNKNOWN;
 			}
-
 			$status = $transaction->status;
-
 			if ('approved' == $status) {
 				return self::VERIFY_SUCCESS;
-			} elseif ('cancelled' == $status) {
+			} elseif ('cancelled' == $status || 'expired' == $status) {
 				return self::VERIFY_FAILED;
 			}
 		};
-
 		$redirect = function ($result, $order) {
 			switch ($result) {
 			case self::VERIFY_UNKNOWN:
@@ -62,7 +59,6 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 				break;
 			}
 		};
-
 		return $redirect($result($transaction), $order);
 	}
 
@@ -94,7 +90,6 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 			$response = json_decode($this->transaction->getTransactionDetail($order));
 			// Factory: transaction statuses
 			$verifyResult = $this->transactionResultFactory($order, $response);
-
 			return $this->response->redirectResponse($verifyResult);
 		} catch (Exception $e) {
 			return $this->response->redirectResponse(self::ERROR_REDIRECT_URL);
