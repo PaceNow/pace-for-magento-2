@@ -270,6 +270,34 @@
                         </field>
                     </group>
                 </group>
+                <!-- Voucher tag -->
+                <group id="voucher_tag" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Voucher tag</label>
+                    <field id="voucher_tag_enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/pace_pay/voucher_tag_enable</config_path>
+                    </field>
+                    <field id="voucher_tag_style" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Style</label>
+                        <config_path>payment/pace_pay/voucher_tag_style</config_path>
+                        <comment>
+                            <![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/style" target="_blank">style</a>]]>
+                        </comment>
+                    </field>
+                    <field id="voucher_tag_country" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Environment</label>
+                        <source_model>Pace\Pay\Model\Adminhtml\Source\VoucherTagCountries</source_model>
+                        <config_path>payment/pace_pay/voucher_tag_country</config_path>
+                    </field>
+                    <field id="voucher_tag_background_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Background color</label>
+                        <config_path>payment/pace_pay/voucher_tag_background_color</config_path>
+                        <comment>
+                            <![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value" target="_blank">color</a>]]>
+                        </comment>
+                    </field>
+                </group>
             </group>
         </section>
     </system>

@@ -12,7 +12,7 @@ use Pace\Pay\Model\Ui\ConfigProvider;
 class VerifyTransaction extends Action\Action implements ActionInterface {
 	const ERROR_REDIRECT_URL = '/checkout/cart';
 	const SUCCESS_REDIRECT_URL = '/checkout/onepage/success';
-
+	const FAILED_TRANSACTION_STATUSES = ['cancelled', 'expired'];
 	const VERIFY_SUCCESS = 'verify_success';
 	const VERIFY_UNKNOWN = 'verify_unknown';
 	const VERIFY_FAILED = 'verify_failed';
@@ -42,7 +42,7 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 
 			if ('approved' == $status) {
 				return self::VERIFY_SUCCESS;
-			} elseif ('cancelled' == $status) {
+			} elseif (in_array($status, self::FAILED_TRANSACTION_STATUSES)) {
 				return self::VERIFY_FAILED;
 			}
 		};

@@ -13,6 +13,7 @@
                 <is_gateway>1</is_gateway>
                 <payment_action>initialize</payment_action>
                 <can_void>1</can_void>
+                <can_refund>1</can_refund>
                 <can_capture>1</can_capture>
                 <can_authorize>1</can_authorize>
                 <can_initialize>1</can_initialize>
@@ -23,6 +24,11 @@
                 <pay_with_pace_mode>redirect</pay_with_pace_mode>
                 <single_product_active>1</single_product_active>
                 <multi_products_active>0</multi_products_active>
+                <multi_products_active>0</multi_products_active>
+                <voucher_tag_enable>0</voucher_tag_enable>
+                <voucher_tag_style>font-size: 12px; padding: 5px; margin: auto; border-radius: 5px; font-weight: bold; display: inline-block;</voucher_tag_style>
+                <voucher_tag_country>S$10</voucher_tag_country>
+                <voucher_tag_background_color>#bedc3a</voucher_tag_background_color>
             </pace_pay>
         </payment>
     </default>

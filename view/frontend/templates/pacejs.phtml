@@ -82,4 +82,18 @@
 	        }
 		})(window.pace);
 	});
+
+	(function renderVoucherTag() {
+        if (!location.pathname.includes('checkout') || !window.pace.voucherTagConfig.enable || window.pace.voucherTagConfig.country == '') return;
+
+        var voucherTagEle = document.getElementById('pace-pay_voucher-tag-container');
+
+        if (!voucherTagEle) {
+            window.setTimeout(renderVoucherTag, 1000);
+            return;
+        }
+
+        voucherTagEle.innerText = window.pace.voucherTagConfig.country + ' Voucher';
+        voucherTagEle.setAttribute('style', window.pace.voucherTagConfig.styles.style + 'background-color: ' + window.pace.voucherTagConfig.styles.backgroundColor);
+    })();
 </script>
