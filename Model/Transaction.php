@@ -224,6 +224,14 @@ class Transaction {
 			return true;
 		};
 
+		$currentState = $order->getState();
+		if ($currentState == Order::STATE_CANCELED) {
+			foreach ($order->getAllItems() as $item) {
+                $item->setQtyCanceled(0);
+				$item->setTaxCanceled(0);
+				$item->setDiscountTaxCompensationCanceled(0);
+            }
+		}
 		$finalState = $giftcardOnly($order) ? Order::STATE_COMPLETE : $state;
 		$order->setState($finalState)->setStatus(
 			$order->getConfig()->getStateDefaultStatus($finalState)
