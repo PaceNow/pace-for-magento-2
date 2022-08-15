@@ -169,7 +169,6 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/single_product_font_size</config_path>
-                            <validate>integer</validate>
                             <comment>
                                 <![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]>
                             </comment>
@@ -208,7 +207,6 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/multi_products_font_size</config_path>
-                            <validate>integer</validate>
                             <comment>
                                 <![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]>
                             </comment>
@@ -263,7 +261,6 @@
                         <field id="text_secondary_font_size" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Font size</label>
                             <config_path>payment/pace_pay/checkout_font_size</config_path>
-                            <validate>integer</validate>
                             <comment>
                                 <![CDATA[<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-size" target="_blank">font-size</a> <br/> Adjustment in the font size will lead to a proportionate change in size of the entire widget.]]>
                             </comment>
