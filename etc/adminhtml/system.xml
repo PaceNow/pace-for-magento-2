@@ -94,7 +94,7 @@
                         </field>
                         <field id="order_cancel" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">
                             <label>Canceled</label>
-                            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                            <source_model>Pace\Pay\Model\Config\Source\Order\CanceledStatus</source_model>
                             <config_path>payment/pace_pay/pace_canceled</config_path>
                         </field>
                         <field id="order_expired" translate="label" type="select" sortOrder="1" showInDefault="0" showInWebsite="0" showInStore="1">

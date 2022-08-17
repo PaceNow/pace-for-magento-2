@@ -262,16 +262,16 @@ class Transaction {
 	 */
 	public function doCancelOrder($order) {
 		if ($order->canCancel()) {
-			$state = $this->configData->getConfigValue('pace_canceled', $order->getStoreId()) ?? Order::STATE_CANCELED;
-			$status = $order->getConfig()->getStateDefaultStatus($state);
+			$status = $this->configData->getConfigValue('pace_canceled', $order->getStoreId()) ?? Order::STATE_CANCELED;
+
 
 			$tnxId = $order->getPayment()->getLastTransId();
 			$comment = $tnxId
 			? "Pace payment canceled (Reference ID: {$tnxId})"
 			: "Failed to create Pace's transaction";
-			$order->setState($state);
 			$order->addStatusToHistory($status, $comment, $isCustomerNotified = false);
 			$order->cancel();
+			$order->setStatus($status);
 			$order->save();
 
 			$this->messageManager->addMessage(
