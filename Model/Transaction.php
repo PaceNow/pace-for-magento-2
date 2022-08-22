@@ -224,6 +224,14 @@ class Transaction {
 			return true;
 		};
 
+		$currentState = $order->getState();
+		if ($currentState == Order::STATE_CANCELED) {
+			foreach ($order->getAllItems() as $item) {
+                $item->setQtyCanceled(0);
+				$item->setTaxCanceled(0);
+				$item->setDiscountTaxCompensationCanceled(0);
+            }
+		}
 		$finalState = $giftcardOnly($order) ? Order::STATE_COMPLETE : $state;
 		$order->setState($finalState)->setStatus(
 			$order->getConfig()->getStateDefaultStatus($finalState)
@@ -254,16 +262,16 @@ class Transaction {
 	 */
 	public function doCancelOrder($order) {
 		if ($order->canCancel()) {
-			$state = $this->configData->getConfigValue('pace_canceled', $order->getStoreId()) ?? Order::STATE_CANCELED;
-			$status = $order->getConfig()->getStateDefaultStatus($state);
+			$status = $this->configData->getConfigValue('pace_canceled', $order->getStoreId()) ?? Order::STATE_CANCELED;
+
 
 			$tnxId = $order->getPayment()->getLastTransId();
 			$comment = $tnxId
 			? "Pace payment canceled (Reference ID: {$tnxId})"
 			: "Failed to create Pace's transaction";
-			$order->setState($state);
 			$order->addStatusToHistory($status, $comment, $isCustomerNotified = false);
 			$order->cancel();
+			$order->setStatus($status);
 			$order->save();
 
 			$this->messageManager->addMessage(
