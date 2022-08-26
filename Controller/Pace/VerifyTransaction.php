@@ -14,6 +14,7 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 	const SUCCESS_REDIRECT_URL = '/checkout/onepage/success';
 	const FAILED_TRANSACTION_STATUSES = ['cancelled', 'expired'];
 	const VERIFY_SUCCESS = 'verify_success';
+	const VERIFY_PROCESSING = 'verify_processing';
 	const VERIFY_UNKNOWN = 'verify_unknown';
 	const VERIFY_FAILED = 'verify_failed';
 
@@ -44,6 +45,8 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 				return self::VERIFY_SUCCESS;
 			} elseif (in_array($status, self::FAILED_TRANSACTION_STATUSES)) {
 				return self::VERIFY_FAILED;
+			} elseif ('processing' == $status) {
+				return self::VERIFY_PROCESSING;
 			}
 		};
 
@@ -59,6 +62,9 @@ class VerifyTransaction extends Action\Action implements ActionInterface {
 			case self::VERIFY_FAILED:
 				$this->transaction->doCancelOrder($order);
 				return self::ERROR_REDIRECT_URL;
+				break;
+			case self::VERIFY_PROCESSING:
+				return self::SUCCESS_REDIRECT_URL;
 				break;
 			}
 		};
