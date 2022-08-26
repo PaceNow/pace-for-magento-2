@@ -12,6 +12,7 @@ use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Service\InvoiceService;
 use Pace\Pay\Helper\ConfigData;
+use \Pace\Pay\Model\Order\Config as OrderConfig;
 
 /**
  * Transaction resource model
@@ -45,7 +46,8 @@ class Transaction {
 		InvoiceService $invoiceService,
 		ManagerInterface $messageManager,
 		TransactionBuilder $transactionBuilder,
-		OrderRepositoryInterface $orderRepository
+		OrderRepositoryInterface $orderRepository,
+        OrderConfig $orderConfig
 	) {
 		$this->order = $order;
 		$this->session = $session;
@@ -55,6 +57,7 @@ class Transaction {
 		$this->messageManager = $messageManager;
 		$this->orderRepository = $orderRepository;
 		$this->transactionBuilder = $transactionBuilder;
+        $this->orderConfig = $orderConfig;
 	}
 
 	/**
@@ -246,11 +249,15 @@ class Transaction {
 	 * @return Void
 	 */
 	public function doCloseOrder($order) {
-		$state = $this->configData->getConfigValue('pace_expired', $order->getStoreId()) ?? Order::STATE_CLOSED;
-		$status = $order->getConfig()->getStateDefaultStatus($state);
+		$status = $this->configData->getConfigValue('pace_expired', $order->getStoreId()) ?? Order::STATE_CLOSED;
+		$state = $this->orderConfig->getStateByStatus($status);
+		if (!$state) {
+			$state = Order::STATE_CLOSED;
+			$status = Order::STATE_CLOSED;
+		}
 		$comment = "Pace payment has expired (Reference ID: {$order->getPayment()->getLastTransId()})";
 
-		$order->setState($state);
+		$order->setState($state)->setStatus($status);
 		$order->addStatusToHistory($status, $comment, false);
 		$order->save();
 	}
@@ -295,13 +302,21 @@ class Transaction {
 			@$this->createInvoiceAttachedOrder($order);
 		}
 
-		$state = $this->configData->getConfigValue('pace_approved', $order->getStoreId()) ?? Order::STATE_PROCESSING;
+		$status = $this->configData->getConfigValue('pace_approved', $order->getStoreId()) ?? Order::STATE_PROCESSING;
+		$state = $this->orderConfig->getStateByStatus($status);
+		if (!$state) {
+			$state = Order::STATE_PROCESSING;
+			$status = Order::STATE_PROCESSING;
+		}
 
 		if (
 			'pending_payment' == $order->getState() ||
 			($state != $order->getState() && $this->configData->getConfigValue('reinstate_order', $order->getStoreId()))
 		) {
 			@$this->applyApprovedStateOrders($order, $state);
+			if ($order->getState() === $state && $order->getStatus() !== $status) {
+				$order->setStatus($status);
+			}
 			$this->addOrderComment($order, "Pace payment is completed (Reference ID: {$order->getPayment()->getLastTransId()})");
 		}
 
