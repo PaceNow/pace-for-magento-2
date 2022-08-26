@@ -1,5 +1,5 @@
 <?php
 	if (!$block->isBlacklisted()) {
-		echo "<div class=\"pace-pay_single-product-widget-container\" data-price=\"{$block->getProductPrice()}\"></div>";
+		echo "<div class=\"pace-pay_single-product-widget-container\" data-price=\"{$block->getProductPriceWithCurrency()}\"></div>";
 	}
 ?>
