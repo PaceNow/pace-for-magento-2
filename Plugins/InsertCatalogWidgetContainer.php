@@ -12,9 +12,11 @@ class InsertCatalogWidgetContainer {
 	protected $config;
 
 	public function __construct(
-		ConfigData $config
+		ConfigData $config,
+		\Magento\Framework\Pricing\Helper\Data $pricingHelper
 	) {
 		$this->config = $config;
+		$this->pricingHelper = $pricingHelper;
 	}
 
 	/**
@@ -47,7 +49,7 @@ class InsertCatalogWidgetContainer {
 			return $result;
 		}
 
-		$result .= "<div class=\"pace-pay_multi-products-widget-container\" data-price=\"{$product->getFinalPrice()}\"></div>";
+		$result .= "<div class=\"pace-pay_multi-products-widget-container\" data-price=\"{$this->pricingHelper->currency($product->getFinalPrice(), false, false)}\"></div>";
 
 		return $result;
 	}
