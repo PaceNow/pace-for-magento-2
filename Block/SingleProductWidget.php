@@ -16,11 +16,13 @@ class SingleProductWidget extends Template {
 	public function __construct(
 		Context $context,
 		Registry $registry,
-		ConfigData $configData
+		ConfigData $configData,
+		\Magento\Framework\Pricing\Helper\Data $pricingHelper
 	) {
 		parent::__construct($context);
 		$this->config = $configData;
 		$this->product = $registry->registry('current_product');
+		$this->pricingHelper = $pricingHelper;
 	}
 
 	/**
@@ -30,6 +32,15 @@ class SingleProductWidget extends Template {
 	 */
 	public function getProductPrice() {
 		return $this->product->getFinalPrice();
+	}
+
+	/**
+	 * getProductPriceWithCurrency...
+	 *
+	 * @return float
+	 */
+	public function getProductPriceWithCurrency() {
+		return $this->pricingHelper->currency($this->product->getFinalPrice(), false, false);
 	}
 
 	/**
