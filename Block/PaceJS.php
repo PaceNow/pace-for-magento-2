@@ -70,7 +70,7 @@ class PaceJS extends Template {
 	protected function getCatalogWidgetConfig() {
 		$styles = [
 			'fontSize' => $this->getConfig('multi_products_font_size') ?? 0,
-			'logoTheme' => $this->getConfig('multi_product_logo_theme') ?: '',
+			'logoTheme' => $this->getConfig('multi_products_logo_theme') ?: '',
 			'textColor' => $this->getConfig('multi_products_text_color') ?: '',
 		];
 
