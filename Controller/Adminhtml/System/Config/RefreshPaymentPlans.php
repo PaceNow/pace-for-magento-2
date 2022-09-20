@@ -8,6 +8,7 @@ use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Pace\Pay\Helper\ConfigData;
 use Pace\Pay\Helper\ResponseRespository;
+use Pace\Pay\Helper\AdminStoreResolver;
 
 class RefreshPaymentPlans extends Action {
 	/**
@@ -20,13 +21,15 @@ class RefreshPaymentPlans extends Action {
 		ConfigData $configData,
 		ResponseRespository $response,
 		StoreManagerInterface $storeManager,
-		MessageManagerInterface $messageManager
+		MessageManagerInterface $messageManager,
+		AdminStoreResolver $adminStoreResolver
 	) {
 		parent::__construct($context);
 		$this->response = $response;
 		$this->configData = $configData;
 		$this->storeManager = $storeManager;
 		$this->messageManager = $messageManager;
+		$this->adminStoreResolver = $adminStoreResolver;
 	}
 
 	/**
@@ -46,7 +49,7 @@ class RefreshPaymentPlans extends Action {
 	 * @return Void
 	 */
 	public function execute() {
-		$storeId = $this->storeManager->getStore()->getId();
+		$storeId = $this->adminStoreResolver->resolveAdminStoreId();
 		$basePayload = $this->configData->getBasePayload($storeId);
 
 		$cURL = \Magento\Framework\App\ObjectManager::getInstance()

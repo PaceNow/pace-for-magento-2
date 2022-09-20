@@ -30,13 +30,13 @@
 	                    try {
 	                    	(window.r || (window.r = this)),
 	                         	e.catalogWidgetConfig.isActive &&
-	                                this.showWidget("catalog"),
+	                                (this.showWidget("catalog"),
                                     window.addEventListener("scroll", () => {
                                         clearTimeout(window.timer),
                                             (window.timer = setTimeout(() => {
                                                 r.showWidget("catalog");
                                             }, 1e3));
-                                    });
+                                    }));
 
 	                            e.productWidgetConfig.isActive && this.showWidget("product"),
 								    $(document.body).on("updatePrice", (e, t) => {

@@ -13,6 +13,7 @@ use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Service\InvoiceService;
 use Pace\Pay\Helper\ConfigData;
 use \Pace\Pay\Model\Order\Config as OrderConfig;
+use Magento\Framework\App\ResourceConnection;
 
 /**
  * Transaction resource model
@@ -38,6 +39,11 @@ class Transaction {
 	 */
 	public $orderRepository;
 
+    /**
+     * @var ResourceConnection
+     */
+    private $resourceConnection;
+
 	function __construct(
 		Order $order,
 		Session $session,
@@ -47,7 +53,8 @@ class Transaction {
 		ManagerInterface $messageManager,
 		TransactionBuilder $transactionBuilder,
 		OrderRepositoryInterface $orderRepository,
-        OrderConfig $orderConfig
+        OrderConfig $orderConfig,
+        ResourceConnection $resourceConnection
 	) {
 		$this->order = $order;
 		$this->session = $session;
@@ -58,6 +65,7 @@ class Transaction {
 		$this->orderRepository = $orderRepository;
 		$this->transactionBuilder = $transactionBuilder;
         $this->orderConfig = $orderConfig;
+        $this->resourceConnection = $resourceConnection;
 	}
 
 	/**
@@ -268,25 +276,44 @@ class Transaction {
 	 * @return Void
 	 */
 	public function doCancelOrder($order) {
-		if ($order->canCancel()) {
-			$status = $this->configData->getConfigValue('pace_canceled', $order->getStoreId()) ?? Order::STATE_CANCELED;
+        $connection = $this->resourceConnection->getConnection('sales');
+        $connection->beginTransaction();
+        try {
+			$select = $connection->select()->from(['so' => 'sales_order'])
+			->where('entity_id = ?', $order->getId())
+			->forUpdate(true);
+			$rows = $connection->query($select)->fetchAll();
+			$row = $rows[0];
+			if ($row) {
+				$order->setData(Order::STATE, $row[Order::STATE]);
+				$order->setData(Order::STATUS, $row[Order::STATUS]);
+			}
+			if ($order->canCancel()) {
+				$status = $this->configData->getConfigValue('pace_canceled', $order->getStoreId()) ?? Order::STATE_CANCELED;
 
+				$tnxId = $order->getPayment()->getLastTransId();
+				$comment = $tnxId
+				? "Pace payment canceled (Reference ID: {$tnxId})"
+				: "Failed to create Pace's transaction";
+				$order->addStatusToHistory($status, $comment, $isCustomerNotified = false);
+				$order->cancel();
+				$order->setStatus($status);
+				$order->save();
 
-			$tnxId = $order->getPayment()->getLastTransId();
-			$comment = $tnxId
-			? "Pace payment canceled (Reference ID: {$tnxId})"
-			: "Failed to create Pace's transaction";
-			$order->addStatusToHistory($status, $comment, $isCustomerNotified = false);
-			$order->cancel();
-			$order->setStatus($status);
-			$order->save();
+				$this->messageManager->addMessage(
+					$this->messageManager->createMessage('notice', 'PACENOTICE')->setText($comment)
+				);
 
-			$this->messageManager->addMessage(
-				$this->messageManager->createMessage('notice', 'PACENOTICE')->setText($comment)
-			);
-
-			$this->session->restoreQuote();
-		}
+				$this->session->restoreQuote();
+			}
+            $connection->commit();
+        } catch (\Exception $e) {
+            $this->logger->critical($e);
+            $connection->rollBack();
+            throw new \Exception(
+                __('Could not cancel order, see error log for details')
+            );
+        }
 	}
 
 	/**
