@@ -22,11 +22,6 @@
                     <source_model>Pace\Pay\Model\Adminhtml\Source\PayWithPaceMode</source_model>
                     <config_path>payment/pace_pay/pay_with_pace_mode</config_path>
                 </field>
-                <field id="generate_invoice" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automatically Generate Invoice</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>payment/pace_pay/generate_invoice</config_path>
-                </field>
                 <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sort Order</label>
                     <frontend_class>validate-number</frontend_class>
