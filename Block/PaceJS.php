@@ -13,6 +13,8 @@ class PaceJS extends Template {
 	 */
 	protected $storeId;
 
+	protected $_storeManager;
+
 	public function __construct(
 		Template\Context $context,
 		ConfigData $configData,
@@ -22,6 +24,7 @@ class PaceJS extends Template {
 
 		$this->storeId = $storeManager->getStore()->getId();
 		$this->configData = $configData;
+		$this->_storeManager = $storeManager;
 	}
 
 	protected function getConfig($key) {
@@ -100,7 +103,7 @@ class PaceJS extends Template {
 			'isActive' => $this->getConfig('checkout_active') == '1',
 		];
 	}
-	
+
 	/**
 	 * getVoucherTagConfig
 	 *
@@ -129,6 +132,7 @@ class PaceJS extends Template {
 			$paymentPlans = $this->configData->getPaymentPlan($this->storeId, true);
 			$config = [
 				'mode' => $this->configData->getApiEnvironment(),
+				'currency' => $this->_storeManager->getStore()->getCurrentCurrencyCode(),
 				'isEnable' => !empty($paymentPlans) ? get_object_vars($paymentPlans['paymentPlans']) : [],
 				'paymentMode' => $this->getConfig('pay_with_pace_mode'),
 				'checkoutSetting' => $this->getCheckoutWidgetConfig(),
