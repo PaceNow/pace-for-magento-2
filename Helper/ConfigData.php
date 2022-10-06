@@ -146,22 +146,29 @@ class ConfigData extends AbstractHelper {
 			throw new Exception("Payment plans is not found!");
 		}
 
-		$invalidPaymentPlans = [];
-		foreach (json_decode($paymentPlans) as $p) {
-			$invalidPaymentPlans[$p->currencyCode][] = $p;
+		$availablePlans = [];
+		foreach (json_decode($paymentPlans) as $plan) {
+			$planCurrency = $plan->currencyCode;
+			$availablePlans[$planCurrency][] = $plan;
 		}
 
 		$storeCurrency = $this->storeManager->getStore($storeId)->getCurrentCurrencyCode();
 
-		if (!in_array($storeCurrency, array_keys($invalidPaymentPlans))) {
-			throw new Exception("Pace doesn't support the client currency!");
+		if (!in_array($storeCurrency, array_keys($availablePlans))) {
+			throw new Exception("Store currency not matched.");
 		}
 
 		$finalPlan = null;
-		$paymentPlanByCurrency = $invalidPaymentPlans[$storeCurrency];
-		$storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+		$planByCurrency = $availablePlans[$storeCurrency];
 
-		foreach ($paymentPlanByCurrency as $plan) {
+		// Sort list plans by end date
+		usort($planByCurrency, function ($i, $o) {
+			return strtotime($o->endedAt) - strtotime($i->endedAt);
+		});
+
+		$storeCountry = $this->scopeConfig->getValue('general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+
+		foreach ($planByCurrency as $plan) {
 			if (0 == strcmp($storeCountry, $plan->country)) {
 				$finalPlan = $plan;
 				break;
@@ -169,7 +176,7 @@ class ConfigData extends AbstractHelper {
 		}
 
 		if (empty($finalPlan)) {
-			throw new Exception("Empty available plan!");
+			throw new Exception("Nulled payment plans.");
 		}
 
 		$finalPlan->isAvailable = true;
@@ -290,7 +297,7 @@ class ConfigData extends AbstractHelper {
 
 		return $unit;
 	}
-	
+
 	/**
 	 * getMagentoVersion...
 	 *

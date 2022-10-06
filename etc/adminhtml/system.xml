@@ -264,7 +264,7 @@
                 </group>
                 <!-- Voucher tag -->
                 <group id="voucher_tag" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Voucher tag</label>
+                    <label>Promotion</label>
                     <field id="voucher_tag_enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Enable</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
