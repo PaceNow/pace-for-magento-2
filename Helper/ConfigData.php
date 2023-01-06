@@ -253,12 +253,15 @@ class ConfigData extends AbstractHelper {
 	 */
 	public function getBasePayload($storeId = null) {
 		$env = $this->getApiEnvironment($storeId);
-		$version = sprintf('%s, %s, %s', ConfigProvider::PLUGIN_NAME, $this->getSetupVersion(), $this->productMetadata->getVersion());
+		$setupVersion = $this->getSetupVersion();
+		$version = sprintf('%s, %s, %s', ConfigProvider::PLUGIN_NAME, $setupVersion, $this->productMetadata->getVersion());
 		$payload = [
 			'headers' => [
 				'Content-Type' => 'application/json',
 				'Authorization' => $this->getAPIAuthenticate($storeId, $env),
 				'X-Pace-PlatformVersion' => $version,
+				'X-Pace-PluginsName' => ConfigProvider::PLUGIN_NAME,
+				'X-Pace-PluginsVersion' => $setupVersion,
 			],
 			'apiEndpoint' => $this->getApiEndpoint($env),
 		];
