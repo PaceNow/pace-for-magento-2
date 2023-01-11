@@ -32,7 +32,8 @@ define([
 
             require([mode], m => {
                 const t = a => {
-                    var price = a.totals().base_grand_total;
+                    
+                    var price = a.totals().grand_total;
 
                     if (price && parseFloat(price) > 0 && (window.activeCheckout || (window.activeCheckout = window.pace.checkoutSetting.isActive))) {
                         var c = document.getElementById('pace-pay-container');

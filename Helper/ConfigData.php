@@ -2,6 +2,7 @@
 
 namespace Pace\Pay\Helper;
 
+use DateTime;
 use Exception;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
@@ -146,22 +147,30 @@ class ConfigData extends AbstractHelper {
 			throw new Exception("Payment plans is not found!");
 		}
 
-		$invalidPaymentPlans = [];
-		foreach (json_decode($paymentPlans) as $p) {
-			$invalidPaymentPlans[$p->currencyCode][] = $p;
+		$availablePlans = [];
+		foreach (json_decode($paymentPlans) as $plan) {
+			$planCurrency = $plan->currencyCode;
+			$availablePlans[$planCurrency][] = $plan;
 		}
 
 		$storeCurrency = $this->storeManager->getStore($storeId)->getCurrentCurrencyCode();
 
-		if (!in_array($storeCurrency, array_keys($invalidPaymentPlans))) {
-			throw new Exception("Pace doesn't support the client currency!");
+		if (!in_array($storeCurrency, array_keys($availablePlans))) {
+			throw new Exception("Store currency not matched.");
 		}
 
 		$finalPlan = null;
-		$paymentPlanByCurrency = $invalidPaymentPlans[$storeCurrency];
-		$storeCountry = $this->scopeConfig->getValue($key = 'general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+		$planByCurrency = $availablePlans[$storeCurrency];
 
-		foreach ($paymentPlanByCurrency as $plan) {
+		// Sort list plans by end date
+		usort($planByCurrency, function ($i, $o) {
+			$now = new DateTime();
+			return strtotime($o->endedAt ?? $now->format('Y-m-d H:i:s')) - strtotime($i->endedAt ?? $now->format('Y-m-d H:i:s'));
+		});
+
+		$storeCountry = $this->scopeConfig->getValue('general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
+
+		foreach ($planByCurrency as $plan) {
 			if (0 == strcmp($storeCountry, $plan->country)) {
 				$finalPlan = $plan;
 				break;
@@ -169,7 +178,7 @@ class ConfigData extends AbstractHelper {
 		}
 
 		if (empty($finalPlan)) {
-			throw new Exception("Empty available plan!");
+			throw new Exception("Nulled payment plans.");
 		}
 
 		$finalPlan->isAvailable = true;
@@ -246,12 +255,15 @@ class ConfigData extends AbstractHelper {
 	 */
 	public function getBasePayload($storeId = null) {
 		$env = $this->getApiEnvironment($storeId);
-		$version = sprintf('%s, %s, %s', ConfigProvider::PLUGIN_NAME, $this->getSetupVersion(), $this->productMetadata->getVersion());
+		$setupVersion = $this->getSetupVersion();
+		$version = sprintf('%s, %s, %s', ConfigProvider::PLUGIN_NAME, $setupVersion, $this->productMetadata->getVersion());
 		$payload = [
 			'headers' => [
 				'Content-Type' => 'application/json',
 				'Authorization' => $this->getAPIAuthenticate($storeId, $env),
 				'X-Pace-PlatformVersion' => $version,
+				'X-Pace-PluginsName' => ConfigProvider::PLUGIN_NAME,
+				'X-Pace-PluginsVersion' => $setupVersion,
 			],
 			'apiEndpoint' => $this->getApiEndpoint($env),
 		];
@@ -290,7 +302,7 @@ class ConfigData extends AbstractHelper {
 
 		return $unit;
 	}
-	
+
 	/**
 	 * getMagentoVersion...
 	 *

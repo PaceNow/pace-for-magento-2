@@ -48,7 +48,7 @@
 								    });
 
 	                    } catch (e) {
-	                        console.log(`Pace invokes error: ${e}`);
+	                        console.log(`Pace invoking error: ${e}`);
 	                    }
 	                });
 	        });
@@ -60,7 +60,8 @@
 	        		new PacePayment(
 		        		t.init({
 			                debug: "playground" === e.mode,
-			                currency: p.currencyCode,
+			                planID: p.id,
+			                currency: e.currency,
 			                minAmount: p.minAmount.actualValue,
 			                maxAmount: p.maxAmount.actualValue,
 			                fallbackWidget: e.baseWidgetConfig.fallbackWidget,

@@ -324,10 +324,8 @@ class Transaction {
 	public function doCompleteOrder($order) {
 		@$this->createTransactionAttachedOrder($order);
 
-		if ($this->configData->getConfigValue('generate_invoice', $order->getStoreId())) {
-			// create invoice assigned to order
-			@$this->createInvoiceAttachedOrder($order);
-		}
+		// create invoice assigned to order
+		@$this->createInvoiceAttachedOrder($order);
 
 		$status = $this->configData->getConfigValue('pace_approved', $order->getStoreId()) ?? Order::STATE_PROCESSING;
 		$state = $this->orderConfig->getStateByStatus($status);
