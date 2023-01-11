@@ -2,6 +2,7 @@
 
 namespace Pace\Pay\Helper;
 
+use DateTime;
 use Exception;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
@@ -163,7 +164,8 @@ class ConfigData extends AbstractHelper {
 
 		// Sort list plans by end date
 		usort($planByCurrency, function ($i, $o) {
-			return strtotime($o->endedAt) - strtotime($i->endedAt);
+			$now = new DateTime();
+			return strtotime($o->endedAt ?? $now->format('Y-m-d H:i:s')) - strtotime($i->endedAt ?? $now->format('Y-m-d H:i:s'));
 		});
 
 		$storeCountry = $this->scopeConfig->getValue('general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
