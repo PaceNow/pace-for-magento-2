@@ -355,10 +355,8 @@ class Transaction {
 	 * @return void
 	 */
 	public function completedRefunds($order, $payload) {
-		// only create a memo if fully refunded on Pace
-		if ('full' == $payload->refundType) {
-			$this->addOrderComment($order, "Refunds Completed by Pace (Reference ID: {$payload->transactionID})");
-
+		// function to create memo credit by refund via Pace
+		$refundFnc = function() use ($order) {
 			$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 			$creditmemoFactory = $objectManager->create(\Magento\Sales\Model\Order\CreditmemoFactory::class);
 			$creditmemoService = $objectManager->create(\Magento\Sales\Model\Service\CreditmemoService::class);
@@ -371,9 +369,42 @@ class Transaction {
 					$order->getConfig()->getStateDefaultStatus(Order::STATE_CLOSED)
 				);
 			}
+		};
 
-			$order->save();
+		if('full' == $payload->refundType) {
+			$this->addOrderComment($order, "Refunds Completed by Pace (Reference ID: {$payload->transactionID})");
+			$refundFnc();
+		} 
+
+		if ('partial' == $payload->refundType) {
+			$comments =  $order->getStatusHistoryCollection(); 
+			$refunded = 0;
+			$amount = $payload->amount->actualValue;
+			$displayAmount = number_format((float)$amount, 2, '.', '');
+			$currency = $payload->amount->currency;
+			
+			$this->addOrderComment($order, "We partially refunded $currency $displayAmount via Pace");
+			
+			//Regex to get the refunded amount in the previous comment 
+			$reg = "/(?<=[We partially refunded .* ])(\d+([.,]\d+)?)(?=[ via Pace])/";
+			if($comments) {
+				foreach($comments->getData() as $com) {
+					preg_match($reg, $com['comment'], $matches);
+					if($matches) $refunded += floatval($matches[0]);					
+				}
+			}
+			$refunded += $amount;
+
+			//check if refunded amount equal order price
+			$total = $order->getGrandTotal();
+			if($refunded == $total) {
+				$displayTotal = number_format((float)$total, 2, '.', '');
+				$this->addOrderComment($order, "We have complete a full refund of $currency $displayTotal via Pace");
+				$refundFnc();
+			}
 		}
+		$order->save();
+
 	}
 
 	/**

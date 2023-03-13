@@ -6,6 +6,8 @@ use Exception;
 use Magento\Framework\View\Element\Template;
 use Magento\Store\Model\StoreManagerInterface;
 use Pace\Pay\Helper\ConfigData;
+use Magento\Checkout\Model\Session;
+
 
 class PaceJS extends Template {
 	/**
@@ -18,13 +20,17 @@ class PaceJS extends Template {
 	public function __construct(
 		Template\Context $context,
 		ConfigData $configData,
-		StoreManagerInterface $storeManager
+		Session $session,
+		StoreManagerInterface $storeManager,
+		\Magento\Framework\ObjectManagerInterface $objectmanager
 	) {
 		parent::__construct($context);
 
 		$this->storeId = $storeManager->getStore()->getId();
+		$this->_objectManager = $objectmanager;
 		$this->configData = $configData;
 		$this->_storeManager = $storeManager;
+		$this->_session = $session;
 	}
 
 	protected function getConfig($key) {
@@ -140,11 +146,29 @@ class PaceJS extends Template {
 				'productWidgetConfig' => $this->getProductWidgetConfig(),
 				'catalogWidgetConfig' => $this->getCatalogWidgetConfig(),
 				'voucherTagConfig' => $this->getVoucherTagConfig(),
+				'blacklisted' => $this->isBlackList(),
 			];
 
 			return $config;
 		} catch (Exception $e) {
 			return [];
 		}
+	}
+
+	private function isBlackList () {
+		$items = $this->_session->getQuote()->getAllVisibleItems();
+		$blacklisted = $this->configData->getConfigValue(ConfigData::CONFIG_BLACK_LISTED);
+		$blacklistedArr = explode(',', $blacklisted);
+		if(count($items) > 0) {
+			foreach( $items as $key => $value) {
+				$productid = $value->getProductId();
+				$product = $this->_objectManager->create('Magento\Catalog\Model\Product')->load($productid);
+				$checkInBlacklisted = count(array_intersect($product->getCategoryIds(), $blacklistedArr));
+				if($checkInBlacklisted > 0 ) {
+					return true;
+				}	
+			}
+		}
+		return false;
 	}
 }
